@@ -28,29 +28,29 @@
 [harness.dump] border 20: ground 734, player at 8192 186303 750 in cell 1,22, swimming true, surface there 900
 [harness.dump] step 16 of 36: player to 60 units from the border
 [harness.dump] step 17 of 36: player 60 units from the border
-[harness.dump] border 60: ground 744, player at 8192 186303 750 in cell 1,22, swimming true, surface there 900
+[harness.dump] border 60: ground 744, player at 8252 186303 750 in cell 1,22, swimming true, surface there 900
 [harness.dump] step 18 of 36: swimming across the border
 [harness.dump] PASS player swims at every step across the border where the ground is 140 or more below the surface: 0 of 7 checks not swimming
 [harness.dump] step 19 of 36: set up: river border renderer water from above
 [harness.dump] step 20 of 36: photograph: river border renderer water from above
-[harness.dump] screenshot C:/Users/ivan_/source/repos/morrowind-test-harness/dump/work/runs/20261004-183925-wv-audit-river/01 river border renderer water from above.jpg
+[harness.dump] screenshot C:/Users/ivan_/source/repos/morrowind-test-harness/dump/work/runs/20261004-194123-wv4-river/01 river border renderer water from above.jpg
 [harness.dump] step 21 of 36: set up: river border renderer water along the border
 [harness.dump] step 22 of 36: photograph: river border renderer water along the border
-[harness.dump] screenshot C:/Users/ivan_/source/repos/morrowind-test-harness/dump/work/runs/20261004-183925-wv-audit-river/02 river border renderer water along the border.jpg
+[harness.dump] screenshot C:/Users/ivan_/source/repos/morrowind-test-harness/dump/work/runs/20261004-194123-wv4-river/02 river border renderer water along the border.jpg
 [harness.dump] step 23 of 36: the same two squares with the plain option
 [harness.dump] step 24 of 36: set up: river border plain texture from above
 [harness.dump] step 25 of 36: photograph: river border plain texture from above
-[harness.dump] screenshot C:/Users/ivan_/source/repos/morrowind-test-harness/dump/work/runs/20261004-183925-wv-audit-river/03 river border plain texture from above.jpg
+[harness.dump] screenshot C:/Users/ivan_/source/repos/morrowind-test-harness/dump/work/runs/20261004-194123-wv4-river/03 river border plain texture from above.jpg
 [harness.dump] step 26 of 36: set up: river border plain texture along the border
 [harness.dump] step 27 of 36: photograph: river border plain texture along the border
-[harness.dump] screenshot C:/Users/ivan_/source/repos/morrowind-test-harness/dump/work/runs/20261004-183925-wv-audit-river/04 river border plain texture along the border.jpg
+[harness.dump] screenshot C:/Users/ivan_/source/repos/morrowind-test-harness/dump/work/runs/20261004-194123-wv4-river/04 river border plain texture along the border.jpg
 [harness.dump] step 28 of 36: one square lying across the border to the north
 [harness.dump] OBSERVED cell of the piece across the border: 0,23; the player is in 0,22
 [harness.dump] step 29 of 36: both halves are water while the piece's cell is active
 [harness.dump] PASS piece across a border, its cell active: south half 900, north half 900; scene node true, hidden false
 [harness.dump] step 30 of 36: set up: river piece across a border its cell active
 [harness.dump] step 31 of 36: photograph: river piece across a border its cell active
-[harness.dump] screenshot C:/Users/ivan_/source/repos/morrowind-test-harness/dump/work/runs/20261004-183925-wv-audit-river/05 river piece across a border its cell active.jpg
+[harness.dump] screenshot C:/Users/ivan_/source/repos/morrowind-test-harness/dump/work/runs/20261004-194123-wv4-river/05 river piece across a border its cell active.jpg
 [harness.dump] step 32 of 36: player one cell further south, so the piece's cell is no longer active
 [harness.dump] step 33 of 36: the half in the still active cell
 [harness.dump] OBSERVED active cells: -1,20 -1,21 -1,22 0,20 0,21 0,22 1,20 1,21 1,22
@@ -58,6 +58,6 @@
 [harness.dump] OBSERVED the piece's reference, its cell not active: scene node true, hidden false
 [harness.dump] step 34 of 36: set up: river piece across a border its cell not active
 [harness.dump] step 35 of 36: photograph: river piece across a border its cell not active
-[harness.dump] screenshot C:/Users/ivan_/source/repos/morrowind-test-harness/dump/work/runs/20261004-183925-wv-audit-river/06 river piece across a border its cell not active.jpg
+[harness.dump] screenshot C:/Users/ivan_/source/repos/morrowind-test-harness/dump/work/runs/20261004-194123-wv4-river/06 river piece across a border its cell not active.jpg
 [harness.dump] step 36 of 36: clean up
 [harness.dump] DONE

@@ -29,12 +29,16 @@ Any mesh can be water. On the root node add two text entries (NiStringExtraData)
 The footprint is the area under the mesh's triangles, so the shape is yours to model.
 
 The surface may slope. The water level at any spot is the height of the mesh there, so a river
-can run downhill, and a kit piece can simply be rotated in the Construction Set. Tilt a piece
-by less than 30 degrees: a triangle steeper than 60 degrees counts as a wall and not as water,
-so the surface of a piece tilted further stops being water and its sides start to be. Keep
-slopes gentle in any case: under water MGE XE draws one level surface at the camera's height, the water does not
+can run downhill, and a kit piece can simply be rotated in the Construction Set. A mesh with a
+shape named `WaterBody` (every kit piece has one) is a closed body: its water is exactly what
+is inside the mesh, at any tilt, so a steep stretch of river works as it is placed. Keep
+slopes gentle where the view under water matters: under water MGE XE draws one level surface at the camera's height, the water does not
 push anything downstream, and the kit texture does not flow. For a big drop use flat steps
 joined by a waterfall mesh.
+
+A waterfall, a fountain jet or any other water that nobody should swim in gets `noswim` in its
+tag: `WaterVolume noswim`. It is drawn as water and holds none, so it costs nothing when the
+game asks where the water is.
 
 A mesh whose texture is the game's own water surface (`water00` and so on) is animated.
 

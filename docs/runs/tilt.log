@@ -1,0 +1,34 @@
+[harness.dump] magic effects resolved: 2808 spells, 13024 NPCs, 0 auto-calculated NPCs hold 0 spells, nothing applied
+[harness.dump] loading save 'quiksave.ess'
+[harness.dump] loaded, new game false, cell Vas
+[harness.dump] water: god mode on at load; player at 5874 185035 990, health 13, swimming false
+[harness.dump] water: 2 water pieces left in the save by earlier runs removed
+[harness.dump] step 1 of 20: god mode on, player to the basin near Vas
+[harness.dump] step 2 of 20: a closed kit square in the air
+[harness.dump] step 3 of 20: tilt: level
+[harness.dump] step 4 of 20: check: level
+[harness.dump] PASS level: the water is the inside of the piece: 0 of 3911 points wrong, 371 of them inside
+[harness.dump] step 5 of 20: tilt: tilted 20 degrees
+[harness.dump] step 6 of 20: check: tilted 20 degrees
+[harness.dump] PASS tilted 20 degrees: the water is the inside of the piece: 0 of 3904 points wrong, 346 of them inside
+[harness.dump] step 7 of 20: tilt: tilted 45 degrees
+[harness.dump] step 8 of 20: check: tilted 45 degrees
+[harness.dump] PASS tilted 45 degrees: the water is the inside of the piece: 0 of 3916 points wrong, 341 of them inside
+[harness.dump] step 9 of 20: tilt: tilted 70 degrees
+[harness.dump] step 10 of 20: check: tilted 70 degrees
+[harness.dump] PASS tilted 70 degrees: the water is the inside of the piece: 0 of 3919 points wrong, 346 of them inside
+[harness.dump] step 11 of 20: tilt: tilted 30 and 25 degrees about two axes
+[harness.dump] step 12 of 20: check: tilted 30 and 25 degrees about two axes
+[harness.dump] PASS tilted 30 and 25 degrees about two axes: the water is the inside of the piece: 0 of 3908 points wrong, 355 of them inside
+[harness.dump] step 13 of 20: tilt: upside down
+[harness.dump] step 14 of 20: check: upside down
+[harness.dump] PASS upside down: the water is the inside of the piece: 0 of 3905 points wrong, 329 of them inside
+[harness.dump] step 15 of 20: tilt 45 degrees, down into the basin
+[harness.dump] step 16 of 20: the player onto the bottom of the basin, inside the tilted piece
+[harness.dump] step 17 of 20: the player swims in the tilted water
+[harness.dump] PASS tilted 45 degrees: the player swims inside the piece: player at 7060 186303 455, surface there 620, expected 620, swimming true, underwater true
+[harness.dump] step 18 of 20: a piece that only looks like water
+[harness.dump] step 19 of 20: check: the piece that only looks like water
+[harness.dump] PASS noswim: the piece is drawn as water and holds none: 1 surface shapes marked for the water shading, 1 of 1 body shapes hidden, 0 of 500 points around it have water; 1 volumes registered
+[harness.dump] step 20 of 20: clean up
+[harness.dump] DONE

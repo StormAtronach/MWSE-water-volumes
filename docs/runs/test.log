@@ -18,7 +18,7 @@
 [harness.dump] PASS player in the pond: z 458, swimming true, underwater true
 [harness.dump] plugin: 84 of 84 hooks in place; 1 volumes
 [harness.dump] PASS underwater flag: true
-[harness.dump] screenshot C:/Users/ivan_/source/repos/morrowind-test-harness/dump/work/runs/20261004-182549-wv-audit-test/01-first-person-under.jpg
+[harness.dump] screenshot C:/Users/ivan_/source/repos/morrowind-test-harness/dump/work/runs/20261004-193817-wv4-test/01-first-person-under.jpg
 [harness.dump] step 6 of 17: disable the reference: the water goes
 [harness.dump] step 7 of 17: no water while disabled
 [harness.dump] PASS centre while disabled: surface nil, expected nil
@@ -31,7 +31,7 @@
 [harness.dump] step 9 of 17: the water follows the reference when it moves
 [harness.dump] PASS centre after raising the reference by 100: surface 720, expected 720
 [harness.dump] step 10 of 17: screenshot from above
-[harness.dump] screenshot C:/Users/ivan_/source/repos/morrowind-test-harness/dump/work/runs/20261004-182549-wv-audit-test/02-from-above.jpg
+[harness.dump] screenshot C:/Users/ivan_/source/repos/morrowind-test-harness/dump/work/runs/20261004-193817-wv4-test/02-from-above.jpg
 [harness.dump] step 11 of 17: tilt the reference by 5 degrees: the surface slopes
 [harness.dump] step 12 of 17: the level follows the slope
 [harness.dump] PASS slope: centre keeps its height: 680.0, expected 680
@@ -43,9 +43,9 @@
 [harness.dump] step 14 of 17: player on the low side of the slope
 [harness.dump] PASS slope: head above water on the low side: z 534, surface there 653.8, underwater false
 [harness.dump] step 15 of 17: timing
-[harness.dump] timing: lookup from Lua, disc of 32 triangles: inside 127 ns, bounding box corner 37 ns, outside 29 ns
-[harness.dump] timing: surface of 8192 triangles: registered in 1.00 ms, lookup inside 69 ns, found 620
+[harness.dump] timing: lookup from Lua, disc of 32 triangles: inside 116 ns, bounding box corner 39 ns, outside 29 ns
+[harness.dump] timing: surface of 8192 triangles: registered in 2.00 ms, lookup inside 67 ns, found 620
 [harness.dump] step 16 of 17: timing without any volume
-[harness.dump] timing: engine query for the player through tes3.canRest: 730 ns in a volume, 485 ns outside it, 390 ns with no volume registered
+[harness.dump] timing: engine query for the player through tes3.canRest: 725 ns in a volume, 485 ns outside it, 395 ns with no volume registered
 [harness.dump] step 17 of 17: clean up
 [harness.dump] DONE

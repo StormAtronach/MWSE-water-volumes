@@ -9,7 +9,10 @@
            if waterVolumes then waterVolumes.registerObject("my_pond_static", { depth = 300 }) end
 
     Options:
-      depth  how far the water reaches below the surface. Default 512.
+      depth  how far the water reaches below the surface. Default 512. A mesh with a shape
+             named WaterBody does not use it: its water is what is inside the closed mesh.
+      noswim  the mesh looks like water and holds none: nobody swims in it. For waterfalls.
+             In registerObject the key is noSwim.
       plain  keep the mesh's own texture and material. Without it, a renderer that supports
              water volumes (MGE XE) draws the surface with its water shading. Use plain for
              rapids, foam, lava or anything else that should look the way it was textured.
@@ -35,7 +38,7 @@ interop.objects = {}
 interop.revision = 0
 
 --- @param id string
---- @param settings { depth: number?, plain: boolean?, skyOnly: boolean? }?
+--- @param settings { depth: number?, plain: boolean?, skyOnly: boolean?, noSwim: boolean? }?
 function interop.registerObject(id, settings)
     interop.objects[id:lower()] = settings or {}
     interop.revision = interop.revision + 1

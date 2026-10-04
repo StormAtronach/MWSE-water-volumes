@@ -21,6 +21,7 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <functional>
 #include <memory>
 
 namespace wv {
@@ -168,19 +169,43 @@ namespace wv {
         return store(std::move(volume));
     }
 
-    // A triangle steeper than this is a wall: it bounds the water and is no layer of it.
-    // The value is the cosine of the steepest slope that still counts, 60 degrees from level.
-    constexpr auto MIN_LEVELNESS = 0.5f;
-
     // A shape named WaterBody gives the sides and the bottom of the water. It is hidden in the
-    // game and counts all the same.
+    // game and counts all the same. With the surface it closes the mesh, and the water is then
+    // what is inside the mesh.
     static bool isWaterBody(const NI::AVObject* object) {
         const auto name = object->getName();
         return name != nullptr && _strnicmp(name, "WaterBody", 9) == 0;
     }
 
+    static bool sideOf(const FootprintEdge& edge, float x, float y) {
+        return edge.dx * (y - edge.y) - edge.dy * (x - edge.x) >= 0.0f;
+    }
+
+    // The edge between two corners, seen from above. Its ends are put in a fixed order, so that
+    // the two triangles that share an edge get the very same numbers for it and agree on which
+    // side of it any point lies. A point on the line itself then belongs to exactly one of two
+    // triangles that lie on opposite sides, and to both or neither of two that fold over.
+    static FootprintEdge makeEdge(const NI::Point3& p, const NI::Point3& q, const NI::Point3& opposite) {
+        const auto swapped = q.x < p.x || (q.x == p.x && q.y < p.y);
+        const auto& from = swapped ? q : p;
+        const auto& to = swapped ? p : q;
+        FootprintEdge edge = { from.x, from.y, to.x - from.x, to.y - from.y, false };
+        edge.inside = sideOf(edge, opposite.x, opposite.y);
+        return edge;
+    }
+
+    static bool covers(const FootprintTriangle& t, float x, float y) {
+        return sideOf(t.edges[0], x, y) == t.edges[0].inside
+            && sideOf(t.edges[1], x, y) == t.edges[1].inside
+            && sideOf(t.edges[2], x, y) == t.edges[2].inside;
+    }
+
     static void collectFootprint(NI::AVObject* object, Volume& volume) {
-        if (object == nullptr || (object->getAppCulled() && !isWaterBody(object))) {
+        if (object == nullptr) {
+            return;
+        }
+        const auto body = isWaterBody(object);
+        if (object->getAppCulled() && !body) {
             return;
         }
 
@@ -189,6 +214,9 @@ namespace wv {
             const auto data = shape->getModelData();
             if (data == nullptr || data->vertex == nullptr || data->triangleList == nullptr) {
                 return;
+            }
+            if (body) {
+                volume.closed = true;
             }
 
             const auto triangleCount = data->getActiveTriangleCount();
@@ -199,16 +227,14 @@ namespace wv {
                 triangle.b = shape->worldTransform * data->vertex[indices[1]];
                 triangle.c = shape->worldTransform * data->vertex[indices[2]];
 
-                // The denominator is the vertical part of the triangle's normal: nothing for a
-                // triangle seen edge-on from above, the whole normal for a level one.
+                // A triangle seen edge-on from above covers no area.
                 triangle.denominator = (triangle.b.y - triangle.c.y) * (triangle.a.x - triangle.c.x) + (triangle.c.x - triangle.b.x) * (triangle.a.y - triangle.c.y);
-                const auto edge1 = triangle.b - triangle.a;
-                const auto edge2 = triangle.c - triangle.a;
-                const auto normal = edge1.crossProduct(&edge2);
-                const auto length = std::sqrt(normal.x * normal.x + normal.y * normal.y + normal.z * normal.z);
-                if (std::abs(triangle.denominator) < 1e-6f || std::abs(triangle.denominator) < MIN_LEVELNESS * length) {
+                if (std::abs(triangle.denominator) < 1e-6f) {
                     continue;
                 }
+                triangle.edges[0] = makeEdge(triangle.a, triangle.b, triangle.c);
+                triangle.edges[1] = makeEdge(triangle.b, triangle.c, triangle.a);
+                triangle.edges[2] = makeEdge(triangle.c, triangle.a, triangle.b);
                 volume.footprint.push_back(triangle);
             }
         }
@@ -325,10 +351,34 @@ namespace wv {
     // surface twice, a little apart, for two layers of texture.
     constexpr auto LAYER_TOLERANCE = 8.0f;
 
+    // The water of a closed mesh at a position, from the heights at which the mesh crosses the
+    // vertical through it. The position is inside the mesh, and so in the water, when the mesh
+    // crosses an odd number of times above it. The water then reaches from the crossing above
+    // down to the crossing below. A position above the water gets the water under it.
+    static bool waterInside(float* heights, unsigned int crossings, const Volume& volume, const NI::Point3* position, bool ignoreHeight, float& out_surface, float& out_floor) {
+        std::sort(heights, heights + crossings, std::greater<float>());
+
+        auto above = 0u;
+        if (!ignoreHeight) {
+            while (above < crossings && heights[above] >= position->z) {
+                above++;
+            }
+        }
+        // Inside: the top is the crossing above. Outside: the top is the next crossing below.
+        const auto top = (above % 2 == 1) ? above - 1 : above;
+        if (top >= crossings) {
+            return false;
+        }
+        out_surface = heights[top];
+        out_floor = (top + 1 < crossings) ? heights[top + 1] : out_surface - volume.depth;
+        return true;
+    }
+
     // The surface and the floor of the volume's water at a position, if there is any.
-    // Where one layer of triangles lies over the position, the water reaches depth below it.
-    // Where several do, the lowest is the floor, and the water under each of the others reaches
-    // down to the layer below it. A position above the water gets the surface under it.
+    // A mesh with a WaterBody is closed, and its water is what is inside it. Otherwise: where
+    // one layer of triangles lies over the position, the water reaches depth below it. Where
+    // several do, the lowest is the floor, and the water under each of the others reaches down
+    // to the layer below it. A position above the water gets the surface under it.
     static bool waterAt(const Volume& volume, const NI::Point3* position, bool ignoreHeight, float& out_surface, float& out_floor) {
         if (volume.footprint.empty()) {
             out_surface = volume.max.z;
@@ -341,19 +391,18 @@ namespace wv {
         const auto cellX = std::clamp(static_cast<int>((x - volume.min.x) * volume.gridScaleX), 0, static_cast<int>(volume.gridSize) - 1);
         const auto cellY = std::clamp(static_cast<int>((y - volume.min.y) * volume.gridScaleY), 0, static_cast<int>(volume.gridSize) - 1);
 
-        constexpr auto EDGE_TOLERANCE = -1e-4f;
         constexpr auto MAX_HEIGHTS = 32u;
         float heights[MAX_HEIGHTS];
         auto count = 0u;
         const auto cell = cellY * volume.gridSize + cellX;
         for (auto item = volume.gridStart[cell]; item < volume.gridStart[cell + 1]; ++item) {
             const auto& t = volume.footprint[volume.gridItems[item]];
+            if (!covers(t, x, y)) {
+                continue;
+            }
             const auto w1 = ((t.b.y - t.c.y) * (x - t.c.x) + (t.c.x - t.b.x) * (y - t.c.y)) / t.denominator;
             const auto w2 = ((t.c.y - t.a.y) * (x - t.c.x) + (t.a.x - t.c.x) * (y - t.c.y)) / t.denominator;
             const auto w3 = 1.0f - w1 - w2;
-            if (w1 < EDGE_TOLERANCE || w2 < EDGE_TOLERANCE || w3 < EDGE_TOLERANCE) {
-                continue;
-            }
             heights[count++] = w1 * t.a.z + w2 * t.b.z + w3 * t.c.z;
             if (count == MAX_HEIGHTS) {
                 break;
@@ -361,6 +410,10 @@ namespace wv {
         }
         if (count == 0) {
             return false;
+        }
+        // With more crossings than are kept, inside and outside cannot be told apart.
+        if (volume.closed && count < MAX_HEIGHTS) {
+            return waterInside(heights, count, volume, position, ignoreHeight, out_surface, out_floor);
         }
 
         const auto lowest = *std::min_element(heights, heights + count);

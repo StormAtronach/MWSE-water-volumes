@@ -71,8 +71,9 @@ when the head goes under, and with MGE XE the underwater view.
 4. For a real drop, end one piece, place the next one lower, and cover the step with a
    waterfall mesh.
 
-Keep slopes gentle, and always under 30 degrees: past that the sides of a piece start to count
-as water. The water has no current, the kit texture does not flow, and under water
+A kit piece holds exactly the water inside it at any tilt, so steep stretches work. For the
+fall itself, and for fountains, use a mesh tagged `WaterVolume noswim`: it looks like water
+and nobody swims in it. The water has no current, the kit texture does not flow, and under water
 MGE XE shows one level surface at the camera's height.
 
 ## Draining, flooding and rising water

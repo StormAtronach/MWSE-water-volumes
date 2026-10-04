@@ -4,11 +4,22 @@
 #include "NIPoint3.h"
 
 namespace wv {
+    // An edge of a triangle seen from above: a point on it, its direction, and which side of it
+    // the triangle lies on.
+    struct FootprintEdge {
+        float x;
+        float y;
+        float dx;
+        float dy;
+        bool inside;
+    };
+
     struct FootprintTriangle {
         NI::Point3 a;
         NI::Point3 b;
         NI::Point3 c;
         float denominator;
+        FootprintEdge edges[3];
     };
 
     struct Volume {
@@ -20,10 +31,12 @@ namespace wv {
         float depth;
         // The scene graph branch the triangles came from. Compared, never followed.
         const NI::AVObject* node;
-        // Empty for a box. Otherwise the surface is these triangles, in world space. Where they lie
-        // in one layer over a point the volume reaches depth below them; where they lie in several,
-        // the lowest is the floor.
+        // Empty for a box. Otherwise the triangles of the mesh, in world space.
         std::vector<FootprintTriangle> footprint;
+        // The mesh has a WaterBody and so is closed: the water is what is inside it. Otherwise
+        // the triangles are the surface: where they lie in one layer over a point the volume
+        // reaches depth below them; where they lie in several, the lowest is the floor.
+        bool closed;
         // A grid over the bounds. The triangles that touch cell n are
         // gridItems[gridStart[n]] up to, not including, gridItems[gridStart[n + 1]].
         std::vector<unsigned int> gridStart;
@@ -43,11 +56,11 @@ namespace wv {
     // Adds a box of water. The surface is at max.z and the floor at min.z. Returns the volume id, or 0 on failure.
     int add(const NI::Point3& min, const NI::Point3& max);
 
-    // Adds the water under the triangles of a scene graph branch, using their current world positions.
-    // The triangles are the surface, which may slope, and the volume reaches depth below them.
-    // Where triangles lie over one another, the lowest is the floor instead, and the water under
-    // each of the others reaches down to the one below it. Triangles too steep to hold water
-    // are walls and are left out.
+    // Adds the water of a scene graph branch, using the current world positions of its triangles.
+    // If the branch has a shape named WaterBody, the mesh is taken to be closed and the water is
+    // what is inside it, at any tilt. Otherwise the triangles are the surface, which may slope,
+    // and the volume reaches depth below them; where triangles lie over one another, the lowest
+    // is the floor instead, and the water under each of the others reaches down to the one below.
     // Returns the volume id, or 0 on failure.
     int addFromNode(NI::AVObject* node, float depth);
 

@@ -51,35 +51,35 @@
 [harness.dump] OBSERVED tier 1: west, 900 south, player at 30328 -107780 480, 18 below the surface, surface there 498.40719604492, swimming false
 [harness.dump] step 6 of 27: set up: palace tier 1 player in the water
 [harness.dump] step 7 of 27: photograph: palace tier 1 player in the water
-[harness.dump] screenshot C:/Users/ivan_/source/repos/morrowind-test-harness/dump/work/runs/20261004-184244-wv-audit-palace/01 palace tier 1 player in the water.jpg
+[harness.dump] screenshot C:/Users/ivan_/source/repos/morrowind-test-harness/dump/work/runs/20261004-193944-wv4-palace/01 palace tier 1 player in the water.jpg
 [harness.dump] step 8 of 27: player into the water of tier 2
 [harness.dump] step 9 of 27: player in the water of tier 2
 [harness.dump] OBSERVED tier 2: west, 900 south, player at 30766 -107780 862, 21 below the surface, surface there 883.01434326172, swimming false
 [harness.dump] step 10 of 27: set up: palace tier 2 player in the water
 [harness.dump] step 11 of 27: photograph: palace tier 2 player in the water
-[harness.dump] screenshot C:/Users/ivan_/source/repos/morrowind-test-harness/dump/work/runs/20261004-184244-wv-audit-palace/02 palace tier 2 player in the water.jpg
+[harness.dump] screenshot C:/Users/ivan_/source/repos/morrowind-test-harness/dump/work/runs/20261004-193944-wv4-palace/02 palace tier 2 player in the water.jpg
 [harness.dump] step 12 of 27: player into the water of tier 3
 [harness.dump] step 13 of 27: player in the water of tier 3
 [harness.dump] OBSERVED tier 3: west, 900 south, player at 30766 -107780 862, 393 below the surface, surface there 883.01434326172, swimming false
 [harness.dump] step 14 of 27: set up: palace tier 3 player in the water
 [harness.dump] step 15 of 27: photograph: palace tier 3 player in the water
-[harness.dump] screenshot C:/Users/ivan_/source/repos/morrowind-test-harness/dump/work/runs/20261004-184244-wv-audit-palace/03 palace tier 3 player in the water.jpg
+[harness.dump] screenshot C:/Users/ivan_/source/repos/morrowind-test-harness/dump/work/runs/20261004-193944-wv4-palace/03 palace tier 3 player in the water.jpg
 [harness.dump] step 16 of 27: player into the water of tier 4
 [harness.dump] step 17 of 27: player in the water of tier 4
 [harness.dump] OBSERVED tier 4: west, player at 30766 -107780 862, 777 below the surface, surface there 883.01434326172, swimming false
 [harness.dump] step 18 of 27: set up: palace tier 4 player in the water
 [harness.dump] step 19 of 27: photograph: palace tier 4 player in the water
-[harness.dump] screenshot C:/Users/ivan_/source/repos/morrowind-test-harness/dump/work/runs/20261004-184244-wv-audit-palace/04 palace tier 4 player in the water.jpg
+[harness.dump] screenshot C:/Users/ivan_/source/repos/morrowind-test-harness/dump/work/runs/20261004-193944-wv4-palace/04 palace tier 4 player in the water.jpg
 [harness.dump] step 20 of 27: the player is in the water of every tier
 [harness.dump] FAIL standing on the floor of each pool, the player is in that pool's water: 2 of 4 not
 [harness.dump] step 21 of 27: set up: palace from the south east
 [harness.dump] step 22 of 27: photograph: palace from the south east
-[harness.dump] screenshot C:/Users/ivan_/source/repos/morrowind-test-harness/dump/work/runs/20261004-184244-wv-audit-palace/05 palace from the south east.jpg
+[harness.dump] screenshot C:/Users/ivan_/source/repos/morrowind-test-harness/dump/work/runs/20261004-193944-wv4-palace/05 palace from the south east.jpg
 [harness.dump] step 23 of 27: set up: palace lowest tier along the water
 [harness.dump] step 24 of 27: photograph: palace lowest tier along the water
-[harness.dump] screenshot C:/Users/ivan_/source/repos/morrowind-test-harness/dump/work/runs/20261004-184244-wv-audit-palace/06 palace lowest tier along the water.jpg
+[harness.dump] screenshot C:/Users/ivan_/source/repos/morrowind-test-harness/dump/work/runs/20261004-193944-wv4-palace/06 palace lowest tier along the water.jpg
 [harness.dump] step 25 of 27: set up: palace from above
 [harness.dump] step 26 of 27: photograph: palace from above
-[harness.dump] screenshot C:/Users/ivan_/source/repos/morrowind-test-harness/dump/work/runs/20261004-184244-wv-audit-palace/07 palace from above.jpg
+[harness.dump] screenshot C:/Users/ivan_/source/repos/morrowind-test-harness/dump/work/runs/20261004-193944-wv4-palace/07 palace from above.jpg
 [harness.dump] step 27 of 27: clean up
 [harness.dump] DONE

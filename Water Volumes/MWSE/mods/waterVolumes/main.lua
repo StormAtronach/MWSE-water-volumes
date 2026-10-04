@@ -49,6 +49,7 @@ local settingsRevision = 0
 --- The settings for an object, or nil if it is not water. The node is that of one of its references.
 --- depth: how far the water reaches below the surface.
 --- marker: the material marker for the renderer's water shading, or nil to keep the mesh's own look.
+--- swim: false for a mesh that only looks like water.
 local function getSettings(object, node)
     if settingsRevision ~= interop.revision then
         settingsByObject = {}
@@ -60,10 +61,10 @@ local function getSettings(object, node)
         return known or nil
     end
 
-    local depth, plain, skyOnly
+    local depth, plain, skyOnly, noSwim
     local registered = interop.objects[id:lower()]
     if registered then
-        depth, plain, skyOnly = registered.depth, registered.plain == true, registered.skyOnly == true
+        depth, plain, skyOnly, noSwim = registered.depth, registered.plain == true, registered.skyOnly == true, registered.noSwim == true
     else
         local data = node:getStringDataStartingWith(interop.tag)
         if data then
@@ -71,13 +72,14 @@ local function getSettings(object, node)
             depth = tonumber(text:match("depth%s*=%s*([%d%.]+)"))
             plain = text:find("%f[%a]plain%f[%A]") ~= nil
             skyOnly = text:find("%f[%a]skyonly%f[%A]") ~= nil
+            noSwim = text:find("%f[%a]noswim%f[%A]") ~= nil
         else
             settingsByObject[id] = false
             return nil
         end
     end
 
-    known = { depth = depth or interop.defaultDepth }
+    known = { depth = depth or interop.defaultDepth, swim = not noSwim }
     if not plain then
         known.marker = skyOnly and interop.surfaceMarkerSkyOnly or interop.surfaceMarker
     end
@@ -291,7 +293,9 @@ local function track(reference, onlyIfActive)
     order[index] = reference
     tracked[reference] = entry
     pending[#pending + 1] = reference
-    flagCell(entry.cell)
+    if settings.swim then
+        flagCell(entry.cell)
+    end
     prepare(reference, entry, node)
 end
 
@@ -306,7 +310,9 @@ local function untrack(reference)
             controller:removeVolume(entry.id)
         end
     end
-    unflagCell(entry.cell)
+    if entry.settings.swim then
+        unflagCell(entry.cell)
+    end
 
     -- The last of the list takes the place of this one.
     local last = #order
@@ -341,6 +347,10 @@ local function syncReference(controller, reference)
     local renewed = addressOf(node) ~= entry.node
     if renewed then
         prepare(reference, entry, node)
+    end
+    -- A mesh that only looks like water holds none.
+    if not entry.settings.swim then
+        return
     end
     if reference.disabled then
         if entry.id then
