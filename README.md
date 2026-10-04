@@ -57,3 +57,7 @@ submodule of its own yet; it needs one before it can be built on another machine
 The same patch once lived inside MWSE (branch `feature/water-volumes` of the MWSE fork). An
 MWSE.dll built from that branch has already changed the places the plugin patches, so the
 plugin refuses to install and says so in its log. Use one or the other.
+
+## Licence
+
+MIT. See `LICENSE`.
