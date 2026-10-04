@@ -1,0 +1,386 @@
+launching (budget 700s, results in C:\Users\ivan_\source\repos\morrowind-test-harness\dump\work\runs\20261004-173755-water-creatures)
+  game window up, in the foreground
+    17s magic effects resolved: 2808 spells, 13024 NPCs, 0 auto-calculated NPCs hold 0 spells, nothing applied
+    26s loading save 'quiksave.ess'
+    29s loaded, new game false, cell Vas
+    29s water: god mode on at load; player at 5874 185035 990, health 13, swimming false
+    29s water: 2 water pieces left in the save by earlier runs removed
+    38s step 1 of 313: god mode on, player to the site
+    38s god mode was true after the load, now true
+    48s step 2 of 313: measure the site and place the pond
+    48s OBSERVED water pieces left in the save by earlier runs: 0 removed
+    48s OBSERVED site: pond level 250; deepest ground inside 292 (-42 deep); shore point 1120 from the centre, ground 290; sea point 2850 from the centre, sea floor -345; land by the sea 500 from the sea point, ground 107
+    48s creature flags: slaughterfish walks=false swims=true flies=false; rat walks=true swims=false flies=false; mudcrab walks=true swims=false flies=false; kagouti walks=true swims=false flies=false; alit walks=true swims=false flies=false; guar walks=true swims=false flies=false; scrib walks=true swims=false flies=false; kwama forager walks=true swims=false flies=false; nix-hound walks=true swims=false flies=false; shalk walks=true swims=false flies=false; dreugh walks=false swims=true flies=false
+    50s step 3 of 313: the pond is water
+    50s PASS the raised water is a water volume: surface 250
+    50s sight with the raised water: between two points under the surface true; from under the surface to 30 above it true
+    50s PASS the surface of the raised water does not block line of sight: under to under true, under to over true
+    52s step 4 of 313: player into the raised water, 180 above sea level
+    57s step 5 of 313: the player floats there
+    57s FAIL the player floats in the raised water above sea level: at 8485 188771 -343, swimming true
+    57s step 6 of 313: trial: raised water, fish placed above sea level, 1
+    59s step 7 of 313: set it on the player: raised water, fish placed above sea level, 1
+    59s step 8 of 313: watch raised water, fish placed above sea level, 1, 0.5 s
+    59s step 9 of 313: watch raised water, fish placed above sea level, 1, 1.0 s
+    59s step 10 of 313: watch raised water, fish placed above sea level, 1, 1.5 s
+    62s step 11 of 313: watch raised water, fish placed above sea level, 1, 2.0 s
+    62s step 12 of 313: watch raised water, fish placed above sea level, 1, 2.5 s
+    62s step 13 of 313: watch raised water, fish placed above sea level, 1, 3.0 s
+    62s step 14 of 313: watch raised water, fish placed above sea level, 1, 3.5 s
+    64s step 15 of 313: watch raised water, fish placed above sea level, 1, 4.0 s
+    64s step 16 of 313: watch raised water, fish placed above sea level, 1, 4.5 s
+    64s step 17 of 313: watch raised water, fish placed above sea level, 1, 5.0 s
+    64s step 18 of 313: watch raised water, fish placed above sea level, 1, 5.5 s
+    64s screenshot C:/Users/ivan_/source/repos/morrowind-test-harness/dump/work/runs/20261004-173755-water-creatures/01 creatures fish in raised water.jpg
+    64s step 19 of 313: watch raised water, fish placed above sea level, 1, 6.0 s
+    66s step 20 of 313: watch raised water, fish placed above sea level, 1, 6.5 s
+    66s step 21 of 313: watch raised water, fish placed above sea level, 1, 7.0 s
+    66s step 22 of 313: watch raised water, fish placed above sea level, 1, 7.5 s
+    66s step 23 of 313: watch raised water, fish placed above sea level, 1, 8.0 s
+    66s step 24 of 313: result: raised water, fish placed above sea level, 1
+    66s series raised water, fish placed above sea level, 1: height 1.5 s after it was placed 138 (placed at 150); then height/distance every second: 138/135 138/202 138/231 138/139 138/199 138/155 138/173 138/194; health 23, fight 100
+    66s combat raised water, fish placed above sea level, 1: startCombat called 0 times (mwscript.startCombat 0 of them), combatStarted fired 1 times, combatStopped 0 times, in combat at the end true, AI active when first set on the player true, player detected true
+    66s OBSERVED raised water, fish placed above sea level, 1: distance to the player 135 at first, 135 nearest, 185 at the end; travelled 369; swimming 100%, below the water level 0%, highest 138 relative to sea level; in combat 100%; under the raised water 100%; above sea level outside it 0 samples; player swimming true; god mode true, player health 13; player asked to 8485 188771 180, is at 8485 188793 130
+    69s step 25 of 313: trial: raised water, fish placed above sea level, 2
+    71s step 26 of 313: set it on the player: raised water, fish placed above sea level, 2
+    71s step 27 of 313: watch raised water, fish placed above sea level, 2, 0.5 s
+    71s step 28 of 313: watch raised water, fish placed above sea level, 2, 1.0 s
+    71s step 29 of 313: watch raised water, fish placed above sea level, 2, 1.5 s
+    74s step 30 of 313: watch raised water, fish placed above sea level, 2, 2.0 s
+    74s step 31 of 313: watch raised water, fish placed above sea level, 2, 2.5 s
+    74s step 32 of 313: watch raised water, fish placed above sea level, 2, 3.0 s
+    74s step 33 of 313: watch raised water, fish placed above sea level, 2, 3.5 s
+    74s step 34 of 313: watch raised water, fish placed above sea level, 2, 4.0 s
+    76s step 35 of 313: watch raised water, fish placed above sea level, 2, 4.5 s
+    76s step 36 of 313: watch raised water, fish placed above sea level, 2, 5.0 s
+    76s step 37 of 313: watch raised water, fish placed above sea level, 2, 5.5 s
+    76s step 38 of 313: watch raised water, fish placed above sea level, 2, 6.0 s
+    76s step 39 of 313: watch raised water, fish placed above sea level, 2, 6.5 s
+    78s step 40 of 313: watch raised water, fish placed above sea level, 2, 7.0 s
+    78s step 41 of 313: watch raised water, fish placed above sea level, 2, 7.5 s
+    78s step 42 of 313: watch raised water, fish placed above sea level, 2, 8.0 s
+    78s step 43 of 313: result: raised water, fish placed above sea level, 2
+    78s series raised water, fish placed above sea level, 2: height 1.5 s after it was placed 144 (placed at 150); then height/distance every second: 144/135 144/184 144/180 144/148 144/203 144/232 144/158 144/200; health 23, fight 100
+    78s combat raised water, fish placed above sea level, 2: startCombat called 0 times (mwscript.startCombat 0 of them), combatStarted fired 1 times, combatStopped 0 times, in combat at the end true, AI active when first set on the player true, player detected true
+    78s OBSERVED raised water, fish placed above sea level, 2: distance to the player 135 at first, 135 nearest, 223 at the end; travelled 434; swimming 100%, below the water level 0%, highest 144 relative to sea level; in combat 100%; under the raised water 100%; above sea level outside it 0 samples; player swimming true; god mode true, player health 13; player asked to 8485 188771 180, is at 8485 188793 130
+    81s step 44 of 313: trial: raised water, fish placed above sea level, 3
+    81s step 45 of 313: set it on the player: raised water, fish placed above sea level, 3
+    83s step 46 of 313: watch raised water, fish placed above sea level, 3, 0.5 s
+    83s step 47 of 313: watch raised water, fish placed above sea level, 3, 1.0 s
+    83s step 48 of 313: watch raised water, fish placed above sea level, 3, 1.5 s
+    83s step 49 of 313: watch raised water, fish placed above sea level, 3, 2.0 s
+    83s step 50 of 313: watch raised water, fish placed above sea level, 3, 2.5 s
+    85s step 51 of 313: watch raised water, fish placed above sea level, 3, 3.0 s
+    85s step 52 of 313: watch raised water, fish placed above sea level, 3, 3.5 s
+    85s step 53 of 313: watch raised water, fish placed above sea level, 3, 4.0 s
+    85s step 54 of 313: watch raised water, fish placed above sea level, 3, 4.5 s
+    88s step 55 of 313: watch raised water, fish placed above sea level, 3, 5.0 s
+    88s step 56 of 313: watch raised water, fish placed above sea level, 3, 5.5 s
+    88s step 57 of 313: watch raised water, fish placed above sea level, 3, 6.0 s
+    88s step 58 of 313: watch raised water, fish placed above sea level, 3, 6.5 s
+    88s step 59 of 313: watch raised water, fish placed above sea level, 3, 7.0 s
+    90s step 60 of 313: watch raised water, fish placed above sea level, 3, 7.5 s
+    90s step 61 of 313: watch raised water, fish placed above sea level, 3, 8.0 s
+    90s step 62 of 313: result: raised water, fish placed above sea level, 3
+    90s series raised water, fish placed above sea level, 3: height 1.5 s after it was placed 137 (placed at 150); then height/distance every second: 137/134 137/181 137/179 137/150 137/195 137/192 137/207 137/242; health 23, fight 100
+    90s combat raised water, fish placed above sea level, 3: startCombat called 0 times (mwscript.startCombat 0 of them), combatStarted fired 1 times, combatStopped 0 times, in combat at the end true, AI active when first set on the player true, player detected true
+    90s OBSERVED raised water, fish placed above sea level, 3: distance to the player 134 at first, 134 nearest, 137 at the end; travelled 508; swimming 100%, below the water level 0%, highest 137 relative to sea level; in combat 100%; under the raised water 100%; above sea level outside it 0 samples; player swimming true; god mode true, player health 13; player asked to 8485 188771 180, is at 8485 188793 130
+    92s step 63 of 313: trial: raised water, fish placed above sea level, 4
+    92s step 64 of 313: set it on the player: raised water, fish placed above sea level, 4
+    92s step 65 of 313: watch raised water, fish placed above sea level, 4, 0.5 s
+    95s step 66 of 313: watch raised water, fish placed above sea level, 4, 1.0 s
+    95s step 67 of 313: watch raised water, fish placed above sea level, 4, 1.5 s
+    95s step 68 of 313: watch raised water, fish placed above sea level, 4, 2.0 s
+    95s step 69 of 313: watch raised water, fish placed above sea level, 4, 2.5 s
+    95s step 70 of 313: watch raised water, fish placed above sea level, 4, 3.0 s
+    97s step 71 of 313: watch raised water, fish placed above sea level, 4, 3.5 s
+    97s step 72 of 313: watch raised water, fish placed above sea level, 4, 4.0 s
+    97s step 73 of 313: watch raised water, fish placed above sea level, 4, 4.5 s
+    97s step 74 of 313: watch raised water, fish placed above sea level, 4, 5.0 s
+   100s step 75 of 313: watch raised water, fish placed above sea level, 4, 5.5 s
+   100s step 76 of 313: watch raised water, fish placed above sea level, 4, 6.0 s
+   100s step 77 of 313: watch raised water, fish placed above sea level, 4, 6.5 s
+   100s step 78 of 313: watch raised water, fish placed above sea level, 4, 7.0 s
+   100s step 79 of 313: watch raised water, fish placed above sea level, 4, 7.5 s
+   102s step 80 of 313: watch raised water, fish placed above sea level, 4, 8.0 s
+   102s step 81 of 313: result: raised water, fish placed above sea level, 4
+   102s series raised water, fish placed above sea level, 4: height 1.5 s after it was placed 137 (placed at 150); then height/distance every second: 137/155 137/183 137/218 137/203 137/202 137/147 137/192 137/188; health 23, fight 100
+   102s combat raised water, fish placed above sea level, 4: startCombat called 0 times (mwscript.startCombat 0 of them), combatStarted fired 0 times, combatStopped 0 times, in combat at the end true, AI active when first set on the player true, player detected true
+   102s OBSERVED raised water, fish placed above sea level, 4: distance to the player 155 at first, 147 nearest, 158 at the end; travelled 292; swimming 100%, below the water level 0%, highest 137 relative to sea level; in combat 100%; under the raised water 100%; above sea level outside it 0 samples; player swimming true; god mode true, player health 13; player asked to 8485 188771 180, is at 8485 188793 130
+   102s step 82 of 313: trial: raised water, fish placed below sea level, 1
+   104s step 83 of 313: set it on the player: raised water, fish placed below sea level, 1
+   104s step 84 of 313: watch raised water, fish placed below sea level, 1, 0.5 s
+   104s step 85 of 313: watch raised water, fish placed below sea level, 1, 1.0 s
+   107s step 86 of 313: watch raised water, fish placed below sea level, 1, 1.5 s
+   107s step 87 of 313: watch raised water, fish placed below sea level, 1, 2.0 s
+   107s step 88 of 313: watch raised water, fish placed below sea level, 1, 2.5 s
+   107s step 89 of 313: watch raised water, fish placed below sea level, 1, 3.0 s
+   107s step 90 of 313: watch raised water, fish placed below sea level, 1, 3.5 s
+   109s step 91 of 313: watch raised water, fish placed below sea level, 1, 4.0 s
+   109s step 92 of 313: watch raised water, fish placed below sea level, 1, 4.5 s
+   109s step 93 of 313: watch raised water, fish placed below sea level, 1, 5.0 s
+   109s step 94 of 313: watch raised water, fish placed below sea level, 1, 5.5 s
+   111s step 95 of 313: watch raised water, fish placed below sea level, 1, 6.0 s
+   111s step 96 of 313: watch raised water, fish placed below sea level, 1, 6.5 s
+   111s step 97 of 313: watch raised water, fish placed below sea level, 1, 7.0 s
+   111s step 98 of 313: watch raised water, fish placed below sea level, 1, 7.5 s
+   111s step 99 of 313: watch raised water, fish placed below sea level, 1, 8.0 s
+   111s step 100 of 313: result: raised water, fish placed below sea level, 1
+   111s series raised water, fish placed below sea level, 1: height 1.5 s after it was placed -136 (placed at -150); then height/distance every second: -132/386 -124/378 -116/370 -108/362 -100/354 -92/346 -85/339 -78/332; health 23, fight 100
+   111s combat raised water, fish placed below sea level, 1: startCombat called 0 times (mwscript.startCombat 0 of them), combatStarted fired 0 times, combatStopped 0 times, in combat at the end true, AI active when first set on the player true, player detected true
+   111s OBSERVED raised water, fish placed below sea level, 1: distance to the player 386 at first, 329 nearest, 329 at the end; travelled 60; swimming 100%, below the water level 100%, highest -74 relative to sea level; in combat 100%; under the raised water 100%; above sea level outside it 0 samples; player swimming true; god mode true, player health 13; player asked to 8485 188771 180, is at 8485 188793 130
+   114s step 101 of 313: trial: raised water, fish placed below sea level, 2
+   116s step 102 of 313: set it on the player: raised water, fish placed below sea level, 2
+   116s step 103 of 313: watch raised water, fish placed below sea level, 2, 0.5 s
+   116s step 104 of 313: watch raised water, fish placed below sea level, 2, 1.0 s
+   116s step 105 of 313: watch raised water, fish placed below sea level, 2, 1.5 s
+   119s step 106 of 313: watch raised water, fish placed below sea level, 2, 2.0 s
+   119s step 107 of 313: watch raised water, fish placed below sea level, 2, 2.5 s
+   119s step 108 of 313: watch raised water, fish placed below sea level, 2, 3.0 s
+   119s step 109 of 313: watch raised water, fish placed below sea level, 2, 3.5 s
+   119s step 110 of 313: watch raised water, fish placed below sea level, 2, 4.0 s
+   121s step 111 of 313: watch raised water, fish placed below sea level, 2, 4.5 s
+   121s step 112 of 313: watch raised water, fish placed below sea level, 2, 5.0 s
+   121s step 113 of 313: watch raised water, fish placed below sea level, 2, 5.5 s
+   121s step 114 of 313: watch raised water, fish placed below sea level, 2, 6.0 s
+   121s step 115 of 313: watch raised water, fish placed below sea level, 2, 6.5 s
+   123s step 116 of 313: watch raised water, fish placed below sea level, 2, 7.0 s
+   123s step 117 of 313: watch raised water, fish placed below sea level, 2, 7.5 s
+   123s step 118 of 313: watch raised water, fish placed below sea level, 2, 8.0 s
+   123s step 119 of 313: result: raised water, fish placed below sea level, 2
+   123s series raised water, fish placed below sea level, 2: height 1.5 s after it was placed -136 (placed at -150); then height/distance every second: -132/387 -124/378 -115/370 -107/361 -100/354 -92/347 -85/339 -77/332; health 23, fight 100
+   123s combat raised water, fish placed below sea level, 2: startCombat called 0 times (mwscript.startCombat 0 of them), combatStarted fired 0 times, combatStopped 0 times, in combat at the end true, AI active when first set on the player true, player detected true
+   123s OBSERVED raised water, fish placed below sea level, 2: distance to the player 387 at first, 329 nearest, 329 at the end; travelled 60; swimming 100%, below the water level 100%, highest -74 relative to sea level; in combat 100%; under the raised water 100%; above sea level outside it 0 samples; player swimming true; god mode true, player health 13; player asked to 8485 188771 180, is at 8485 188793 130
+   126s step 120 of 313: trial: raised water, fish placed below sea level, 3
+   128s step 121 of 313: set it on the player: raised water, fish placed below sea level, 3
+   128s step 122 of 313: watch raised water, fish placed below sea level, 3, 0.5 s
+   128s step 123 of 313: watch raised water, fish placed below sea level, 3, 1.0 s
+   128s step 124 of 313: watch raised water, fish placed below sea level, 3, 1.5 s
+   128s step 125 of 313: watch raised water, fish placed below sea level, 3, 2.0 s
+   130s step 126 of 313: watch raised water, fish placed below sea level, 3, 2.5 s
+   130s step 127 of 313: watch raised water, fish placed below sea level, 3, 3.0 s
+   130s step 128 of 313: watch raised water, fish placed below sea level, 3, 3.5 s
+   130s step 129 of 313: watch raised water, fish placed below sea level, 3, 4.0 s
+   130s step 130 of 313: watch raised water, fish placed below sea level, 3, 4.5 s
+   133s step 131 of 313: watch raised water, fish placed below sea level, 3, 5.0 s
+   133s step 132 of 313: watch raised water, fish placed below sea level, 3, 5.5 s
+   133s step 133 of 313: watch raised water, fish placed below sea level, 3, 6.0 s
+   133s step 134 of 313: watch raised water, fish placed below sea level, 3, 6.5 s
+   133s step 135 of 313: watch raised water, fish placed below sea level, 3, 7.0 s
+   135s step 136 of 313: watch raised water, fish placed below sea level, 3, 7.5 s
+   135s step 137 of 313: watch raised water, fish placed below sea level, 3, 8.0 s
+   135s step 138 of 313: result: raised water, fish placed below sea level, 3
+   135s series raised water, fish placed below sea level, 3: height 1.5 s after it was placed -136 (placed at -150); then height/distance every second: -132/386 -124/378 -116/370 -108/362 -100/355 -93/347 -85/339 -78/332; health 23, fight 100
+   135s combat raised water, fish placed below sea level, 3: startCombat called 0 times (mwscript.startCombat 0 of them), combatStarted fired 0 times, combatStopped 0 times, in combat at the end true, AI active when first set on the player true, player detected true
+   135s OBSERVED raised water, fish placed below sea level, 3: distance to the player 386 at first, 330 nearest, 330 at the end; travelled 59; swimming 100%, below the water level 100%, highest -75 relative to sea level; in combat 100%; under the raised water 100%; above sea level outside it 0 samples; player swimming true; god mode true, player health 13; player asked to 8485 188771 180, is at 8485 188793 130
+   138s step 139 of 313: trial: raised water, fish placed below sea level, 4
+   138s step 140 of 313: set it on the player: raised water, fish placed below sea level, 4
+   138s step 141 of 313: watch raised water, fish placed below sea level, 4, 0.5 s
+   140s step 142 of 313: watch raised water, fish placed below sea level, 4, 1.0 s
+   140s step 143 of 313: watch raised water, fish placed below sea level, 4, 1.5 s
+   140s step 144 of 313: watch raised water, fish placed below sea level, 4, 2.0 s
+   140s step 145 of 313: watch raised water, fish placed below sea level, 4, 2.5 s
+   142s step 146 of 313: watch raised water, fish placed below sea level, 4, 3.0 s
+   142s step 147 of 313: watch raised water, fish placed below sea level, 4, 3.5 s
+   142s step 148 of 313: watch raised water, fish placed below sea level, 4, 4.0 s
+   142s step 149 of 313: watch raised water, fish placed below sea level, 4, 4.5 s
+   142s step 150 of 313: watch raised water, fish placed below sea level, 4, 5.0 s
+   145s step 151 of 313: watch raised water, fish placed below sea level, 4, 5.5 s
+   145s step 152 of 313: watch raised water, fish placed below sea level, 4, 6.0 s
+   145s step 153 of 313: watch raised water, fish placed below sea level, 4, 6.5 s
+   145s step 154 of 313: watch raised water, fish placed below sea level, 4, 7.0 s
+   145s step 155 of 313: watch raised water, fish placed below sea level, 4, 7.5 s
+   147s step 156 of 313: watch raised water, fish placed below sea level, 4, 8.0 s
+   147s step 157 of 313: result: raised water, fish placed below sea level, 4
+   147s series raised water, fish placed below sea level, 4: height 1.5 s after it was placed -137 (placed at -150); then height/distance every second: -132/387 -124/379 -116/370 -108/362 -100/354 -92/347 -85/340 -78/333; health 23, fight 100
+   147s combat raised water, fish placed below sea level, 4: startCombat called 0 times (mwscript.startCombat 0 of them), combatStarted fired 0 times, combatStopped 0 times, in combat at the end true, AI active when first set on the player true, player detected true
+   147s OBSERVED raised water, fish placed below sea level, 4: distance to the player 387 at first, 329 nearest, 329 at the end; travelled 60; swimming 100%, below the water level 100%, highest -75 relative to sea level; in combat 100%; under the raised water 100%; above sea level outside it 0 samples; player swimming true; god mode true, player health 13; player asked to 8485 188771 180, is at 8485 188793 130
+   147s step 158 of 313: take the raised water away for the controls
+   149s step 159 of 313: the raised water is gone
+   149s OBSERVED after removing the raised water: surface nil
+   149s sight without the raised water: between two points under the surface true; from under the surface to 30 above it true
+   152s step 160 of 313: trial: sea, fish 30 above the player, 1
+   154s step 161 of 313: set it on the player: sea, fish 30 above the player, 1
+   154s step 162 of 313: watch sea, fish 30 above the player, 1, 0.5 s
+   154s step 163 of 313: watch sea, fish 30 above the player, 1, 1.0 s
+   154s step 164 of 313: watch sea, fish 30 above the player, 1, 1.5 s
+   157s step 165 of 313: watch sea, fish 30 above the player, 1, 2.0 s
+   157s step 166 of 313: watch sea, fish 30 above the player, 1, 2.5 s
+   157s step 167 of 313: watch sea, fish 30 above the player, 1, 3.0 s
+   157s step 168 of 313: watch sea, fish 30 above the player, 1, 3.5 s
+   157s step 169 of 313: watch sea, fish 30 above the player, 1, 4.0 s
+   159s step 170 of 313: watch sea, fish 30 above the player, 1, 4.5 s
+   159s step 171 of 313: watch sea, fish 30 above the player, 1, 5.0 s
+   159s step 172 of 313: watch sea, fish 30 above the player, 1, 5.5 s
+   159s step 173 of 313: watch sea, fish 30 above the player, 1, 6.0 s
+   159s step 174 of 313: watch sea, fish 30 above the player, 1, 6.5 s
+   161s step 175 of 313: watch sea, fish 30 above the player, 1, 7.0 s
+   161s step 176 of 313: watch sea, fish 30 above the player, 1, 7.5 s
+   161s step 177 of 313: watch sea, fish 30 above the player, 1, 8.0 s
+   161s step 178 of 313: result: sea, fish 30 above the player, 1
+   161s series sea, fish 30 above the player, 1: height 1.5 s after it was placed -90 (placed at -90); then height/distance every second: -90/142 -90/188 -90/179 -90/188 -90/203 -90/159 -90/211 -90/202; health 23, fight 100
+   161s combat sea, fish 30 above the player, 1: startCombat called 0 times (mwscript.startCombat 0 of them), combatStarted fired 1 times, combatStopped 0 times, in combat at the end true, AI active when first set on the player true, player detected true
+   161s OBSERVED sea, fish 30 above the player, 1: distance to the player 142 at first, 142 nearest, 239 at the end; travelled 364; swimming 100%, below the water level 100%, highest -90 relative to sea level; in combat 100%; under the raised water 100%; above sea level outside it 0 samples; player swimming true; god mode true, player health 13; player asked to 8485 188771 -120, is at 8484 188792 -120
+   164s step 179 of 313: trial: sea, fish 30 above the player, 2
+   166s step 180 of 313: set it on the player: sea, fish 30 above the player, 2
+   166s step 181 of 313: watch sea, fish 30 above the player, 2, 0.5 s
+   166s step 182 of 313: watch sea, fish 30 above the player, 2, 1.0 s
+   166s step 183 of 313: watch sea, fish 30 above the player, 2, 1.5 s
+   166s step 184 of 313: watch sea, fish 30 above the player, 2, 2.0 s
+   168s step 185 of 313: watch sea, fish 30 above the player, 2, 2.5 s
+   168s step 186 of 313: watch sea, fish 30 above the player, 2, 3.0 s
+   168s step 187 of 313: watch sea, fish 30 above the player, 2, 3.5 s
+   168s step 188 of 313: watch sea, fish 30 above the player, 2, 4.0 s
+   168s step 189 of 313: watch sea, fish 30 above the player, 2, 4.5 s
+   171s step 190 of 313: watch sea, fish 30 above the player, 2, 5.0 s
+   171s step 191 of 313: watch sea, fish 30 above the player, 2, 5.5 s
+   171s step 192 of 313: watch sea, fish 30 above the player, 2, 6.0 s
+   171s step 193 of 313: watch sea, fish 30 above the player, 2, 6.5 s
+   171s step 194 of 313: watch sea, fish 30 above the player, 2, 7.0 s
+   173s step 195 of 313: watch sea, fish 30 above the player, 2, 7.5 s
+   173s step 196 of 313: watch sea, fish 30 above the player, 2, 8.0 s
+   173s step 197 of 313: result: sea, fish 30 above the player, 2
+   173s series sea, fish 30 above the player, 2: height 1.5 s after it was placed -89 (placed at -90); then height/distance every second: -89/209 -89/200 -89/208 -89/203 -89/174 -89/211 -89/189 -89/165; health 23, fight 100
+   173s combat sea, fish 30 above the player, 2: startCombat called 0 times (mwscript.startCombat 0 of them), combatStarted fired 0 times, combatStopped 0 times, in combat at the end true, AI active when first set on the player true, player detected true
+   173s OBSERVED sea, fish 30 above the player, 2: distance to the player 209 at first, 159 nearest, 194 at the end; travelled 341; swimming 100%, below the water level 100%, highest -89 relative to sea level; in combat 100%; under the raised water 100%; above sea level outside it 0 samples; player swimming true; god mode true, player health 13; player asked to 8485 188771 -120, is at 8485 188793 -120
+   176s step 198 of 313: trial: sea, fish 30 above the player, 3
+   176s step 199 of 313: set it on the player: sea, fish 30 above the player, 3
+   176s step 200 of 313: watch sea, fish 30 above the player, 3, 0.5 s
+   178s step 201 of 313: watch sea, fish 30 above the player, 3, 1.0 s
+   178s step 202 of 313: watch sea, fish 30 above the player, 3, 1.5 s
+   178s step 203 of 313: watch sea, fish 30 above the player, 3, 2.0 s
+   178s step 204 of 313: watch sea, fish 30 above the player, 3, 2.5 s
+   180s step 205 of 313: watch sea, fish 30 above the player, 3, 3.0 s
+   180s step 206 of 313: watch sea, fish 30 above the player, 3, 3.5 s
+   180s step 207 of 313: watch sea, fish 30 above the player, 3, 4.0 s
+   180s step 208 of 313: watch sea, fish 30 above the player, 3, 4.5 s
+   180s step 209 of 313: watch sea, fish 30 above the player, 3, 5.0 s
+   183s step 210 of 313: watch sea, fish 30 above the player, 3, 5.5 s
+   183s step 211 of 313: watch sea, fish 30 above the player, 3, 6.0 s
+   183s step 212 of 313: watch sea, fish 30 above the player, 3, 6.5 s
+   183s step 213 of 313: watch sea, fish 30 above the player, 3, 7.0 s
+   183s step 214 of 313: watch sea, fish 30 above the player, 3, 7.5 s
+   185s step 215 of 313: watch sea, fish 30 above the player, 3, 8.0 s
+   185s step 216 of 313: result: sea, fish 30 above the player, 3
+   185s series sea, fish 30 above the player, 3: height 1.5 s after it was placed -89 (placed at -90); then height/distance every second: -89/212 -89/203 -89/154 -89/184 -89/198 -89/227 -89/204 -89/207; health 23, fight 100
+   185s combat sea, fish 30 above the player, 3: startCombat called 0 times (mwscript.startCombat 0 of them), combatStarted fired 0 times, combatStopped 0 times, in combat at the end true, AI active when first set on the player true, player detected true
+   185s OBSERVED sea, fish 30 above the player, 3: distance to the player 212 at first, 141 nearest, 141 at the end; travelled 467; swimming 100%, below the water level 100%, highest -89 relative to sea level; in combat 100%; under the raised water 100%; above sea level outside it 0 samples; player swimming true; god mode true, player health 13; player asked to 8485 188771 -120, is at 8485 188793 -120
+   185s step 217 of 313: trial: sea, fish 30 above the player, 4
+   187s step 218 of 313: set it on the player: sea, fish 30 above the player, 4
+   187s step 219 of 313: watch sea, fish 30 above the player, 4, 0.5 s
+   187s step 220 of 313: watch sea, fish 30 above the player, 4, 1.0 s
+   190s step 221 of 313: watch sea, fish 30 above the player, 4, 1.5 s
+   190s step 222 of 313: watch sea, fish 30 above the player, 4, 2.0 s
+   190s step 223 of 313: watch sea, fish 30 above the player, 4, 2.5 s
+   190s step 224 of 313: watch sea, fish 30 above the player, 4, 3.0 s
+   192s step 225 of 313: watch sea, fish 30 above the player, 4, 3.5 s
+   192s step 226 of 313: watch sea, fish 30 above the player, 4, 4.0 s
+   192s step 227 of 313: watch sea, fish 30 above the player, 4, 4.5 s
+   192s step 228 of 313: watch sea, fish 30 above the player, 4, 5.0 s
+   192s step 229 of 313: watch sea, fish 30 above the player, 4, 5.5 s
+   194s step 230 of 313: watch sea, fish 30 above the player, 4, 6.0 s
+   194s step 231 of 313: watch sea, fish 30 above the player, 4, 6.5 s
+   194s step 232 of 313: watch sea, fish 30 above the player, 4, 7.0 s
+   194s step 233 of 313: watch sea, fish 30 above the player, 4, 7.5 s
+   194s step 234 of 313: watch sea, fish 30 above the player, 4, 8.0 s
+   197s step 235 of 313: result: sea, fish 30 above the player, 4
+   197s series sea, fish 30 above the player, 4: height 1.5 s after it was placed -86 (placed at -90); then height/distance every second: -86/207 -86/201 -86/163 -86/170 -86/195 -86/224 -86/198 -86/235; health 23, fight 100
+   197s combat sea, fish 30 above the player, 4: startCombat called 0 times (mwscript.startCombat 0 of them), combatStarted fired 0 times, combatStopped 0 times, in combat at the end true, AI active when first set on the player true, player detected true
+   197s OBSERVED sea, fish 30 above the player, 4: distance to the player 207 at first, 140 nearest, 140 at the end; travelled 480; swimming 100%, below the water level 100%, highest -86 relative to sea level; in combat 100%; under the raised water 100%; above sea level outside it 0 samples; player swimming true; god mode true, player health 13; player asked to 8485 188771 -120, is at 8485 188793 -120
+   197s step 236 of 313: trial: sea, fish 280 below the player, 1
+   199s step 237 of 313: set it on the player: sea, fish 280 below the player, 1
+   199s step 238 of 313: watch sea, fish 280 below the player, 1, 0.5 s
+   199s step 239 of 313: watch sea, fish 280 below the player, 1, 1.0 s
+   199s step 240 of 313: watch sea, fish 280 below the player, 1, 1.5 s
+   201s step 241 of 313: watch sea, fish 280 below the player, 1, 2.0 s
+   201s step 242 of 313: watch sea, fish 280 below the player, 1, 2.5 s
+   201s step 243 of 313: watch sea, fish 280 below the player, 1, 3.0 s
+   201s step 244 of 313: watch sea, fish 280 below the player, 1, 3.5 s
+   204s step 245 of 313: watch sea, fish 280 below the player, 1, 4.0 s
+   204s step 246 of 313: watch sea, fish 280 below the player, 1, 4.5 s
+   204s step 247 of 313: watch sea, fish 280 below the player, 1, 5.0 s
+   204s step 248 of 313: watch sea, fish 280 below the player, 1, 5.5 s
+   204s step 249 of 313: watch sea, fish 280 below the player, 1, 6.0 s
+   206s step 250 of 313: watch sea, fish 280 below the player, 1, 6.5 s
+   206s step 251 of 313: watch sea, fish 280 below the player, 1, 7.0 s
+   206s step 252 of 313: watch sea, fish 280 below the player, 1, 7.5 s
+   206s step 253 of 313: watch sea, fish 280 below the player, 1, 8.0 s
+   206s step 254 of 313: result: sea, fish 280 below the player, 1
+   206s series sea, fish 280 below the player, 1: height 1.5 s after it was placed -311 (placed at -320); then height/distance every second: -308/312 -301/306 -295/300 -289/294 -283/288 -277/282 -272/276 -266/271; health 23, fight 100
+   206s combat sea, fish 280 below the player, 1: startCombat called 0 times (mwscript.startCombat 0 of them), combatStarted fired 0 times, combatStopped 0 times, in combat at the end true, AI active when first set on the player true, player detected true
+   206s OBSERVED sea, fish 280 below the player, 1: distance to the player 312 at first, 268 nearest, 268 at the end; travelled 46; swimming 100%, below the water level 100%, highest -264 relative to sea level; in combat 100%; under the raised water 100%; above sea level outside it 0 samples; player swimming true; god mode true, player health 13; player asked to 8485 188771 -40, is at 8485 188793 -120
+   209s step 255 of 313: trial: sea, fish 280 below the player, 2
+   211s step 256 of 313: set it on the player: sea, fish 280 below the player, 2
+   211s step 257 of 313: watch sea, fish 280 below the player, 2, 0.5 s
+   211s step 258 of 313: watch sea, fish 280 below the player, 2, 1.0 s
+   211s step 259 of 313: watch sea, fish 280 below the player, 2, 1.5 s
+   211s step 260 of 313: watch sea, fish 280 below the player, 2, 2.0 s
+   213s step 261 of 313: watch sea, fish 280 below the player, 2, 2.5 s
+   213s step 262 of 313: watch sea, fish 280 below the player, 2, 3.0 s
+   213s step 263 of 313: watch sea, fish 280 below the player, 2, 3.5 s
+   213s step 264 of 313: watch sea, fish 280 below the player, 2, 4.0 s
+   216s step 265 of 313: watch sea, fish 280 below the player, 2, 4.5 s
+   216s step 266 of 313: watch sea, fish 280 below the player, 2, 5.0 s
+   216s step 267 of 313: watch sea, fish 280 below the player, 2, 5.5 s
+   216s step 268 of 313: watch sea, fish 280 below the player, 2, 6.0 s
+   216s step 269 of 313: watch sea, fish 280 below the player, 2, 6.5 s
+   218s step 270 of 313: watch sea, fish 280 below the player, 2, 7.0 s
+   218s step 271 of 313: watch sea, fish 280 below the player, 2, 7.5 s
+   218s step 272 of 313: watch sea, fish 280 below the player, 2, 8.0 s
+   218s step 273 of 313: result: sea, fish 280 below the player, 2
+   218s series sea, fish 280 below the player, 2: height 1.5 s after it was placed -310 (placed at -320); then height/distance every second: -306/311 -300/304 -294/298 -288/292 -282/286 -276/280 -271/275 -265/269; health 23, fight 100
+   218s combat sea, fish 280 below the player, 2: startCombat called 0 times (mwscript.startCombat 0 of them), combatStarted fired 0 times, combatStopped 0 times, in combat at the end true, AI active when first set on the player true, player detected true
+   218s OBSERVED sea, fish 280 below the player, 2: distance to the player 311 at first, 267 nearest, 267 at the end; travelled 46; swimming 100%, below the water level 100%, highest -263 relative to sea level; in combat 100%; under the raised water 100%; above sea level outside it 0 samples; player swimming true; god mode true, player health 13; player asked to 8485 188771 -40, is at 8485 188793 -120
+   220s step 274 of 313: trial: sea, fish 280 below the player, 3
+   220s step 275 of 313: set it on the player: sea, fish 280 below the player, 3
+   223s step 276 of 313: watch sea, fish 280 below the player, 3, 0.5 s
+   223s step 277 of 313: watch sea, fish 280 below the player, 3, 1.0 s
+   223s step 278 of 313: watch sea, fish 280 below the player, 3, 1.5 s
+   223s step 279 of 313: watch sea, fish 280 below the player, 3, 2.0 s
+   223s step 280 of 313: watch sea, fish 280 below the player, 3, 2.5 s
+   225s step 281 of 313: watch sea, fish 280 below the player, 3, 3.0 s
+   225s step 282 of 313: watch sea, fish 280 below the player, 3, 3.5 s
+   225s step 283 of 313: watch sea, fish 280 below the player, 3, 4.0 s
+   225s step 284 of 313: watch sea, fish 280 below the player, 3, 4.5 s
+   228s step 285 of 313: watch sea, fish 280 below the player, 3, 5.0 s
+   228s step 286 of 313: watch sea, fish 280 below the player, 3, 5.5 s
+   228s step 287 of 313: watch sea, fish 280 below the player, 3, 6.0 s
+   228s step 288 of 313: watch sea, fish 280 below the player, 3, 6.5 s
+   228s step 289 of 313: watch sea, fish 280 below the player, 3, 7.0 s
+   230s step 290 of 313: watch sea, fish 280 below the player, 3, 7.5 s
+   230s step 291 of 313: watch sea, fish 280 below the player, 3, 8.0 s
+   230s step 292 of 313: result: sea, fish 280 below the player, 3
+   230s series sea, fish 280 below the player, 3: height 1.5 s after it was placed -310 (placed at -320); then height/distance every second: -307/311 -301/305 -294/299 -288/293 -282/287 -277/281 -271/276 -266/270; health 23, fight 100
+   230s combat sea, fish 280 below the player, 3: startCombat called 0 times (mwscript.startCombat 0 of them), combatStarted fired 0 times, combatStopped 0 times, in combat at the end true, AI active when first set on the player true, player detected true
+   230s OBSERVED sea, fish 280 below the player, 3: distance to the player 311 at first, 268 nearest, 268 at the end; travelled 46; swimming 100%, below the water level 100%, highest -263 relative to sea level; in combat 100%; under the raised water 100%; above sea level outside it 0 samples; player swimming true; god mode true, player health 13; player asked to 8485 188771 -40, is at 8485 188793 -120
+   232s step 293 of 313: trial: sea, fish 280 below the player, 4
+   232s step 294 of 313: set it on the player: sea, fish 280 below the player, 4
+   232s step 295 of 313: watch sea, fish 280 below the player, 4, 0.5 s
+   235s step 296 of 313: watch sea, fish 280 below the player, 4, 1.0 s
+   235s step 297 of 313: watch sea, fish 280 below the player, 4, 1.5 s
+   235s step 298 of 313: watch sea, fish 280 below the player, 4, 2.0 s
+   235s step 299 of 313: watch sea, fish 280 below the player, 4, 2.5 s
+   235s step 300 of 313: watch sea, fish 280 below the player, 4, 3.0 s
+   237s step 301 of 313: watch sea, fish 280 below the player, 4, 3.5 s
+   237s step 302 of 313: watch sea, fish 280 below the player, 4, 4.0 s
+   237s step 303 of 313: watch sea, fish 280 below the player, 4, 4.5 s
+   237s step 304 of 313: watch sea, fish 280 below the player, 4, 5.0 s
+   239s step 305 of 313: watch sea, fish 280 below the player, 4, 5.5 s
+   239s step 306 of 313: watch sea, fish 280 below the player, 4, 6.0 s
+   239s step 307 of 313: watch sea, fish 280 below the player, 4, 6.5 s
+   239s step 308 of 313: watch sea, fish 280 below the player, 4, 7.0 s
+   239s step 309 of 313: watch sea, fish 280 below the player, 4, 7.5 s
+   242s step 310 of 313: watch sea, fish 280 below the player, 4, 8.0 s
+   242s step 311 of 313: result: sea, fish 280 below the player, 4
+   242s series sea, fish 280 below the player, 4: height 1.5 s after it was placed -313 (placed at -320); then height/distance every second: -310/312 -303/306 -297/300 -291/294 -286/288 -280/282 -274/277 -269/271; health 23, fight 100
+   242s combat sea, fish 280 below the player, 4: startCombat called 0 times (mwscript.startCombat 0 of them), combatStarted fired 0 times, combatStopped 0 times, in combat at the end true, AI active when first set on the player true, player detected true
+   242s OBSERVED sea, fish 280 below the player, 4: distance to the player 312 at first, 269 nearest, 269 at the end; travelled 45; swimming 100%, below the water level 100%, highest -267 relative to sea level; in combat 100%; under the raised water 100%; above sea level outside it 0 samples; player swimming true; god mode true, player health 13; player asked to 8485 188771 -40, is at 8485 188792 -122
+   242s step 312 of 313: what the fish made of the raised water
+   242s OBSERVED tally: raised water, fish placed above sea level: of 4 fish, 4 noticed the player, 4 moved more than 100, 0 came more than 50 closer
+   242s OBSERVED tally: raised water, fish placed below sea level: of 4 fish, 4 noticed the player, 0 moved more than 100, 4 came more than 50 closer
+   242s OBSERVED tally: sea, fish 30 above the player: of 4 fish, 4 noticed the player, 4 moved more than 100, 2 came more than 50 closer
+   242s OBSERVED tally: sea, fish 280 below the player: of 4 fish, 4 noticed the player, 0 moved more than 100, 0 came more than 50 closer
+   242s step 313 of 313: clean up
+   242s DONE
+testing instance restored
+dump: work/water-creatures.json

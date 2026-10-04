@@ -1,0 +1,56 @@
+  harness mod: MWSE\mods\harness\water.lua
+launching (budget 300s, results in C:\Users\ivan_\source\repos\morrowind-test-harness\dump\work\runs\20261004-174251-water-test)
+  game window up, in the foreground
+    17s magic effects resolved: 2808 spells, 13024 NPCs, 0 auto-calculated NPCs hold 0 spells, nothing applied
+    26s loading save 'quiksave.ess'
+    28s loaded, new game false, cell Vas
+    28s water: god mode on at load; player at 5874 185035 990, health 13, swimming false
+    28s water: 2 water pieces left in the save by earlier runs removed
+    38s step 1 of 17: god mode on, player to the basin near Vas
+    47s step 2 of 17: place a kit disc as a reference
+    47s ground 453, water level 620, depth 167
+    50s step 3 of 17: the mesh is tagged and the footprint is the disc
+    50s PASS tag: WaterVolume string data on the reference's scene node
+    50s PASS centre: surface 620, expected 620
+    50s PASS inside the disc near the rim: surface 620, expected 620
+    50s PASS corner of the bounding box, outside the disc: surface nil, expected nil
+    50s PASS outside the bounding box: surface nil, expected nil
+    50s PASS below the floor: surface nil, expected nil
+    52s step 4 of 17: player to the bottom of the pond, first person
+    57s step 5 of 17: player swims and is underwater
+    57s PASS player in the pond: z 458, swimming true, underwater true
+    57s plugin: 80 of 80 hooks in place; 1 volumes
+    57s PASS underwater flag: true
+    57s screenshot C:/Users/ivan_/source/repos/morrowind-test-harness/dump/work/runs/20261004-174251-water-test/01-first-person-under.jpg
+    57s step 6 of 17: disable the reference: the water goes
+    62s step 7 of 17: no water while disabled
+    62s PASS centre while disabled: surface nil, expected nil
+    62s PASS player while disabled: z 455, swimming false, underwater false
+    62s plugin: 80 of 80 hooks in place; 0 volumes
+    64s step 8 of 17: water is back after enable
+    64s PASS centre after enable: surface 620, expected 620
+    64s PASS player after enable: z 455, swimming true, underwater true
+    64s plugin: 80 of 80 hooks in place; 1 volumes
+    66s step 9 of 17: the water follows the reference when it moves
+    66s PASS centre after raising the reference by 100: surface 720, expected 720
+    69s step 10 of 17: screenshot from above
+    69s screenshot C:/Users/ivan_/source/repos/morrowind-test-harness/dump/work/runs/20261004-174251-water-test/02-from-above.jpg
+    69s step 11 of 17: tilt the reference by 5 degrees: the surface slopes
+    71s step 12 of 17: the level follows the slope
+    71s PASS slope: centre keeps its height: 680.0, expected 680
+    71s PASS slope: height differs across the tilt: +400: 715.0, -400: 645.0, difference 70.0, expected 70.0
+    71s PASS slope: level along the tilt axis: 680.0 against 680.0
+    71s slope: ground 516 on the high side, 494 on the low side, feet at 555
+    76s step 13 of 17: player on the high side of the slope
+    76s PASS slope: head under water on the high side: z 555, surface there 706.2, underwater true
+    78s step 14 of 17: player on the low side of the slope
+    78s PASS slope: head above water on the low side: z 534, surface there 653.8, underwater false
+    78s step 15 of 17: timing
+    78s timing: lookup from Lua, disc of 32 triangles: inside 109 ns, bounding box corner 22 ns, outside 19 ns
+    78s timing: surface of 8192 triangles: registered in 2.00 ms, lookup inside 45 ns, found 620
+    83s step 16 of 17: timing without any volume
+    83s timing: engine query for the player through tes3.canRest: 725 ns in a volume, 465 ns outside it, 400 ns with no volume registered
+    85s step 17 of 17: clean up
+    85s DONE
+testing instance restored
+dump: work/water-test.json

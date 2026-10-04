@@ -1,0 +1,24 @@
+# Visual Studio / VS Code
+.vs/
+*.user
+*.suo
+*.code-workspace
+
+# CMake build trees
+/build/
+/out/
+
+# Build artifacts. The plugin DLL is built into "Water Volumes/MWSE/lib".
+*.dll
+*.pdb
+*.lib
+*.exp
+*.obj
+*.ilk
+
+# Mod Organizer metadata, if the mod folder is used as a mod in place.
+/Water Volumes/meta.ini
+
+# Python bytecode
+__pycache__/
+*.pyc

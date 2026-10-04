@@ -1,0 +1,30 @@
+  harness mod: MWSE\mods\harness\water.lua
+  profiles\Default\Morrowind.ini <- plugin list with Water Volumes Kit.esp
+launching (budget 300s, results in C:\Users\ivan_\source\repos\morrowind-test-harness\dump\work\runs\20261004-172551-water-marker)
+  game window up, in the foreground
+    23s magic effects resolved: 2808 spells, 13024 NPCs, 0 auto-calculated NPCs hold 0 spells, nothing applied
+    30s loading save 'quiksave.ess'
+    32s loaded, new game false, cell Vas
+    32s water: god mode on at load; player at 5874 185035 990, health 13, swimming false
+    41s step 1 of 8: player to the site
+    48s step 2 of 8: the kit plugin and the pieces
+    48s PASS the kit plugin provides every piece as a static: 14 of 14 found
+    48s OBSERVED set up: 2 stale pieces removed; pieces around 8485 188771
+    56s step 3 of 8: what the bodies do
+    56s PASS the piece has a body shape and the game does not draw it: 1 body shapes, 1 hidden
+    56s PASS only the surface is given the renderer's water shading: shaded as water: Water; left alone: WaterBody
+    56s PASS the water is as deep as the body, 512, although the piece is registered with a depth of 100: 90 under 250, 300 under 250, 500 under 250, 530 under nil
+    56s PASS a piece at half scale has water half as deep and half as wide: 200 under 250, 270 under nil; 400 from its middle 250, 600 from its middle nil
+    56s PASS the shallow piece is 128 deep: 100 under 250, 140 under nil
+    56s river piece: at 10477 187621 250 in cell 1,22, scene node true, shapes Water, WaterBody (hidden); surface over its middle 250
+    56s PASS the falling river piece has a sloped surface and a floor 256 under it: surface 900 north of its middle 362.5, 900 south 137.5 (expected 362.5 and 137.5); 300 under the north surface nil
+    58s step 4 of 8: set up: kit bodies in game from the side
+    60s step 5 of 8: photograph: kit bodies in game from the side
+    60s screenshot C:/Users/ivan_/source/repos/morrowind-test-harness/dump/work/runs/20261004-172551-water-marker/01 kit bodies in game from the side.jpg
+    63s step 6 of 8: set up: kit bodies in game from above
+    65s step 7 of 8: photograph: kit bodies in game from above
+    65s screenshot C:/Users/ivan_/source/repos/morrowind-test-harness/dump/work/runs/20261004-172551-water-marker/02 kit bodies in game from above.jpg
+    65s step 8 of 8: clean up
+    65s DONE
+testing instance restored
+dump: work/water-marker.json
