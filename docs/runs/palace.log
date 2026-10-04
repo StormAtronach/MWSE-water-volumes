@@ -1,0 +1,85 @@
+[harness.dump] magic effects resolved: 2808 spells, 13024 NPCs, 0 auto-calculated NPCs hold 0 spells, nothing applied
+[harness.dump] loading save 'quiksave.ess'
+[harness.dump] loaded, new game false, cell Vas
+[harness.dump] water: god mode on at load; player at 5874 185035 990, health 13, swimming false
+[harness.dump] water: 2 water pieces left in the save by earlier runs removed
+[harness.dump] step 1 of 27: god mode on, player to the lowest tier of the palace
+[harness.dump] step 2 of 27: find the palace water
+[harness.dump] OBSERVED palace water reference: at 32832 -106880 512 in cell 4,-14, scene node true
+[harness.dump] step 3 of 27: measure every tier
+[harness.dump] tier 1 east: surface 498.4, solid below at 478, water depth 20
+[harness.dump] tier 1 west: surface 498.4, solid below at 478, water depth 20
+[harness.dump] tier 1 north: surface none, solid below at 757, water depth ?
+[harness.dump] tier 1 south: surface none, solid below at -1164, water depth ?
+[harness.dump] tier 1 east, 900 north: surface 498.4, solid below at 479, water depth 20
+[harness.dump] tier 1 west, 900 north: surface 498.4, solid below at 478, water depth 20
+[harness.dump] tier 1 east, 900 south: surface 498.4, solid below at 478, water depth 20
+[harness.dump] tier 1 west, 900 south: surface 498.4, solid below at 478, water depth 20
+[harness.dump] tier 2 east: surface 883.0, solid below at 862, water depth 21
+[harness.dump] tier 2 west: surface 883.0, solid below at 862, water depth 21
+[harness.dump] tier 2 north: surface 498.4, solid below at 720, water depth -222
+[harness.dump] tier 2 south: surface 883.0, solid below at -1620, water depth 2503
+[harness.dump] tier 2 east, 900 north: surface 883.0, solid below at 863, water depth 20
+[harness.dump] tier 2 west, 900 north: surface 883.0, solid below at 862, water depth 21
+[harness.dump] tier 2 east, 900 south: surface 883.0, solid below at 862, water depth 21
+[harness.dump] tier 2 west, 900 south: surface 883.0, solid below at 862, water depth 21
+[harness.dump] tier 3 east: surface 1255.2, solid below at 1246, water depth 9
+[harness.dump] tier 3 west: surface 1255.2, solid below at 1246, water depth 9
+[harness.dump] tier 3 north: surface 498.4, solid below at 932, water depth -434
+[harness.dump] tier 3 south: surface 1255.2, solid below at -2044, water depth 3299
+[harness.dump] tier 3 east, 900 north: surface 1255.2, solid below at 1246, water depth 9
+[harness.dump] tier 3 west, 900 north: surface 1255.2, solid below at 1402, water depth -146
+[harness.dump] tier 3 east, 900 south: surface 1255.2, solid below at 1246, water depth 9
+[harness.dump] tier 3 west, 900 south: surface 1255.2, solid below at 1246, water depth 9
+[harness.dump] tier 4 east: surface 1639.3, solid below at 1760, water depth -120
+[harness.dump] tier 4 west: surface 1639.3, solid below at 1631, water depth 8
+[harness.dump] tier 4 north: surface 883.0, solid below at 1383, water depth -500
+[harness.dump] tier 4 south: surface 1639.3, solid below at -1970, water depth 3609
+[harness.dump] tier 4 east, 900 north: surface 1255.2, solid below at 1246, water depth 9
+[harness.dump] tier 4 west, 900 north: surface 1255.2, solid below at 1246, water depth 9
+[harness.dump] tier 4 east, 900 south: surface 1639.3, solid below at -1357, water depth 2997
+[harness.dump] tier 4 west, 900 south: surface 1639.3, solid below at 1850, water depth -211
+[harness.dump] PASS every tier has water over a solid floor: tier 1: surface 498.4, up to 20 deep; tier 2: surface 883.0, up to 21 deep; tier 3: surface 1255.2, up to 9 deep; tier 4: surface 1639.3, up to 8 deep
+[harness.dump] OBSERVED the four sheets over one point: nil, 883.01446533203, 1255.1604003906, 1639.2669677734
+[harness.dump] PASS between the top sheet and the one below it, the top sheet is the surface: 1639.2669677734
+[harness.dump] PASS 100 under the third sheet, the third sheet is the surface: 1255.1604003906
+[harness.dump] PASS under the lowest of several sheets there is no water: nil
+[harness.dump] OBSERVED 300 above the top sheet: surface 1639.2669677734 (the water under the point; it is not in it)
+[harness.dump] PASS under a single sheet the water reaches the depth setting (128): 100 under: 498.40719604492; 200 under: nil
+[harness.dump] step 4 of 27: player into the water of tier 1
+[harness.dump] step 5 of 27: player in the water of tier 1
+[harness.dump] OBSERVED tier 1: west, 900 south, player at 30328 -107780 480, 18 below the surface, surface there 498.40719604492, swimming false
+[harness.dump] step 6 of 27: set up: palace tier 1 player in the water
+[harness.dump] step 7 of 27: photograph: palace tier 1 player in the water
+[harness.dump] screenshot C:/Users/ivan_/source/repos/morrowind-test-harness/dump/work/runs/20261004-184244-wv-audit-palace/01 palace tier 1 player in the water.jpg
+[harness.dump] step 8 of 27: player into the water of tier 2
+[harness.dump] step 9 of 27: player in the water of tier 2
+[harness.dump] OBSERVED tier 2: west, 900 south, player at 30766 -107780 862, 21 below the surface, surface there 883.01434326172, swimming false
+[harness.dump] step 10 of 27: set up: palace tier 2 player in the water
+[harness.dump] step 11 of 27: photograph: palace tier 2 player in the water
+[harness.dump] screenshot C:/Users/ivan_/source/repos/morrowind-test-harness/dump/work/runs/20261004-184244-wv-audit-palace/02 palace tier 2 player in the water.jpg
+[harness.dump] step 12 of 27: player into the water of tier 3
+[harness.dump] step 13 of 27: player in the water of tier 3
+[harness.dump] OBSERVED tier 3: west, 900 south, player at 30766 -107780 862, 393 below the surface, surface there 883.01434326172, swimming false
+[harness.dump] step 14 of 27: set up: palace tier 3 player in the water
+[harness.dump] step 15 of 27: photograph: palace tier 3 player in the water
+[harness.dump] screenshot C:/Users/ivan_/source/repos/morrowind-test-harness/dump/work/runs/20261004-184244-wv-audit-palace/03 palace tier 3 player in the water.jpg
+[harness.dump] step 16 of 27: player into the water of tier 4
+[harness.dump] step 17 of 27: player in the water of tier 4
+[harness.dump] OBSERVED tier 4: west, player at 30766 -107780 862, 777 below the surface, surface there 883.01434326172, swimming false
+[harness.dump] step 18 of 27: set up: palace tier 4 player in the water
+[harness.dump] step 19 of 27: photograph: palace tier 4 player in the water
+[harness.dump] screenshot C:/Users/ivan_/source/repos/morrowind-test-harness/dump/work/runs/20261004-184244-wv-audit-palace/04 palace tier 4 player in the water.jpg
+[harness.dump] step 20 of 27: the player is in the water of every tier
+[harness.dump] FAIL standing on the floor of each pool, the player is in that pool's water: 2 of 4 not
+[harness.dump] step 21 of 27: set up: palace from the south east
+[harness.dump] step 22 of 27: photograph: palace from the south east
+[harness.dump] screenshot C:/Users/ivan_/source/repos/morrowind-test-harness/dump/work/runs/20261004-184244-wv-audit-palace/05 palace from the south east.jpg
+[harness.dump] step 23 of 27: set up: palace lowest tier along the water
+[harness.dump] step 24 of 27: photograph: palace lowest tier along the water
+[harness.dump] screenshot C:/Users/ivan_/source/repos/morrowind-test-harness/dump/work/runs/20261004-184244-wv-audit-palace/06 palace lowest tier along the water.jpg
+[harness.dump] step 25 of 27: set up: palace from above
+[harness.dump] step 26 of 27: photograph: palace from above
+[harness.dump] screenshot C:/Users/ivan_/source/repos/morrowind-test-harness/dump/work/runs/20261004-184244-wv-audit-palace/07 palace from above.jpg
+[harness.dump] step 27 of 27: clean up
+[harness.dump] DONE

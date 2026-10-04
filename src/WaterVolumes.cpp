@@ -19,19 +19,87 @@
 #include "NITriShape.h"
 #include "NITriShapeData.h"
 
+#include <algorithm>
+#include <cstdint>
+#include <memory>
+
 namespace wv {
 
     //
     // Registry.
     //
 
-    static std::vector<Volume> volumes;
+    static std::unordered_map<int, std::unique_ptr<Volume>> volumes;
     static int nextVolumeId = 1;
     static bool installed = false;
     static DWORD mainThreadId = 0;
 
     // Read from assembly. True while at least one volume exists.
     static bool anyVolumes = false;
+
+    // The volumes by the squares of the world their bounds touch, so that a lookup tests only
+    // the ones near the point. A volume that touches too many squares is tested every time.
+    constexpr auto BUCKET_SIZE = 1024.0f;
+    constexpr auto MAX_BUCKETS_PER_VOLUME = 256;
+    static std::unordered_map<std::uint64_t, std::vector<const Volume*>> buckets;
+    static std::vector<const Volume*> wideVolumes;
+
+    // The scene graph branches of the volumes.
+    static std::unordered_multiset<const NI::AVObject*> volumeNodes;
+
+    static int bucketOf(float value) {
+        return static_cast<int>(std::clamp(std::floor(value / BUCKET_SIZE), -2e6f, 2e6f));
+    }
+
+    static std::uint64_t bucketKey(int x, int y) {
+        return (static_cast<std::uint64_t>(static_cast<std::uint32_t>(x)) << 32) | static_cast<std::uint32_t>(y);
+    }
+
+    // The squares a volume touches. None if it touches too many.
+    static std::vector<std::uint64_t> bucketKeys(const Volume& volume) {
+        const auto x0 = bucketOf(volume.min.x), x1 = bucketOf(volume.max.x);
+        const auto y0 = bucketOf(volume.min.y), y1 = bucketOf(volume.max.y);
+        std::vector<std::uint64_t> keys;
+        if (static_cast<std::int64_t>(x1 - x0 + 1) * (y1 - y0 + 1) > MAX_BUCKETS_PER_VOLUME) {
+            return keys;
+        }
+        for (auto y = y0; y <= y1; ++y) {
+            for (auto x = x0; x <= x1; ++x) {
+                keys.push_back(bucketKey(x, y));
+            }
+        }
+        return keys;
+    }
+
+    static void link(const Volume& volume) {
+        const auto keys = bucketKeys(volume);
+        if (keys.empty()) {
+            wideVolumes.push_back(&volume);
+        }
+        for (const auto key : keys) {
+            buckets[key].push_back(&volume);
+        }
+        if (volume.node != nullptr) {
+            volumeNodes.insert(volume.node);
+        }
+    }
+
+    static void unlink(const Volume& volume) {
+        const auto keys = bucketKeys(volume);
+        if (keys.empty()) {
+            std::erase(wideVolumes, &volume);
+        }
+        for (const auto key : keys) {
+            const auto bucket = buckets.find(key);
+            if (bucket != buckets.end() && std::erase(bucket->second, &volume) > 0 && bucket->second.empty()) {
+                buckets.erase(bucket);
+            }
+        }
+        const auto node = volumeNodes.find(volume.node);
+        if (node != volumeNodes.end()) {
+            volumeNodes.erase(node);
+        }
+    }
 
     // Layout shared with the renderer's exported setter.
     struct ExportedVolume {
@@ -44,6 +112,16 @@ namespace wv {
     static int rendererVolumeId = 0;
     static float rendererSurface = 0.0f;
 
+    using RendererSetter = void(__cdecl*)(const ExportedVolume*, unsigned int);
+
+    static RendererSetter findRendererSetter() {
+        const auto renderer = GetModuleHandleA("d3d8.dll");
+        if (renderer == NULL) {
+            return nullptr;
+        }
+        return reinterpret_cast<RendererSetter>(GetProcAddress(renderer, "MGE_WaterVolumesSet"));
+    }
+
     static void setRendererVolume(const Volume* volume, float surface, float floor) {
         const auto id = volume ? volume->id : 0;
         if (id == rendererVolumeId && (id == 0 || std::abs(surface - rendererSurface) < 0.5f)) {
@@ -52,11 +130,7 @@ namespace wv {
         rendererVolumeId = id;
         rendererSurface = surface;
 
-        const auto renderer = GetModuleHandleA("d3d8.dll");
-        if (renderer == NULL) {
-            return;
-        }
-        const auto setter = reinterpret_cast<void(__cdecl*)(const ExportedVolume*, unsigned int)>(GetProcAddress(renderer, "MGE_WaterVolumesSet"));
+        static const auto setter = findRendererSetter();
         if (setter == nullptr) {
             return;
         }
@@ -70,15 +144,17 @@ namespace wv {
         }
     }
 
-    static int store(Volume&& volume) {
+    static int store(std::unique_ptr<Volume> volume) {
         if (GetCurrentThreadId() != mainThreadId) {
             log::getLog() << "Water Volumes: a volume was added from thread " << GetCurrentThreadId() << ", not the thread the hooks answer on, " << mainThreadId << "." << std::endl;
             log::flush();
         }
-        volume.id = nextVolumeId++;
-        volumes.push_back(std::move(volume));
+        const auto id = nextVolumeId++;
+        volume->id = id;
+        link(*volume);
+        volumes.emplace(id, std::move(volume));
         anyVolumes = true;
-        return volumes.back().id;
+        return id;
     }
 
     int add(const NI::Point3& min, const NI::Point3& max) {
@@ -86,12 +162,15 @@ namespace wv {
             return 0;
         }
 
-        Volume volume = {};
-        volume.min = NI::Point3(std::min(min.x, max.x), std::min(min.y, max.y), std::min(min.z, max.z));
-        volume.max = NI::Point3(std::max(min.x, max.x), std::max(min.y, max.y), std::max(min.z, max.z));
-        volume.depth = volume.max.z - volume.min.z;
+        auto volume = std::make_unique<Volume>();
+        volume->min = NI::Point3(std::min(min.x, max.x), std::min(min.y, max.y), std::min(min.z, max.z));
+        volume->max = NI::Point3(std::max(min.x, max.x), std::max(min.y, max.y), std::max(min.z, max.z));
         return store(std::move(volume));
     }
+
+    // A triangle steeper than this is a wall: it bounds the water and is no layer of it.
+    // The value is the cosine of the steepest slope that still counts, 60 degrees from level.
+    constexpr auto MIN_LEVELNESS = 0.5f;
 
     // A shape named WaterBody gives the sides and the bottom of the water. It is hidden in the
     // game and counts all the same.
@@ -120,9 +199,14 @@ namespace wv {
                 triangle.b = shape->worldTransform * data->vertex[indices[1]];
                 triangle.c = shape->worldTransform * data->vertex[indices[2]];
 
-                // A triangle seen edge-on from above covers no area.
+                // The denominator is the vertical part of the triangle's normal: nothing for a
+                // triangle seen edge-on from above, the whole normal for a level one.
                 triangle.denominator = (triangle.b.y - triangle.c.y) * (triangle.a.x - triangle.c.x) + (triangle.c.x - triangle.b.x) * (triangle.a.y - triangle.c.y);
-                if (std::abs(triangle.denominator) < 1e-6f) {
+                const auto edge1 = triangle.b - triangle.a;
+                const auto edge2 = triangle.c - triangle.a;
+                const auto normal = edge1.crossProduct(&edge2);
+                const auto length = std::sqrt(normal.x * normal.x + normal.y * normal.y + normal.z * normal.z);
+                if (std::abs(triangle.denominator) < 1e-6f || std::abs(triangle.denominator) < MIN_LEVELNESS * length) {
                     continue;
                 }
                 volume.footprint.push_back(triangle);
@@ -139,7 +223,7 @@ namespace wv {
     static void buildGrid(Volume& volume) {
         const auto count = volume.footprint.size();
         volume.gridSize = std::clamp(static_cast<unsigned int>(std::ceil(std::sqrt(static_cast<float>(count)))), 1u, 64u);
-        volume.grid.assign(volume.gridSize * volume.gridSize, {});
+        const auto cellCount = volume.gridSize * volume.gridSize;
 
         const auto width = std::max(volume.max.x - volume.min.x, 1.0f);
         const auto height = std::max(volume.max.y - volume.min.y, 1.0f);
@@ -149,17 +233,31 @@ namespace wv {
         const auto cellOf = [&](float value, float origin, float scale) {
             return std::clamp(static_cast<int>((value - origin) * scale), 0, static_cast<int>(volume.gridSize) - 1);
         };
-        for (auto i = 0u; i < count; ++i) {
-            const auto& t = volume.footprint[i];
+        const auto forEachCell = [&](const FootprintTriangle& t, const auto& visit) {
             const auto x0 = cellOf(std::min({ t.a.x, t.b.x, t.c.x }), volume.min.x, volume.gridScaleX);
             const auto x1 = cellOf(std::max({ t.a.x, t.b.x, t.c.x }), volume.min.x, volume.gridScaleX);
             const auto y0 = cellOf(std::min({ t.a.y, t.b.y, t.c.y }), volume.min.y, volume.gridScaleY);
             const auto y1 = cellOf(std::max({ t.a.y, t.b.y, t.c.y }), volume.min.y, volume.gridScaleY);
             for (auto y = y0; y <= y1; ++y) {
                 for (auto x = x0; x <= x1; ++x) {
-                    volume.grid[y * volume.gridSize + x].push_back(i);
+                    visit(y * volume.gridSize + x);
                 }
             }
+        };
+
+        // Count the triangles of each cell, turn the counts into where each cell starts, then
+        // put the triangles in.
+        volume.gridStart.assign(cellCount + 1, 0);
+        for (const auto& t : volume.footprint) {
+            forEachCell(t, [&](unsigned int cell) { volume.gridStart[cell + 1]++; });
+        }
+        for (auto cell = 0u; cell < cellCount; ++cell) {
+            volume.gridStart[cell + 1] += volume.gridStart[cell];
+        }
+        volume.gridItems.resize(volume.gridStart[cellCount]);
+        std::vector<unsigned int> next(volume.gridStart.begin(), volume.gridStart.end() - 1);
+        for (auto i = 0u; i < count; ++i) {
+            forEachCell(volume.footprint[i], [&](unsigned int cell) { volume.gridItems[next[cell]++] = i; });
         }
     }
 
@@ -168,7 +266,8 @@ namespace wv {
             return 0;
         }
 
-        Volume volume = {};
+        auto owned = std::make_unique<Volume>();
+        auto& volume = *owned;
         collectFootprint(node, volume);
         if (volume.footprint.empty()) {
             return 0;
@@ -192,14 +291,15 @@ namespace wv {
         volume.min.z -= volume.depth;
 
         buildGrid(volume);
-        return store(std::move(volume));
+        return store(std::move(owned));
     }
 
     bool remove(int id) {
-        const auto itt = std::find_if(volumes.begin(), volumes.end(), [id](const Volume& v) { return v.id == id; });
+        const auto itt = volumes.find(id);
         if (itt == volumes.end()) {
             return false;
         }
+        unlink(*itt->second);
         volumes.erase(itt);
         anyVolumes = !volumes.empty();
         if (id == rendererVolumeId) {
@@ -209,17 +309,16 @@ namespace wv {
     }
 
     void clear() {
+        buckets.clear();
+        wideVolumes.clear();
+        volumeNodes.clear();
         volumes.clear();
         anyVolumes = false;
         setRendererVolume(nullptr, 0.0f, 0.0f);
     }
 
-    const std::vector<Volume>& getVolumes() {
-        return volumes;
-    }
-
-    bool isInstalled() {
-        return installed;
+    size_t count() {
+        return volumes.size();
     }
 
     // Heights closer together than this are one layer of the surface. Meshes often carry the
@@ -246,8 +345,9 @@ namespace wv {
         constexpr auto MAX_HEIGHTS = 32u;
         float heights[MAX_HEIGHTS];
         auto count = 0u;
-        for (const auto index : volume.grid[cellY * volume.gridSize + cellX]) {
-            const auto& t = volume.footprint[index];
+        const auto cell = cellY * volume.gridSize + cellX;
+        for (auto item = volume.gridStart[cell]; item < volume.gridStart[cell + 1]; ++item) {
+            const auto& t = volume.footprint[volume.gridItems[item]];
             const auto w1 = ((t.b.y - t.c.y) * (x - t.c.x) + (t.c.x - t.b.x) * (y - t.c.y)) / t.denominator;
             const auto w2 = ((t.c.y - t.a.y) * (x - t.c.x) + (t.a.x - t.c.x) * (y - t.c.y)) / t.denominator;
             const auto w3 = 1.0f - w1 - w2;
@@ -272,18 +372,14 @@ namespace wv {
         }
 
         // The lowest height at or above the position belongs to the layer whose water it is in.
+        // A position above every layer, or one whose height does not count, gets the top layer.
         auto above = highest;
-        auto anyAbove = false;
-        for (auto i = 0u; i < count; ++i) {
-            if (heights[i] >= position->z && heights[i] <= above) {
-                above = heights[i];
-                anyAbove = true;
+        if (!ignoreHeight) {
+            for (auto i = 0u; i < count; ++i) {
+                if (heights[i] >= position->z && heights[i] < above) {
+                    above = heights[i];
+                }
             }
-        }
-        if (ignoreHeight || !anyAbove) {
-            out_surface = highest;
-            out_floor = lowest;
-            return true;
         }
 
         // The top of that layer is the surface; the top of the layer under it is the floor.
@@ -310,18 +406,28 @@ namespace wv {
 
     static const Volume* findVolume(const NI::Point3* position, bool ignoreHeight, float& out_surface, float& out_floor) {
         const Volume* found = nullptr;
-        for (const auto& volume : volumes) {
-            if (position->x < volume.min.x || position->x > volume.max.x) continue;
-            if (position->y < volume.min.y || position->y > volume.max.y) continue;
-            if (!ignoreHeight && position->z < volume.min.z) continue;
+        const auto test = [&](const Volume* volume) {
+            if (position->x < volume->min.x || position->x > volume->max.x) return;
+            if (position->y < volume->min.y || position->y > volume->max.y) return;
+            if (!ignoreHeight && position->z < volume->min.z) return;
 
             float surface = 0.0f, floor = 0.0f;
-            if (!waterAt(volume, position, ignoreHeight, surface, floor)) continue;
-            if (found != nullptr && surface <= out_surface) continue;
+            if (!waterAt(*volume, position, ignoreHeight, surface, floor)) return;
+            if (found != nullptr && surface <= out_surface) return;
 
-            found = &volume;
+            found = volume;
             out_surface = surface;
             out_floor = floor;
+        };
+
+        const auto bucket = buckets.find(bucketKey(bucketOf(position->x), bucketOf(position->y)));
+        if (bucket != buckets.end()) {
+            for (const auto volume : bucket->second) {
+                test(volume);
+            }
+        }
+        for (const auto volume : wideVolumes) {
+            test(volume);
         }
         return found;
     }
@@ -423,16 +529,28 @@ namespace wv {
             return;
         }
 
-        // Frames at or below this stack position never returned through the exit stub.
-        while (frameCount > 0 && frames[frameCount - 1].stackPointer <= registers->esp) {
+        const auto stack = reinterpret_cast<DWORD*>(registers->esp);
+        const auto dropFrame = [] {
             frameCount--;
             subject = frames[frameCount].previous;
+        };
+
+        // Frames below this stack position never returned through the exit stub.
+        while (frameCount > 0 && frames[frameCount - 1].stackPointer < registers->esp) {
+            dropFrame();
         }
-        if (frameCount == MAX_FRAMES) {
+        if (frameCount > 0 && frames[frameCount - 1].stackPointer == registers->esp) {
+            // Entered by a jump out of a hooked function, whose frame stands for this one too.
+            if (stack[0] == exitStub) {
+                subject = resolveSubject(kind, registers->ecx, stack, frames[frameCount - 1]);
+                return;
+            }
+            dropFrame();
+        }
+        if (frameCount == MAX_FRAMES || stack[0] == exitStub) {
             return;
         }
 
-        const auto stack = reinterpret_cast<DWORD*>(registers->esp);
         auto& frame = frames[frameCount++];
         frame.returnAddress = stack[0];
         frame.stackPointer = registers->esp;
@@ -485,12 +603,8 @@ namespace wv {
 
     // Line of sight passes through the surface mesh of a water volume.
     static bool __cdecl lineOfSightRayVsReferenceNode(NI::Node* node, const NI::Point3* origin, const NI::Point3* direction, float maxDistance) {
-        if (anyVolumes && GetCurrentThreadId() == mainThreadId) {
-            for (const auto& volume : volumes) {
-                if (volume.node == node) {
-                    return false;
-                }
-            }
+        if (anyVolumes && GetCurrentThreadId() == mainThreadId && volumeNodes.contains(node)) {
+            return false;
         }
         return TES3_lineOfSightRayVsReferenceNode(node, origin, direction, maxDistance);
     }
@@ -624,56 +738,58 @@ namespace wv {
 
     static const BYTE interiorCellLoadBytes[] = { 0x8B, 0x88, 0xAC, 0x00, 0x00, 0x00 };
 
+    // The function that begins with the global water level query and is replaced whole.
+    constexpr DWORD POINT_UNDERWATER_FUNCTION = 0x53B4A0;
+
+    // The call that tests a line of sight against the mesh of one reference.
+    constexpr DWORD LINE_OF_SIGHT_CALL_SITE = 0x53B1DD;
+
+    // Where each entry hook's stub is, once installed.
+    static DWORD entryStubs[std::size(entryHooks)] = {};
+
     //
     // Installation.
     //
 
-    static bool isCallTo(DWORD address, DWORD target) {
-        if (*reinterpret_cast<const BYTE*>(address) != 0xE8) {
+    static bool isRelativeTo(DWORD address, BYTE opcode, DWORD target) {
+        if (*reinterpret_cast<const BYTE*>(address) != opcode) {
             return false;
         }
-        return se::memory::getCallAddress(address) == target;
+        return *reinterpret_cast<const DWORD*>(address + 1) + address + 5 == target;
+    }
+
+    static bool isCallTo(DWORD address, DWORD target) {
+        return isRelativeTo(address, 0xE8, target);
+    }
+
+    static bool isJumpTo(DWORD address, DWORD target) {
+        return isRelativeTo(address, 0xE9, target);
     }
 
     static bool verify() {
         bool ok = true;
+        const auto expect = [&](bool matches, const char* what, DWORD address) {
+            if (!matches) {
+                log::getLog() << "Water Volumes: unexpected code at " << what << " 0x" << std::hex << address << std::dec << std::endl;
+                ok = false;
+            }
+        };
         for (const auto site : globalLevelCallSites) {
-            if (!isCallTo(site, 0x51D760)) {
-                log::getLog() << "Water Volumes: unexpected code at call site 0x" << std::hex << site << std::dec << std::endl;
-                ok = false;
-            }
+            expect(isCallTo(site, 0x51D760), "call site", site);
         }
-        if (!isCallTo(0x53B4A0, 0x51D760)) {
-            log::getLog() << "Water Volumes: unexpected code at 0x53b4a0" << std::endl;
-            ok = false;
-        }
+        expect(isCallTo(POINT_UNDERWATER_FUNCTION, 0x51D760), "function", POINT_UNDERWATER_FUNCTION);
         for (const auto site : cellLevelCallSites) {
-            if (!isCallTo(site, 0x4E28B0)) {
-                log::getLog() << "Water Volumes: unexpected code at call site 0x" << std::hex << site << std::dec << std::endl;
-                ok = false;
-            }
+            expect(isCallTo(site, 0x4E28B0), "call site", site);
         }
         for (const auto site : underwaterStateCallSites) {
-            if (!isCallTo(site, 0x440AF0)) {
-                log::getLog() << "Water Volumes: unexpected code at call site 0x" << std::hex << site << std::dec << std::endl;
-                ok = false;
-            }
+            expect(isCallTo(site, 0x440AF0), "call site", site);
         }
-        if (!isCallTo(0x53B1DD, 0x53AF90)) {
-            log::getLog() << "Water Volumes: unexpected code at call site 0x53b1dd" << std::endl;
-            ok = false;
-        }
+        expect(isCallTo(LINE_OF_SIGHT_CALL_SITE, 0x53AF90), "call site", LINE_OF_SIGHT_CALL_SITE);
         for (const auto site : interiorCellLoadSites) {
-            if (memcmp(reinterpret_cast<const void*>(site), interiorCellLoadBytes, sizeof(interiorCellLoadBytes)) != 0) {
-                log::getLog() << "Water Volumes: unexpected code at load site 0x" << std::hex << site << std::dec << std::endl;
-                ok = false;
-            }
+            expect(memcmp(reinterpret_cast<const void*>(site), interiorCellLoadBytes, sizeof(interiorCellLoadBytes)) == 0, "load site", site);
         }
         for (const auto& hook : entryHooks) {
-            if (memcmp(reinterpret_cast<const void*>(hook.address), hook.expected, hook.length) != 0) {
-                log::getLog() << "Water Volumes: unexpected code at function 0x" << std::hex << hook.address << std::dec << std::endl;
-                ok = false;
-            }
+            expect(memcmp(reinterpret_cast<const void*>(hook.address), hook.expected, hook.length) == 0, "function", hook.address);
         }
         return ok;
     }
@@ -696,22 +812,19 @@ namespace wv {
     void hookStatus(int& out_intact, int& out_total) {
         out_intact = 0;
         out_total = 0;
-        const auto count = [&](DWORD site, void* target) {
+        const auto count = [&](bool intact) {
             out_total++;
-            if (isCallTo(site, reinterpret_cast<DWORD>(target))) {
+            if (intact) {
                 out_intact++;
             }
         };
-        for (const auto site : globalLevelCallSites) count(site, &getWaterMinLevel);
-        for (const auto site : cellLevelCallSites) count(site, &cellGetWaterLevel);
-        for (const auto site : underwaterStateCallSites) count(site, &updateUnderwaterState);
-        count(0x53B1DD, &lineOfSightRayVsReferenceNode);
-        for (const auto& hook : entryHooks) {
-            out_total++;
-            if (*reinterpret_cast<const BYTE*>(hook.address) == 0xE9) {
-                out_intact++;
-            }
-        }
+        for (const auto site : globalLevelCallSites) count(isCallTo(site, reinterpret_cast<DWORD>(&getWaterMinLevel)));
+        count(isJumpTo(POINT_UNDERWATER_FUNCTION, reinterpret_cast<DWORD>(&isPointUnderwater)));
+        for (const auto site : cellLevelCallSites) count(isCallTo(site, reinterpret_cast<DWORD>(&cellGetWaterLevel)));
+        for (const auto site : underwaterStateCallSites) count(isCallTo(site, reinterpret_cast<DWORD>(&updateUnderwaterState)));
+        count(isCallTo(LINE_OF_SIGHT_CALL_SITE, reinterpret_cast<DWORD>(&lineOfSightRayVsReferenceNode)));
+        for (const auto site : interiorCellLoadSites) count(isCallTo(site, reinterpret_cast<DWORD>(&getInteriorCellOrProxy)));
+        for (auto i = 0u; i < std::size(entryHooks); ++i) count(isJumpTo(entryHooks[i].address, entryStubs[i]));
     }
 
     bool install() {
@@ -724,10 +837,14 @@ namespace wv {
             return false;
         }
 
-        auto code = static_cast<BYTE*>(VirtualAlloc(nullptr, 0x1000, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE));
-        if (code == nullptr) {
+        constexpr auto STUB_PAGE_SIZE = 0x1000u;
+        const auto stubPage = static_cast<BYTE*>(VirtualAlloc(nullptr, STUB_PAGE_SIZE, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE));
+        if (stubPage == nullptr) {
+            log::getLog() << "Water Volumes: not installed. No memory for the hook stubs." << std::endl;
+            log::flush();
             return false;
         }
+        auto code = stubPage;
 
         // HasWater | IsInterior, so the proxy passes the flag checks ahead of the level query.
         proxyCell[offsetof(TES3::Cell, cellFlags)] = 0x3;
@@ -744,8 +861,9 @@ namespace wv {
         code = emitByte(code, 0xC3);                             // ret
 
         // Entry stubs: set the subject, run the displaced instructions, continue in the function.
-        for (const auto& hook : entryHooks) {
-            const auto stub = reinterpret_cast<DWORD>(code);
+        for (auto i = 0u; i < std::size(entryHooks); ++i) {
+            const auto& hook = entryHooks[i];
+            entryStubs[i] = reinterpret_cast<DWORD>(code);
             code = emitByte(code, 0x60);                         // pushad
             code = emitByte(code, 0x54);                         // push esp
             code = emitByte(code, 0x68);                         // push kind
@@ -755,21 +873,31 @@ namespace wv {
             memcpy(code, hook.expected, hook.length);
             code += hook.length;
             code = emitRelative(code, 0xE9, hook.address + hook.length);
-
-            se::memory::genJumpUnprotected(hook.address, stub, hook.length);
         }
 
+        // The stubs are complete: from here on the page is only run.
+        DWORD previousProtection = 0;
+        if (!VirtualProtect(stubPage, STUB_PAGE_SIZE, PAGE_EXECUTE_READ, &previousProtection)) {
+            log::getLog() << "Water Volumes: not installed. The hook stubs could not be made runnable." << std::endl;
+            log::flush();
+            VirtualFree(stubPage, 0, MEM_RELEASE);
+            return false;
+        }
+
+        for (auto i = 0u; i < std::size(entryHooks); ++i) {
+            se::memory::genJumpUnprotected(entryHooks[i].address, entryStubs[i], entryHooks[i].length);
+        }
         for (const auto site : globalLevelCallSites) {
             se::memory::genCallEnforced(site, 0x51D760, reinterpret_cast<DWORD>(&getWaterMinLevel));
         }
-        se::memory::genJumpUnprotected(0x53B4A0, reinterpret_cast<DWORD>(&isPointUnderwater));
+        se::memory::genJumpUnprotected(POINT_UNDERWATER_FUNCTION, reinterpret_cast<DWORD>(&isPointUnderwater));
         for (const auto site : cellLevelCallSites) {
             se::memory::genCallEnforced(site, 0x4E28B0, reinterpret_cast<DWORD>(&cellGetWaterLevel));
         }
         for (const auto site : underwaterStateCallSites) {
             se::memory::genCallEnforced(site, 0x440AF0, reinterpret_cast<DWORD>(&updateUnderwaterState));
         }
-        se::memory::genCallEnforced(0x53B1DD, 0x53AF90, reinterpret_cast<DWORD>(&lineOfSightRayVsReferenceNode));
+        se::memory::genCallEnforced(LINE_OF_SIGHT_CALL_SITE, 0x53AF90, reinterpret_cast<DWORD>(&lineOfSightRayVsReferenceNode));
         for (const auto site : interiorCellLoadSites) {
             se::memory::genCallUnprotected(site, reinterpret_cast<DWORD>(&getInteriorCellOrProxy), sizeof(interiorCellLoadBytes));
         }

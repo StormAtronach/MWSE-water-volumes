@@ -5,8 +5,6 @@
 // address. Everything the engine then asks about water goes through the
 // hooks in WaterVolumes.cpp.
 
-#include <Windows.h>
-
 #include "Log.h"
 #include "WaterVolumes.h"
 
@@ -37,11 +35,17 @@ int install_lua(lua_State* L) {
     return 1;
 }
 
+// The point given by three number arguments, the first of them at index.
+NI::Point3 checkPoint(lua_State* L, int index) {
+    return NI::Point3(
+        static_cast<float>(luaL_checknumber(L, index)),
+        static_cast<float>(luaL_checknumber(L, index + 1)),
+        static_cast<float>(luaL_checknumber(L, index + 2)));
+}
+
 // watervolumes.addBox(minX, minY, minZ, maxX, maxY, maxZ) -> id, or 0.
 int addBox_lua(lua_State* L) {
-    const NI::Point3 min(static_cast<float>(luaL_checknumber(L, 1)), static_cast<float>(luaL_checknumber(L, 2)), static_cast<float>(luaL_checknumber(L, 3)));
-    const NI::Point3 max(static_cast<float>(luaL_checknumber(L, 4)), static_cast<float>(luaL_checknumber(L, 5)), static_cast<float>(luaL_checknumber(L, 6)));
-    lua_pushnumber(L, wv::add(min, max));
+    lua_pushnumber(L, wv::add(checkPoint(L, 1), checkPoint(L, 4)));
     return 1;
 }
 
@@ -70,8 +74,7 @@ int clear_lua(lua_State*) {
 // watervolumes.surfaceAt(x, y, z) -> height of the surface of the water the
 // point is in or over, or nil.
 int surfaceAt_lua(lua_State* L) {
-    const NI::Point3 position(static_cast<float>(luaL_checknumber(L, 1)), static_cast<float>(luaL_checknumber(L, 2)), static_cast<float>(luaL_checknumber(L, 3)));
-    const auto surface = wv::getSurfaceAt(position);
+    const auto surface = wv::getSurfaceAt(checkPoint(L, 1));
     if (surface) {
         lua_pushnumber(L, *surface);
     } else {
@@ -82,7 +85,7 @@ int surfaceAt_lua(lua_State* L) {
 
 // watervolumes.count() -> number of registered volumes.
 int count_lua(lua_State* L) {
-    lua_pushnumber(L, static_cast<lua_Number>(wv::getVolumes().size()));
+    lua_pushnumber(L, static_cast<lua_Number>(wv::count()));
     return 1;
 }
 
@@ -126,8 +129,4 @@ extern "C" __declspec(dllexport) int luaopen_watervolumes(lua_State* L) {
     wv::log::getLog() << "Water Volumes: loaded, awaiting install() from main.lua. build=" << kBuildConfig << std::endl;
     wv::log::flush();
     return 1;
-}
-
-BOOL WINAPI DllMain(HINSTANCE, DWORD, LPVOID) {
-    return TRUE;
 }

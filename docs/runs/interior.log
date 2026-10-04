@@ -1,0 +1,42 @@
+[harness.dump] magic effects resolved: 2808 spells, 13024 NPCs, 0 auto-calculated NPCs hold 0 spells, nothing applied
+[harness.dump] loading save 'quiksave.ess'
+[harness.dump] loaded, new game false, cell Vas
+[harness.dump] water: god mode on at load; player at 5874 185035 990, health 13, swimming false
+[harness.dump] water: 2 water pieces left in the save by earlier runs removed
+[harness.dump] step 1 of 18: god mode on
+[harness.dump] step 2 of 18: go to Addamasartus
+[harness.dump] step 3 of 18: interior with water: place a disc over the player
+[harness.dump] OBSERVED interior with water: cell: Addamasartus, interior true, has water true, water level -760
+[harness.dump] step 4 of 18: interior with water: is it water
+[harness.dump] PASS interior with water: tag: WaterVolume string data on the scene node
+[harness.dump] PASS interior with water: volume registered: surface 534.01538085938, expected 534
+[harness.dump] OBSERVED interior with water: player: z 384, swimming true, underwater true
+[harness.dump] OBSERVED interior with water: cell while the disc is there: has water true, water level -760
+[harness.dump] PASS interior with water: player swims under the disc: the cell has water of its own
+[harness.dump] step 5 of 18: interior with water: photograph from below
+[harness.dump] screenshot C:/Users/ivan_/source/repos/morrowind-test-harness/dump/work/runs/20261004-184115-wv-audit-interior/01 interior with water first person under.jpg
+[harness.dump] step 6 of 18: interior with water: camera above
+[harness.dump] step 7 of 18: interior with water: photograph from above
+[harness.dump] screenshot C:/Users/ivan_/source/repos/morrowind-test-harness/dump/work/runs/20261004-184115-wv-audit-interior/02 interior with water from above.jpg
+[harness.dump] step 8 of 18: interior with water: clean up
+[harness.dump] step 9 of 18: interior with water: the cell is as it was
+[harness.dump] PASS interior with water: cell flag restored: has water true, had true
+[harness.dump] step 10 of 18: go to Seyda Neen, Arrille's Tradehouse
+[harness.dump] step 11 of 18: interior without water: place a disc over the player
+[harness.dump] OBSERVED interior without water: cell: Seyda Neen, Arrille's Tradehouse, interior true, has water false, water level nil
+[harness.dump] step 12 of 18: interior without water: is it water
+[harness.dump] PASS interior without water: tag: WaterVolume string data on the scene node
+[harness.dump] PASS interior without water: volume registered: surface 280, expected 280
+[harness.dump] OBSERVED interior without water: player: z 130, swimming true, underwater true
+[harness.dump] OBSERVED interior without water: cell while the disc is there: has water true, water level -100000
+[harness.dump] PASS interior without water: player swims under the disc: the mod flagged the cell
+[harness.dump] step 13 of 18: interior without water: photograph from below
+[harness.dump] screenshot C:/Users/ivan_/source/repos/morrowind-test-harness/dump/work/runs/20261004-184115-wv-audit-interior/03 interior without water first person under.jpg
+[harness.dump] step 14 of 18: interior without water: camera above
+[harness.dump] step 15 of 18: interior without water: photograph from above
+[harness.dump] screenshot C:/Users/ivan_/source/repos/morrowind-test-harness/dump/work/runs/20261004-184115-wv-audit-interior/04 interior without water from above.jpg
+[harness.dump] step 16 of 18: interior without water: clean up
+[harness.dump] step 17 of 18: interior without water: the cell is as it was
+[harness.dump] PASS interior without water: cell flag restored: has water false, had false
+[harness.dump] step 18 of 18: god mode off
+[harness.dump] DONE

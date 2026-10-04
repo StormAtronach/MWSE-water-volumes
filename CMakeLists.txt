@@ -88,10 +88,8 @@ set_property(TARGET watervolumes PROPERTY
 # finds it and the folder zips as the archive. Debug goes to the build tree,
 # so that a debug build never replaces the release artifact.
 set_target_properties(watervolumes PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY         "${CMAKE_SOURCE_DIR}/Water Volumes/MWSE/lib"
     RUNTIME_OUTPUT_DIRECTORY_DEBUG   "${CMAKE_BINARY_DIR}/debug-lib"
     RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_SOURCE_DIR}/Water Volumes/MWSE/lib"
-    PDB_OUTPUT_DIRECTORY             "${CMAKE_BINARY_DIR}/pdb"
     PDB_OUTPUT_DIRECTORY_DEBUG       "${CMAKE_BINARY_DIR}/debug-lib"
     PDB_OUTPUT_DIRECTORY_RELEASE     "${CMAKE_BINARY_DIR}/pdb"
     OUTPUT_NAME "watervolumes"

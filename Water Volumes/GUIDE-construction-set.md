@@ -71,7 +71,8 @@ when the head goes under, and with MGE XE the underwater view.
 4. For a real drop, end one piece, place the next one lower, and cover the step with a
    waterfall mesh.
 
-Keep slopes gentle. The water has no current, the kit texture does not flow, and under water
+Keep slopes gentle, and always under 30 degrees: past that the sides of a piece start to count
+as water. The water has no current, the kit texture does not flow, and under water
 MGE XE shows one level surface at the camera's height.
 
 ## Draining, flooding and rising water
@@ -80,6 +81,9 @@ The water follows its reference:
 
 - a disabled reference has no water, an enabled one has it again;
 - a reference that moves takes the water with it.
+
+With more than 64 pieces of water loaded at once, such a change shows after a few frames
+rather than on the next one.
 
 To do this from a script, make the object an Activator instead of a Static (same mesh), give
 the placed reference its own ID and tick References Persist, then use `Disable`, `Enable` or

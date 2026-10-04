@@ -1,7 +1,7 @@
 --[[
     Water Volumes interop.
 
-    A mesh becomes water in one of two ways:
+    The mesh of a static or an activator becomes water in one of two ways:
       1. Its NIF root carries a NiStringExtraData that starts with "WaterVolume".
          Options follow in the same string, for example "WaterVolume depth=300 plain".
       2. A mod registers the object id here, for meshes it cannot edit:
@@ -85,7 +85,8 @@ function controller:getVolumeSurfaceAt(position)
     return interop.native.surfaceAt(component(position, "x", 1), component(position, "y", 2), component(position, "z", 3))
 end
 
--- Anything else is the game's own water controller's: the water plane, the surface texture.
+-- Anything else is read from the game's own water controller: the water plane, the surface
+-- texture. Properties only; its methods cannot be called through this table.
 setmetatable(controller, { __index = function(_, key)
     local real = tes3.dataHandler and tes3.dataHandler.waterController
     return real and real[key]

@@ -16,6 +16,7 @@ namespace wv {
         // Bounds. For a box, max.z is the surface and min.z the floor.
         NI::Point3 min;
         NI::Point3 max;
+        // How far the water reaches below a single layer of triangles. Unused for a box.
         float depth;
         // The scene graph branch the triangles came from. Compared, never followed.
         const NI::AVObject* node;
@@ -23,8 +24,10 @@ namespace wv {
         // in one layer over a point the volume reaches depth below them; where they lie in several,
         // the lowest is the floor.
         std::vector<FootprintTriangle> footprint;
-        // Triangle indices per grid cell over the bounds.
-        std::vector<std::vector<unsigned int>> grid;
+        // A grid over the bounds. The triangles that touch cell n are
+        // gridItems[gridStart[n]] up to, not including, gridItems[gridStart[n + 1]].
+        std::vector<unsigned int> gridStart;
+        std::vector<unsigned int> gridItems;
         unsigned int gridSize;
         float gridScaleX;
         float gridScaleY;
@@ -33,10 +36,9 @@ namespace wv {
     // Installs the hooks. Returns false and changes nothing if the executable does not match.
     bool install();
 
-    // How many of the patched call sites still lead to this plugin, and how many there are.
+    // How many of the patched places still lead to this plugin, and how many there are.
     // Something that patches the same places later takes them away.
     void hookStatus(int& out_intact, int& out_total);
-    bool isInstalled();
 
     // Adds a box of water. The surface is at max.z and the floor at min.z. Returns the volume id, or 0 on failure.
     int add(const NI::Point3& min, const NI::Point3& max);
@@ -44,13 +46,14 @@ namespace wv {
     // Adds the water under the triangles of a scene graph branch, using their current world positions.
     // The triangles are the surface, which may slope, and the volume reaches depth below them.
     // Where triangles lie over one another, the lowest is the floor instead, and the water under
-    // each of the others reaches down to the one below it.
+    // each of the others reaches down to the one below it. Triangles too steep to hold water
+    // are walls and are left out.
     // Returns the volume id, or 0 on failure.
     int addFromNode(NI::AVObject* node, float depth);
 
     bool remove(int id);
     void clear();
-    const std::vector<Volume>& getVolumes();
+    size_t count();
 
     // The surface height of the volume that contains the position, if any.
     std::optional<float> getSurfaceAt(const NI::Point3& position);

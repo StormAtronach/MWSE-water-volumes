@@ -16,7 +16,8 @@ Requires a build of MWSE with water volume support. Without it the mod does noth
 The water is everything under the mesh, down to 512 units below it.
 
 Scripts can use the reference like any other: `Disable` drains the water, `Enable` brings it
-back, moving the reference moves the water.
+back, moving the reference moves the water. The mod looks at 64 pieces of water per frame, so
+where more than that are loaded at once the change shows after a few frames.
 
 ## Your own mesh
 
@@ -28,8 +29,10 @@ Any mesh can be water. On the root node add two text entries (NiStringExtraData)
 The footprint is the area under the mesh's triangles, so the shape is yours to model.
 
 The surface may slope. The water level at any spot is the height of the mesh there, so a river
-can run downhill, and a kit piece can simply be rotated in the Construction Set. Keep slopes
-gentle: under water MGE XE draws one level surface at the camera's height, the water does not
+can run downhill, and a kit piece can simply be rotated in the Construction Set. Tilt a piece
+by less than 30 degrees: a triangle steeper than 60 degrees counts as a wall and not as water,
+so the surface of a piece tilted further stops being water and its sides start to be. Keep
+slopes gentle in any case: under water MGE XE draws one level surface at the camera's height, the water does not
 push anything downstream, and the kit texture does not flow. For a big drop use flat steps
 joined by a waterfall mesh.
 
