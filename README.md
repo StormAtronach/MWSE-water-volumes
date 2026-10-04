@@ -47,10 +47,23 @@ cmake --preset win32-release
 
 The DLL lands in `Water Volumes\MWSE\lib\watervolumes.dll`.
 
-The plugin compiles against MWSE's engine headers and LuaJIT. `MWSE_ROOT` defaults to
-`deps/mwse-upstream` when that exists, and otherwise to the pinned checkout of the msoc plugin
-beside this repository (`../msoc-plugin/deps/mwse-upstream`). This repository has no
-submodule of its own yet; it needs one before it can be built on another machine.
+The plugin compiles against MWSE's engine headers and LuaJIT. Both come from the submodule
+at `deps/mwse-upstream`, pinned to the MWSE commit the plugin was built and checked against.
+After cloning:
+
+```pwsh
+git submodule update --init --recursive
+```
+
+LuaJIT ships as source inside that submodule (`deps/mwse-upstream/deps/rubic0n/src`) and has
+to be built once, from a Visual Studio x86 developer prompt in that directory:
+
+```bat
+msvcbuild.bat lua52compat
+```
+
+It produces `lua51.lib`, which the plugin links against; at run time MWSE supplies
+`lua51.dll`. To build against another MWSE checkout, configure with `-DMWSE_ROOT=<path>`.
 
 ## Not together with a patched MWSE
 

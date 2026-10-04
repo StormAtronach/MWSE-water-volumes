@@ -11,27 +11,32 @@ if(NOT CMAKE_GENERATOR_PLATFORM STREQUAL "Win32")
 endif()
 
 # Path to the MWSE source the plugin compiles against: the OUTER repo root,
-# with LuaJIT at ${MWSE_ROOT}/deps/luajit2/src and the engine headers at
-# ${MWSE_ROOT}/MWSE and ${MWSE_ROOT}/SharedSE.
-#
-# The default borrows the pinned checkout of the msoc plugin, which sits
-# beside this repository and already has LuaJIT built. Give this project a
-# submodule of its own at deps/mwse-upstream before it is built anywhere else.
-if(EXISTS "${CMAKE_SOURCE_DIR}/deps/mwse-upstream/SharedSE/NIAVObject.h")
-    set(MWSE_ROOT_DEFAULT "${CMAKE_SOURCE_DIR}/deps/mwse-upstream")
-else()
-    set(MWSE_ROOT_DEFAULT "${CMAKE_SOURCE_DIR}/../msoc-plugin/deps/mwse-upstream")
-endif()
-set(MWSE_ROOT "${MWSE_ROOT_DEFAULT}"
+# with the engine headers at ${MWSE_ROOT}/MWSE and ${MWSE_ROOT}/SharedSE. The
+# default is the submodule at deps/mwse-upstream, pinned to a known-good MWSE
+# commit. Override with -DMWSE_ROOT=... to build against another checkout.
+set(MWSE_ROOT "${CMAKE_SOURCE_DIR}/deps/mwse-upstream"
     CACHE PATH "Path to MWSE source root (outer dir, containing deps/ and MWSE/)")
 
-if(NOT EXISTS "${MWSE_ROOT}/deps/luajit2/src/lua51.lib")
-    message(FATAL_ERROR
-        "Couldn't find lua51.lib at ${MWSE_ROOT}/deps/luajit2/src/. Build LuaJIT there the way "
-        "MWSE does: from a Visual Studio x86 developer prompt run `msvcbuild.bat lua52compat`.")
-endif()
 if(NOT EXISTS "${MWSE_ROOT}/SharedSE/NIAVObject.h")
-    message(FATAL_ERROR "Couldn't find MWSE engine headers at ${MWSE_ROOT}/SharedSE/.")
+    message(FATAL_ERROR
+        "Couldn't find MWSE engine headers at ${MWSE_ROOT}/SharedSE/. "
+        "Run: git submodule update --init --recursive")
+endif()
+
+# LuaJIT, for the C API headers and the import library of lua51.dll, which
+# MWSE loads. MWSE carries it as a nested submodule that ships source only:
+# deps/rubic0n today, deps/luajit2 in older checkouts.
+if(EXISTS "${MWSE_ROOT}/deps/rubic0n/src/lua.h")
+    set(LUAJIT_SRC "${MWSE_ROOT}/deps/rubic0n/src")
+else()
+    set(LUAJIT_SRC "${MWSE_ROOT}/deps/luajit2/src")
+endif()
+if(NOT EXISTS "${LUAJIT_SRC}/lua51.lib")
+    message(FATAL_ERROR
+        "Couldn't find lua51.lib at ${LUAJIT_SRC}. Initialise the submodules "
+        "(git submodule update --init --recursive), then build LuaJIT there the way MWSE "
+        "does: from a Visual Studio x86 developer prompt, in that directory, run "
+        "`msvcbuild.bat lua52compat`.")
 endif()
 
 # SharedSE engine sources, compiled in full, as the msoc plugin does. They
@@ -57,11 +62,11 @@ target_include_directories(watervolumes PRIVATE
     "${MWSE_ROOT}/SharedSE"
     "${MWSE_ROOT}/deps/sol/include"
     "${MWSE_ROOT}/deps/DirectX8/include"
-    "${MWSE_ROOT}/deps/luajit2/src"
+    "${LUAJIT_SRC}"
 )
 
 target_link_libraries(watervolumes PRIVATE
-    "${MWSE_ROOT}/deps/luajit2/src/lua51.lib"
+    "${LUAJIT_SRC}/lua51.lib"
 )
 
 # Full debug info in every config; the PDB stays in the build tree.
