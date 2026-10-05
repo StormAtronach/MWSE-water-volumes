@@ -22,7 +22,8 @@ depends on it.
 | --- | --- | --- | --- |
 | `wv_square_512`, `wv_square_1024`, `wv_square_2048` | Square | 512, 1024, 2048 wide | 512 |
 | `wv_disc_512`, `wv_disc_1024`, `wv_disc_2048` | Disc | 512, 1024, 2048 across | 512 |
-| `wv_square_1024_shallow`, `wv_disc_1024_shallow` | Square, disc | 1024 | 128 |
+| `wv_square_1024_d64`, `wv_disc_1024_d64` | Square, disc, for wading | 1024 | 64 |
+| `wv_square_1024_d150`, `wv_disc_1024_d150` | Square, disc, shallow water to swim in | 1024 | 150 |
 | `wv_corner_512`, `wv_corner_1024` | Quarter disc, a rounded corner for a pond made of squares | radius 512, 1024 | 512 |
 | `wv_riv_512x1024`, `wv_riv_1024x2048` | Level river stretch | 512 by 1024, 1024 by 2048 | 256 |
 | `wv_riv_512x1024_f64`, `wv_riv_512x1024_f128` | River stretch whose surface falls | 512 by 1024, falling 64 or 128 | 256 |
@@ -43,7 +44,9 @@ In the game the box is not drawn; only the surface is.
 - Scaling a reference scales the body: at 0.5 a piece is half as wide and half as deep.
   Scaled pieces no longer fit the grid described below.
 - Use a shallow piece where something under the water must stay dry, such as a pool on an
-  upper floor.
+  upper floor. An actor swims in water deeper than nine tenths of its height: 120 units
+  for a person of ordinary height. In the 64 deep pieces everybody wades. The 150 deep
+  pieces are the shallowest in which the tallest races swim as well.
 
 ## Pieces that snap together
 
