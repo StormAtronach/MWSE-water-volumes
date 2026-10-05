@@ -22,7 +22,13 @@ SOFTWARE.
 
 ---
 
-This project bundles a modified copy of Intel's Masked Software Occlusion
-Culling library, which is licensed under Apache License 2.0. See
-deps/msoc/LICENSE-Apache-2.0.txt for the license text and deps/msoc/NOTICE for
-the list of modifications made to the original.
+The licence above covers the files of this repository. It does not cover MWSE.
+
+The plugin DLL, watervolumes.dll, is compiled together with source files of
+MWSE (the submodule at deps/mwse-upstream), which are licensed under the GNU
+General Public License, version 2. A built DLL contains that code, so a built
+DLL is distributed under the terms of the GNU General Public License,
+version 2. COPYING-GPL-2.0.txt holds the text of that licence. Whoever
+distributes the DLL must also make its complete source available: this
+repository at the commit the DLL was built from, and the MWSE commit its
+submodule points to.
