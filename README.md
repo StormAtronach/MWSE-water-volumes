@@ -1,81 +1,233 @@
 # Water Volumes
 
-Bodies of water at any height in Morrowind: ponds on hills, rivers that run downhill, pools in
-interiors. Actors swim in them, the breath meter runs, and the camera goes under water. The
-water is independent of the cell's own water level.
+Water Volumes lets a Morrowind mod place bodies of water that are not part of the cell's own
+water: a pond on a hill, a river that runs downhill, a pool in an interior, a sphere of water
+in the air. Actors swim in it, the breath meter runs, and the camera goes under water. The
+water does not depend on the water level of the cell.
 
-This repository holds the whole mod:
+A body of water is a placed reference of a water mesh. You place it in the Construction Set
+like any other Static. Disable it and the water goes; enable it and the water comes back; move
+it and the water moves with it.
 
-- `src/`: the native plugin, `watervolumes.dll`. It holds the volumes and patches the engine
-  so that every question about the water level is answered per actor. `Geometry.cpp` decides
-  where the water is and knows nothing of the game; `WaterVolumes.cpp` holds the registry and
-  the hooks.
-- `Water Volumes/`: the mod folder as it is installed. The Lua mod that finds water meshes and
-  hands them to the plugin, the kit meshes, `Water Volumes Kit.esp`, and the guide for the
-  Construction Set.
-- `tools/`: the scripts that write the kit and the demo plugins.
-- `tests/`: the tests of the geometry, which run without the game, and a copy of the
-  scenarios that run in the game.
-- `demo/`: a river of kit pieces along a stretch of Foyada Mamaea, written by
-  `tools/make_river_demo.py`, and the four solids of the kit in a row over the sea north of
-  Vas, written by `tools/make_demo_plugin.py --solids`, and the cube in every colour of the
-  kit, written with `--colours`. Load them after
-  `Water Volumes Kit.esp`. And `Vivec Palace Water`, a mod of its own: meshes that make the
-  water of the Palace of Vivec deep enough to swim in, written by
-  `tools/make_palace_water.py` from the game's meshes. It is the example of how to make
-  water of a mesh of the game.
-- `docs/runs/`: the output of the test runs.
+## Where to start
+
+- **You make a mod and want water in it.** Read
+  [`Water Volumes/GUIDE-construction-set.md`](Water%20Volumes/GUIDE-construction-set.md). It
+  covers the kit, how the pieces snap together, a pond and a river step by step, the look of
+  the surface, water of a colour, your own mesh, a mesh you cannot edit, and water far away.
+  No Lua is needed.
+- **You play or keep a modlist.** Read "Requirements" and "Compatibility and limits" below.
+- **You want to build the plugin or change it.** Read "How it fits together" and "Building".
+
+## What it does
+
+- The water follows its reference when the reference is disabled, enabled, moved, turned,
+  scaled or deleted, by a script or by Lua. The change shows on the next frame.
+- The water is what is inside a closed mesh, at any tilt. A mesh that is only a surface is
+  closed with a copy of itself a set depth below.
+- Line of sight passes through the surface of the water.
+- Fish stay in the water.
+- Water can have a colour. With MGE XE, deep water tends to that colour. Under the surface of
+  a coloured body, the plugin gives the colour to the game's underwater colour.
+- With MGE XE the surface is drawn with its water shading, near and far away.
 
 ## Requirements
 
-- Morrowind with MWSE. The plugin is loaded by MWSE's Lua loader with `include("watervolumes")`.
-  MWSE itself needs no change. The newest MWSE function the mod calls dates from April 2021
-  (`setNoCollisionFlag`); the mod was tested only with a current build.
-- MGE XE G7 with water volume support (branch `feature/water-volumes` of the fork; it is not
-  in an MGE XE release). It is required: it draws the surfaces as water and gives the view
-  under water.
+- **Morrowind with MWSE.** MWSE loads the plugin with `include("watervolumes")`. MWSE itself
+  needs no change. The mod uses `tes3.dataHandler.waterController`, which MWSE has had since
+  April 2023. The mod was tested only with a current build of MWSE.
+- **The executable the plugin knows.** See "Which executable" below.
+- **MGE XE, for the look of the water.** The look comes from MGE XE in a build with water
+  volume support:
+  [Greatness7/MGE-XE pull request 24](https://github.com/Greatness7/MGE-XE/pull/24), branch
+  `feature/water-volumes` of the fork. The pull request is open and not merged, so no MGE XE
+  release has the support. With that build, MGE XE draws the surfaces with its water shading,
+  shows the colour of the water, gives the view under water, and draws water far away.
+  Without it, actors still swim and the breath meter still runs, and the meshes are drawn
+  with their own texture.
 
-## Which executable
+### Installing
 
-The plugin changes 82 places in `Morrowind.exe`. Before it changes any, it compares the bytes
-at every one of them with the bytes it expects. If one differs it changes nothing, the mod
-does nothing, and `MWSE.log` names the places on a line that starts with `[Water Volumes]`.
+The folder `Water Volumes/` is the mod as it is installed into `Data Files`: the Lua mod, the
+kit meshes, `Water Volumes Kit.esp`, `distantwater.toml` and the guide. The plugin DLL is not
+kept in this repository. Build it first (see "Building"); the build puts it at
+`Water Volumes/MWSE/lib/watervolumes.dll`. Without the DLL the mod does nothing and writes
+"MWSE/lib/watervolumes.dll was not found" to `MWSE.log`.
 
-- The places were checked on one executable, the one of the test install. No other has been
-  tried. A different executable, or a patch that changes one of these places first, turns the
-  mod off.
-- Something that patches the same places after the plugin takes them away without notice.
-  `hookStatus()` returns how many of the 82 still lead to the plugin.
+## Compatibility and limits
+
+### Which executable
+
+The plugin changes 82 places in `Morrowind.exe`. Before it changes any of them, it compares
+the bytes at every place with the bytes it expects. If one place differs, it changes nothing
+and the mod does nothing. `MWSE.log` then names the places, on a line that starts with
+`[Water Volumes]`.
+
+- The places were checked on one executable, the one of the test install. No other
+  executable was tried. A different executable, or a patch that changes one of these places
+  first, turns the mod off.
+- A patch that changes the same places after the plugin takes them away, and nothing says
+  so. `hookStatus()` in the table of the DLL returns how many of the 82 places still lead to
+  the plugin.
 - For 26 engine functions the plugin replaces the return address on the stack while the
   function runs. A crash dump taken inside one of them shows a small stub of the plugin where
   the caller should be. The real caller is in the frame list of the plugin (`frames` in
-  `WaterVolumes.cpp`).
+  `src/WaterVolumes.cpp`).
+
+### Not together with a patched MWSE
+
+The same patch once was part of MWSE, on branch `feature/water-volumes` of the MWSE fork. An
+`MWSE.dll` built from that branch has already changed the places that the plugin patches, so
+the plugin does not install and says so in `MWSE.log`. Use one or the other.
+
+### What the mod changes in the game
+
+- **Collision.** Nobody walks on water. The mod switches collision off for each water
+  reference, unless the mesh already has no collision (an `NCO` text entry). Everything in a
+  water mesh is passable, so a stone rim or rocks must be in a mesh of their own.
+- **Interiors without water.** The engine asks for a water level only in a cell that has
+  water. While an interior without water holds a water reference, the mod gives the cell
+  water and puts the cell's own water far below everything.
+- **Saves.** A save holds the game as it is without the mod: the mod puts the collision and
+  the water flag of those interiors back while the save is written.
+
+### Limits
+
+- A piece is water to swim in only while its cell is one of the loaded cells around the
+  player. Keep each piece inside one cell.
+- Water has no sides of its own. Where a piece stands free of terrain and walls, the player
+  and walking creatures can step out of its side and fall.
+- The water has no current.
+- Walking creatures do not follow into the water.
+- Under water, MGE XE shows one level surface at the height of the camera.
+- Scripts that read the water level get the level of the cell, not of a piece.
+
+The guide has the full list, under "Limits".
 
 ## How it fits together
 
 1. `Water Volumes/MWSE/mods/waterVolumes/interop.lua` loads the DLL and calls `install()`.
-2. `main.lua` finds references whose mesh is marked as water by a name in it, or whose id a
-   mod registered, prepares their meshes, and gives each reference to the plugin while its
-   cell is active. The top of `interop.lua` says how a mesh is marked.
+2. `main.lua` finds the Statics and Activators whose mesh is marked as water, or whose id a
+   mod registered. It prepares their meshes and gives each reference to the plugin while its
+   cell is active. The top of `interop.lua` says how a mesh is marked and lists the options.
 3. The plugin reads the triangles of the mesh. A shape named `WaterBody` gives the sides and
-   bottom of the water; the Construction Set shows it, the game hides it.
+   the bottom of the water. The Construction Set shows it; the game hides it.
 4. Once per frame the mod calls the plugin, which looks at every reference it was given:
-   where it is, whether it is disabled or deleted, which mesh it has. The water follows.
-   Nothing is done per reference in Lua per frame, and the call makes no garbage.
+   where the reference is, whether it is disabled or deleted, and which mesh it has. The water
+   follows. Nothing is done per reference in Lua per frame, and the call makes no garbage.
+5. When the engine asks for the water level, the plugin answers for the actor, camera or
+   position in question. Its hooks are on the code for swimming, breathing, water walking,
+   actor movement and collision, AI destinations and combat, projectiles, the camera's
+   underwater state, and line of sight.
 
-Water always belongs to a placed reference. A mod that wants water places a reference of a
-water mesh and handles it like any other reference. Mods use `waterVolumes.interop`:
-`registerObject` for a mesh they cannot edit, `getVolumeSurfaceAt`, `supported`. The table of
-the DLL itself is `interop.native`.
+### How a mesh becomes water
 
-The plugin has no log of its own. What it has to say comes back to the mod, which writes it to
-`MWSE.log`. Two messages come from inside the engine hooks and go to the debugger output: a
-reference handed over from another thread, and the notice before the plugin stops the game
+A mesh is water in one of two ways:
+
+- Something in the mesh has a name that starts with `WaterVolume`. Options follow in the same
+  name: `depth=300`, `plain`, `skyonly`, `noswim`. A mesh with a shape or node named
+  `WaterBody` is water without the tag.
+- A Lua mod registers the object id with `registerObject`, for a mesh it cannot edit.
+
+The colour of the water is the emissive colour of the material of the surface shape. Black,
+which most materials have, is water of the usual colour.
+
+### The Lua interface
+
+Mods use `waterVolumes.interop`:
+
+| Name | What it does |
+| --- | --- |
+| `registerObject(id, settings)` | Makes a Static or Activator water by its id. `settings` takes `depth`, `plain`, `skyOnly`, `noSwim` and `color` (`"RRGGBB"` or three numbers from 0 to 1) |
+| `setWorldWaterColor(color)` | Gives a colour to the water of the cell, the sea or the water of an interior, apart from the volumes. Nil or black gives the usual colour back. It lasts until it is changed or the game is closed |
+| `getVolumeSurfaceAt(position)` | The height of the surface of the water that a position is in or over, or nil |
+| `supported` | True once the engine hooks of the plugin are in place |
+| `problem` | Why the hooks are not in place, when they are not |
+| `native` | The table of the DLL, or nil when the DLL is missing |
+
+Water always belongs to a placed reference. A Lua mod that wants water at run time places a
+reference of a water mesh with `tes3.createReference` and handles it like any other
+reference.
+
+The table of the DLL (`interop.native`) has `install`, `addReference`, `update`, `remove`,
+`setColor`, `surfaceAt`, `count` and `hookStatus`. `src/plugin.cpp` describes each, and
+`src/WaterVolumes.h` describes the functions behind them. `setColor` gives a volume the colour
+that the game's underwater colour takes while the camera is under its surface.
+
+### Logging
+
+The plugin has no log of its own. What it has to say comes back to the mod, which writes it
+to `MWSE.log`. Two messages come from inside the engine hooks and go to the debugger output:
+a reference handed over from another thread, and the notice before the plugin stops the game
 because a hooked function returned with no record of its caller.
+
+### Water far away
+
+Beyond the game's own view distance, MGE XE draws from its distant land data. Its generator
+reads `Water Volumes/distantwater.toml` from the data folder: the names that mark the surface
+and the body of the water in a mesh, and the words `plain` and `skyonly`. A mesh that a Lua mod
+registered by id has no such names; give it a line in that file, or in the metadata file of
+the plugin that places it. The file has the format of MGE XE's plugin metadata and carries a
+version of its own, so the rules can change with this mod. A water surface becomes a distant
+static with a water flag, which the renderer draws with its water shading in place of its
+texture. This needs the MGE XE build named under "Requirements"; an older build does not read
+the file.
+
+## Repository layout
+
+| Path | What it holds |
+| --- | --- |
+| `src/` | The plugin, `watervolumes.dll`. `Geometry.cpp` decides where the water is and knows nothing of the game. `WaterVolumes.cpp` holds the volumes and the hooks. `plugin.cpp` is the Lua table |
+| `Water Volumes/` | The mod as it is installed: the Lua mod, the kit, `Water Volumes Kit.esp`, `distantwater.toml`, the guide, and a short README for players |
+| `Water Volumes/meshes/wv/` | The 37 kit meshes: squares, discs, corners, river pieces, and four solids |
+| `Water Volumes/meshes/wvs/`, `wvm/`, `wvb/` | The kit again in the swamp, mud and blood colours |
+| `demo/` | Demo plugins and the mod `Vivec Palace Water` (see "Demos") |
+| `tools/` | The scripts that write the kit, the demos and the palace meshes |
+| `tests/geometry_test.cpp` | Tests of the geometry, which run without the game |
+| `tests/harness/` | A copy of the scenarios that run in the game |
+| `docs/runs/` | The output of test runs |
+| `deps/mwse-upstream/` | Submodule: the MWSE source that the plugin compiles against |
+
+## Demos
+
+The demo plugins need `Water Volumes Kit.esp`. Load them after it.
+
+| File | What it places | Written by |
+| --- | --- | --- |
+| `demo/Water Volumes River Demo.esp` | A river of kit pieces along a stretch of Foyada Mamaea | `tools/make_river_demo.py` |
+| `demo/Water Volumes Solids Demo.esp` | The four solids of the kit in a row, high over the sea north of Vas | `tools/make_demo_plugin.py --solids` |
+| `demo/Water Volumes Colours Demo.esp` | The kit cube in its usual colour and in each palette, in a row north of the solids | `tools/make_demo_plugin.py --colours` |
+
+`demo/Vivec Palace Water/` is a mod of its own: four mesh replacers, with no plugin and no
+script. They make the channels of the Palace of Vivec deep enough to swim in, and give the
+waterfalls of Vivec the water shading. It is also the example of how to make water of a game
+mesh that is neither one sheet nor closed. Its `README.md` says what it changes and what its
+limits are.
 
 ## Building
 
-As the msoc plugin, which this project is modelled on:
+The plugin is a 32-bit DLL, because Morrowind is 32-bit. You need Visual Studio 2022 with C++
+and CMake 3.21 or newer.
+
+After cloning, get the MWSE submodule. It is pinned to the MWSE commit that the plugin was
+built and checked against:
+
+```pwsh
+git submodule update --init --recursive
+```
+
+The plugin links against LuaJIT. LuaJIT ships as source inside that submodule
+(`deps/mwse-upstream/deps/rubic0n/src`) and has to be built once. Open a Visual Studio x86
+developer prompt in that directory and run:
+
+```bat
+msvcbuild.bat lua52compat
+```
+
+This makes `lua51.lib`, which the plugin links against. At run time MWSE supplies
+`lua51.dll`.
+
+Then configure and build:
 
 ```pwsh
 cmake --preset win32-release
@@ -83,72 +235,62 @@ cmake --preset win32-release
   build\win32-release\water-volumes-plugin.sln -t:Build -p:Configuration=Release -p:Platform=Win32
 ```
 
-The DLL lands in `Water Volumes\MWSE\lib\watervolumes.dll`.
+`cmake --build --preset win32-release` does the same build without the path to MSBuild.
 
-The plugin compiles against MWSE's engine headers and LuaJIT. Both come from the submodule
-at `deps/mwse-upstream`, pinned to the MWSE commit the plugin was built and checked against.
-After cloning:
+The Release DLL goes to `Water Volumes\MWSE\lib\watervolumes.dll`, and its PDB stays in
+`pdb` in the build folder. A Debug build goes to `debug-lib` in the build folder and never
+replaces the Release DLL.
 
-```pwsh
-git submodule update --init --recursive
-```
+- To build against another MWSE checkout, configure with `-DMWSE_ROOT=<path>`.
+- `CMakeLists.txt` lists the MWSE source files that are compiled into the DLL. If the linker
+  reports an unresolved `NI::` symbol after the submodule moves, add the file that defines it.
 
-LuaJIT ships as source inside that submodule (`deps/mwse-upstream/deps/rubic0n/src`) and has
-to be built once, from a Visual Studio x86 developer prompt in that directory:
+## Tools
 
-```bat
-msvcbuild.bat lua52compat
-```
+The scripts in `tools/` are Python. The docstring at the top of each one says what it writes
+and how to call it.
 
-It produces `lua51.lib`, which the plugin links against; at run time MWSE supplies
-`lua51.dll`. To build against another MWSE checkout, configure with `-DMWSE_ROOT=<path>`.
+| Script | What it writes |
+| --- | --- |
+| `make_kit.py` | The kit: the meshes, `Water Volumes Kit.esp`, and `kit.json`, the list of the pieces with their sizes and joints. Its list `PALETTES` gives the colours in which the whole kit is written again |
+| `make_river_demo.py` | The river demo plugin, from the land in the master files and the pieces in `kit.json` |
+| `make_demo_plugin.py` | Small plugins that place kit meshes: one disc near Vas; that disc and one over each of the next three cells to the east (`--grid`); the solids (`--solids`); the cube in each colour (`--colours`) |
+| `make_palace_water.py` | The meshes of `Vivec Palace Water`, from the game's own meshes. It uses `nif4.py` to read and write the meshes and the outlines in `palace_outlines.json` |
+| `palace_outlines_from_scan.py` | `palace_outlines.json`, from height maps of the palace that the in-game scenario `palacescan` measures. It needs `numpy`, `scipy`, `contourpy` and `shapely` |
 
-`CMakeLists.txt` lists the MWSE source files that are compiled into the DLL. If the linker
-reports an unresolved `NI::` symbol after the submodule moves, add the file that defines it.
-
-## The kit
-
-`tools/make_kit.py` is the one place where the kit pieces are defined. It writes the meshes,
-the plugin, and `kit.json`, the list of the pieces with their sizes and joints. Its list
-`PALETTES` gives the colours in which the whole kit is written again; the colour of water is
-the emissive colour of the material of its surface, which the renderer reads. The demo
-script and the tests read that list.
+`make_kit.py` is the one place where the kit pieces are defined. After a change to a piece,
+write the kit and the river demo again, and commit what they write:
 
 ```pwsh
 python tools\make_kit.py "<Data Files>\Morrowind.esm"
 python tools\make_river_demo.py "<Data Files>" "demo\Water Volumes River Demo.esp"
 ```
 
-After a change to a piece, run both and commit what they write.
+`make_kit.py` also writes the palettes into `kit.json`, where the in-game scenario `colour`
+reads them. `make_demo_plugin.py` has its own list of the cubes for `--colours`, so a new
+palette needs a line there too.
+
+To write the palace meshes again:
+
+```pwsh
+python tools\make_palace_water.py "<Data Files>"
+```
 
 ## Tests
 
-Without the game: the build makes `wv_geometry_test.exe`, which checks where the water is for
-a box, a sheet closed below, a sloped sheet, a mesh that is not closed, bodies over one
-another, a closed body at many tilts, shared edges, and
-the lookup grid against a search of every triangle.
+Without the game: the build makes `wv_geometry_test.exe`. It checks where the water is for a
+box, a sheet closed below, a sloped sheet, a mesh that is not closed, bodies over one another,
+a closed body at many tilts, and edges that two triangles share. It also checks the lookup
+grid against a search of every triangle.
 
 ```pwsh
 ctest --test-dir build\win32-release -C Release
 ```
 
-In the game: `tests/harness/` holds the scenarios and says how they are run.
-
-## Water far away
-
-Beyond the game's own view distance MGE XE draws from its distant land data. Its generator
-reads `Water Volumes/distantwater.toml` from the data folder: the names that mark the surface
-and the body of the water in a mesh, and meshes that are water without such a name. The file
-has the format of MGE XE's plugin metadata and carries a version of its own, so the rules can
-change with this mod. A water surface becomes a distant static with a water flag, which the
-renderer draws with the water shading in place of its texture. This needs the MGE XE G7 build
-named under "Requirements"; an older build does not read the file.
-
-## Not together with a patched MWSE
-
-The same patch once lived inside MWSE (branch `feature/water-volumes` of the MWSE fork). An
-MWSE.dll built from that branch has already changed the places the plugin patches, so the
-plugin refuses to install and says so in its log. Use one or the other.
+In the game: `tests/harness/water.lua` holds the scenarios that the mod was tested with. They
+run inside the Morrowind Test Harness, a separate MWSE mod with a Python runner, which is not
+part of this repository. `tests/harness/README.md` says how a scenario is run and lists the
+scenarios. One known check fails; that README describes it.
 
 ## Licence
 
@@ -156,4 +298,4 @@ The files of this repository are under the MIT licence. See `LICENSE`.
 
 The built DLL contains code of MWSE, which is under the GNU General Public License, version 2.
 A built DLL is therefore distributed under that licence, together with its source. `LICENSE`
-states this and `COPYING-GPL-2.0.txt` holds the text.
+states this, and `COPYING-GPL-2.0.txt` holds the text of the GNU General Public License.
