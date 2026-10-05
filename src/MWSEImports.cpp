@@ -15,6 +15,11 @@ DataHandler* DataHandler::get() {
     return *reinterpret_cast<TES3::DataHandler**>(0x7C67E0);
 }
 
+bool DataHandler::getLandHeightAtPosition(const NI::Point3& position, float* out_height) const {
+    const auto TES3_DataHandler_getLandHeightAtPosition = reinterpret_cast<bool(__thiscall*)(const DataHandler*, const NI::Point3&, float*)>(0x48E410);
+    return TES3_DataHandler_getLandHeightAtPosition(this, position, out_height);
+}
+
 WorldController* WorldController::get() {
     return *reinterpret_cast<TES3::WorldController**>(0x7C67DC);
 }

@@ -1,0 +1,42 @@
+[harness.dump] magic effects resolved: 2808 spells, 13024 NPCs, 0 auto-calculated NPCs hold 0 spells, nothing applied
+[harness.dump] loading save 'quiksave.ess'
+[harness.dump] loaded, new game false, cell Vas
+[harness.dump] water: god mode on at load; player at 5874 185035 990, health 13, swimming false
+[harness.dump] water: 2 water pieces left in the save by earlier runs removed
+[harness.dump] step 1 of 21: god mode on, clear noon, to the foyada south-west of Ghostgate
+[harness.dump] step 2 of 21: the pieces of the river
+[harness.dump] PASS the plugin's pieces form one stream from end to end: 18 pieces found in cells 1,2 1,3 2,4: 16 in one chain, 2 rounded ends; 18 volumes registered
+[harness.dump] step 3 of 21: the joints
+[harness.dump] PASS at every joint both pieces have a surface corner on the same two points: 15 joints; farthest corner from its point 0.00000 
+[harness.dump] step 4 of 21: the water against the land
+[harness.dump] OBSERVED the stream: 13867 long, the water falls from 1152 to 832; 197 points down its middle
+[harness.dump] PASS there is water at every point down the middle of the stream: 0 points without water
+[harness.dump] PASS the water is neither under the land nor deeper than the body of a piece (256): water 4 to 255 deep over the land, 139 on average; 0 points under the land, 0 points deeper than 256
+[harness.dump] OBSERVED the banks: at 8 of 394 points on the two sides of the stream the land stands above the water
+[harness.dump] points shallower than 60: 54 at 9516 (wv_riv_512_bend_e_f64); 40 at 9583 (wv_riv_512_bend_e_f64); 40 at 9583 (wv_riv_512_sway_w); 29 at 9668 (wv_riv_512_sway_w); 19 at 9755 (wv_riv_512_sway_w); 10 at 9842 (wv_riv_512_sway_w); 7 at 9932 (wv_riv_512_sway_w); 4 at 10022 (wv_riv_512_sway_w); 8 at 10114 (wv_riv_512_sway_w); 20 at 10205 (wv_riv_512_sway_w); 33 at 10296 (wv_riv_512_sway_w); 47 at 10386 (wv_riv_512_sway_w)
+[harness.dump] step 5 of 21: the player into the stream, place 1
+[harness.dump] step 6 of 21: does the player swim, place 1
+[harness.dump] PASS the player swims in the stream, place 1: 2067 along the stream in wv_riv_512_bend_e, water 159 deep there; player at height 994, water at 1152, swimming true
+[harness.dump] step 7 of 21: the player into the stream, place 2
+[harness.dump] step 8 of 21: does the player swim, place 2
+[harness.dump] PASS the player swims in the stream, place 2: 6908 along the stream in wv_riv_512x1024, water 200 deep there; player at height 957, water at 1152, swimming true
+[harness.dump] step 9 of 21: the player into the stream, place 3
+[harness.dump] step 10 of 21: does the player swim, place 3
+[harness.dump] PASS the player swims in the stream, place 3: 12459 along the stream in wv_riv_512_bend_w_f64, water 200 deep there; player at height 685, water at 880, swimming true
+[harness.dump] step 11 of 21: set up: view down the stream 1
+[harness.dump] step 12 of 21: photograph: view down the stream 1
+[harness.dump] screenshot C:/tmp/pondwater/riverdemo/2026-10-05 01 river demo 1 down the stream.jpg
+[harness.dump] step 13 of 21: set up: view down the stream 2
+[harness.dump] step 14 of 21: photograph: view down the stream 2
+[harness.dump] screenshot C:/tmp/pondwater/riverdemo/2026-10-05 02 river demo 2 down the stream.jpg
+[harness.dump] step 15 of 21: set up: view down the stream 3
+[harness.dump] step 16 of 21: photograph: view down the stream 3
+[harness.dump] screenshot C:/tmp/pondwater/riverdemo/2026-10-05 03 river demo 3 down the stream.jpg
+[harness.dump] step 17 of 21: set up: view down the stream 4
+[harness.dump] step 18 of 21: photograph: view down the stream 4
+[harness.dump] screenshot C:/tmp/pondwater/riverdemo/2026-10-05 04 river demo 4 down the stream.jpg
+[harness.dump] step 19 of 21: set up: from above
+[harness.dump] step 20 of 21: photograph: from above
+[harness.dump] screenshot C:/tmp/pondwater/riverdemo/2026-10-05 05 river demo 5 from above.jpg
+[harness.dump] step 21 of 21: clean up
+[harness.dump] DONE

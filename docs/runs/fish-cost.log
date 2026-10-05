@@ -1,0 +1,46 @@
+[harness.dump] magic effects resolved: 2808 spells, 13024 NPCs, 0 auto-calculated NPCs hold 0 spells, nothing applied
+[harness.dump] loading save 'quiksave.ess'
+[harness.dump] loaded, new game false, cell Vas
+[harness.dump] water: god mode on at load; player at 5874 185035 990, health 13, swimming false
+[harness.dump] water: 2 water pieces left in the save by earlier runs removed
+[harness.dump] step 1 of 27: god mode on, to the sea near Vas
+[harness.dump] step 2 of 27: deep sea, and sixty slaughterfish in it
+[harness.dump] OBSERVED the fish: 60 slaughterfish in the sea around 8610 188988, bed at -503; 0 volumes registered
+[harness.dump] step 3 of 27: measure: fish in the sea, no volume registered, round 1
+[harness.dump] step 4 of 27: report: fish in the sea, no volume registered, round 1
+[harness.dump] MEASURED fish in the sea, no volume registered, round 1: simulation 3.458 ms mean, 12.580 ms max over 1842 frames; frame 5.43 ms mean
+[harness.dump] step 5 of 27: one volume far away
+[harness.dump] step 6 of 27: measure: fish in the sea, 1 volume registered elsewhere, round 1
+[harness.dump] step 7 of 27: report: fish in the sea, 1 volume registered elsewhere, round 1
+[harness.dump] MEASURED fish in the sea, 1 volume registered elsewhere, round 1: simulation 3.498 ms mean, 22.013 ms max over 1810 frames; frame 5.53 ms mean
+[harness.dump] step 8 of 27: a thousand volumes far away
+[harness.dump] step 9 of 27: measure: fish in the sea, 1000 volumes registered elsewhere, round 1
+[harness.dump] step 10 of 27: report: fish in the sea, 1000 volumes registered elsewhere, round 1
+[harness.dump] MEASURED fish in the sea, 1000 volumes registered elsewhere, round 1: simulation 3.417 ms mean, 11.407 ms max over 1848 frames; frame 5.41 ms mean
+[harness.dump] step 11 of 27: no volumes
+[harness.dump] step 12 of 27: measure: fish in the sea, no volume registered, round 2
+[harness.dump] step 13 of 27: report: fish in the sea, no volume registered, round 2
+[harness.dump] MEASURED fish in the sea, no volume registered, round 2: simulation 3.356 ms mean, 11.432 ms max over 1869 frames; frame 5.35 ms mean
+[harness.dump] step 14 of 27: one volume far away
+[harness.dump] step 15 of 27: measure: fish in the sea, 1 volume registered elsewhere, round 2
+[harness.dump] step 16 of 27: report: fish in the sea, 1 volume registered elsewhere, round 2
+[harness.dump] MEASURED fish in the sea, 1 volume registered elsewhere, round 2: simulation 3.403 ms mean, 10.608 ms max over 1854 frames; frame 5.40 ms mean
+[harness.dump] step 17 of 27: a thousand volumes far away
+[harness.dump] step 18 of 27: measure: fish in the sea, 1000 volumes registered elsewhere, round 2
+[harness.dump] step 19 of 27: report: fish in the sea, 1000 volumes registered elsewhere, round 2
+[harness.dump] MEASURED fish in the sea, 1000 volumes registered elsewhere, round 2: simulation 3.399 ms mean, 11.365 ms max over 1859 frames; frame 5.38 ms mean
+[harness.dump] step 20 of 27: no volumes
+[harness.dump] step 21 of 27: a pond in the air, and sixty slaughterfish in it
+[harness.dump] step 22 of 27: the fish into the pond
+[harness.dump] step 23 of 27: measure: fish in a volume with open sides, round 1
+[harness.dump] step 24 of 27: report: fish in a volume with open sides, round 1
+[harness.dump] MEASURED fish in a volume with open sides, round 1: simulation 3.940 ms mean, 14.233 ms max over 1700 frames; frame 5.89 ms mean; 60 of 60 fish in the volume at the end
+[harness.dump] step 25 of 27: measure: fish in a volume with open sides, round 2
+[harness.dump] step 26 of 27: report: fish in a volume with open sides, round 2
+[harness.dump] MEASURED fish in a volume with open sides, round 2: simulation 3.678 ms mean, 13.786 ms max over 1782 frames; frame 5.61 ms mean; 60 of 60 fish in the volume at the end
+[harness.dump] step 27 of 27: sum up
+[harness.dump] OBSERVED mean of 2 rounds, fish in the sea, 1000 volumes registered elsewhere: simulation 3.408 ms; +0.001 ms against no volume, which is +0.02 microseconds per fish per frame
+[harness.dump] OBSERVED mean of 2 rounds, fish in a volume with open sides: simulation 3.809 ms; +0.402 ms against no volume, which is +6.70 microseconds per fish per frame
+[harness.dump] OBSERVED mean of 2 rounds, fish in the sea, no volume registered: simulation 3.407 ms; +0.000 ms against no volume, which is +0.00 microseconds per fish per frame
+[harness.dump] OBSERVED mean of 2 rounds, fish in the sea, 1 volume registered elsewhere: simulation 3.450 ms; +0.043 ms against no volume, which is +0.72 microseconds per fish per frame
+[harness.dump] DONE

@@ -1,0 +1,20 @@
+[harness.dump] magic effects resolved: 2808 spells, 13024 NPCs, 0 auto-calculated NPCs hold 0 spells, nothing applied
+[harness.dump] loading save 'quiksave.ess'
+[harness.dump] loaded, new game false, cell Vas
+[harness.dump] water: god mode on at load; player at 5874 185035 990, health 13, swimming false
+[harness.dump] water: 2 water pieces left in the save by earlier runs removed
+[harness.dump] step 1 of 5: god mode on, to the sea near Vas
+[harness.dump] step 2 of 5: a pond in the air over deep sea
+[harness.dump] step 3 of 5: eight fish into the pond, the player far away on land
+[harness.dump] OBSERVED far: player 4903 from the pond
+[harness.dump] player far, fish 1: never out; heights every half second (i in, o out; s swimming, f falling): 1327is 1327is 1327is 1327is 1327is 1327is 1327is 1327is 1327is 1329is 1329is 1329is 1329is 1329is 1329is 1329is 1329is 1321is 1306is 1292is 1278is 1264is 1251is 1251is
+[harness.dump] player far, fish 2: never out; heights every half second (i in, o out; s swimming, f falling): 1311is 1311is 1311is 1311is 1311is 1311is 1311is 1311is 1311is 1311is 1311is 1311is 1311is 1311is 1311is 1311is 1311is 1311is 1311is 1311is 1311is 1311is 1311is 1311is
+[harness.dump] player far, fish 3: never out; heights every half second (i in, o out; s swimming, f falling): 1185is 1185is 1185is 1185is 1185is 1185is 1185is 1185is 1185is 1185is 1185is 1185is 1185is 1185is 1185is 1185is 1185is 1185is 1185is 1185is 1185is 1185is 1185is 1185is
+[harness.dump] OBSERVED player far: 8 of 8 fish in the pond after 12 seconds
+[harness.dump] step 4 of 5: eight fish into the pond, the player held beside it
+[harness.dump] player near, fish 1: never out; heights every half second (i in, o out; s swimming, f falling): 1327is 1327is 1327is 1327is 1327is 1327is 1327is 1327is 1327is 1327is 1327is 1320is 1306is 1292is 1285is 1285is 1285is 1285is 1285is 1285is 1285is 1285is 1285is 1285is
+[harness.dump] player near, fish 2: never out; heights every half second (i in, o out; s swimming, f falling): 1311is 1311is 1311is 1311is 1311is 1311is 1311is 1311is 1311is 1311is 1311is 1311is 1311is 1311is 1311is 1311is 1310is 1310is 1310is 1310is 1310is 1310is 1310is 1310is
+[harness.dump] player near, fish 3: never out; heights every half second (i in, o out; s swimming, f falling): 1185is 1185is 1185is 1185is 1185is 1185is 1185is 1185is 1185is 1185is 1185is 1185is 1185is 1185is 1185is 1185is 1185is 1185is 1185is 1185is 1185is 1185is 1185is 1185is
+[harness.dump] OBSERVED player near: 8 of 8 fish in the pond after 12 seconds
+[harness.dump] step 5 of 5: clean up
+[harness.dump] DONE

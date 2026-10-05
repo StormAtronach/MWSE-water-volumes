@@ -12,6 +12,8 @@ This repository holds the whole mod:
   hands them to the plugin, the kit meshes, `Water Volumes Kit.esp`, and the guide for the
   Construction Set.
 - `tools/`: the scripts that write the plugins.
+- `demo/`: a river of kit pieces along a stretch of Foyada Mamaea, written by
+  `tools/make_river_demo.py`. Load it after `Water Volumes Kit.esp`.
 
 ## Requirements
 

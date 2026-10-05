@@ -16,22 +16,22 @@
 [harness.dump] step 4 of 17: player to the bottom of the pond, first person
 [harness.dump] step 5 of 17: player swims and is underwater
 [harness.dump] PASS player in the pond: z 458, swimming true, underwater true
-[harness.dump] plugin: 84 of 84 hooks in place; 1 volumes
+[harness.dump] plugin: 82 of 82 hooks in place; 1 volumes
 [harness.dump] PASS underwater flag: true
-[harness.dump] screenshot C:/Users/ivan_/source/repos/morrowind-test-harness/dump/work/runs/20261005-053219-wv6-test/01-first-person-under.jpg
+[harness.dump] screenshot C:/Users/ivan_/source/repos/morrowind-test-harness/dump/work/runs/20261005-070959-wv8-test/01-first-person-under.jpg
 [harness.dump] step 6 of 17: disable the reference: the water goes
 [harness.dump] step 7 of 17: no water while disabled
 [harness.dump] PASS centre while disabled: surface nil, expected nil
 [harness.dump] PASS player while disabled: z 455, swimming false, underwater false
-[harness.dump] plugin: 84 of 84 hooks in place; 0 volumes
+[harness.dump] plugin: 82 of 82 hooks in place; 0 volumes
 [harness.dump] step 8 of 17: water is back after enable
 [harness.dump] PASS centre after enable: surface 620, expected 620
 [harness.dump] PASS player after enable: z 455, swimming true, underwater true
-[harness.dump] plugin: 84 of 84 hooks in place; 1 volumes
+[harness.dump] plugin: 82 of 82 hooks in place; 1 volumes
 [harness.dump] step 9 of 17: the water follows the reference when it moves
 [harness.dump] PASS centre after raising the reference by 100: surface 720, expected 720
 [harness.dump] step 10 of 17: screenshot from above
-[harness.dump] screenshot C:/Users/ivan_/source/repos/morrowind-test-harness/dump/work/runs/20261005-053219-wv6-test/02-from-above.jpg
+[harness.dump] screenshot C:/Users/ivan_/source/repos/morrowind-test-harness/dump/work/runs/20261005-070959-wv8-test/02-from-above.jpg
 [harness.dump] step 11 of 17: tilt the reference by 5 degrees: the surface slopes
 [harness.dump] step 12 of 17: the level follows the slope
 [harness.dump] PASS slope: centre keeps its height: 680.0, expected 680
@@ -43,9 +43,9 @@
 [harness.dump] step 14 of 17: player on the low side of the slope
 [harness.dump] PASS slope: head above water on the low side: z 534, surface there 653.8, underwater false
 [harness.dump] step 15 of 17: timing
-[harness.dump] timing: lookup from Lua, disc of 32 triangles: inside 117 ns, bounding box corner 36 ns, outside 28 ns
-[harness.dump] timing: surface of 8192 triangles: registered in 1.00 ms, lookup inside 65 ns, found 620
+[harness.dump] timing: lookup from Lua, disc of 32 triangles: inside 115 ns, bounding box corner 36 ns, outside 27 ns
+[harness.dump] timing: surface of 8192 triangles: registered in 2.00 ms, lookup inside 65 ns, found 620
 [harness.dump] step 16 of 17: timing without any volume
-[harness.dump] timing: engine query for the player through tes3.canRest: 735 ns in a volume, 485 ns outside it, 405 ns with no volume registered
+[harness.dump] timing: engine query for the player through tes3.canRest: 710 ns in a volume, 480 ns outside it, 390 ns with no volume registered
 [harness.dump] step 17 of 17: clean up
 [harness.dump] DONE

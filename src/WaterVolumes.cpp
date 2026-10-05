@@ -48,6 +48,17 @@ namespace wv {
     // The scene graph branches of the volumes.
     static std::unordered_multiset<const NI::AVObject*> volumeNodes;
 
+    // Creatures that can only swim, with where each was last seen in the water of a volume.
+    struct KeptSwimmer {
+        NI::Point3 position;
+        DWORD seen;
+    };
+    static std::unordered_map<const TES3::MobileActor*, KeptSwimmer> keptSwimmers;
+
+    // The mobile that came by last. Several hooked functions run for one mobile in a row, and
+    // one look at it is enough; the next mobile, if only the player, makes it due again.
+    static const TES3::MobileObject* lastLookedAt = nullptr;
+
     static int bucketOf(float value) {
         return static_cast<int>(std::clamp(std::floor(value / BUCKET_SIZE), -2e6f, 2e6f));
     }
@@ -340,6 +351,8 @@ namespace wv {
         buckets.clear();
         wideVolumes.clear();
         volumeNodes.clear();
+        keptSwimmers.clear();
+        lastLookedAt = nullptr;
         volumes.clear();
         anyVolumes = false;
         setRendererVolume(nullptr, 0.0f, 0.0f);
@@ -545,9 +558,81 @@ namespace wv {
         return { &mobile->reference->position, false };
     }
 
+    const auto TES3_getWaterMinLevel = reinterpret_cast<float(__cdecl*)()>(0x51D760);
+    const auto TES3_MobileActor_canOnlySwim = reinterpret_cast<bool(__thiscall*)(const TES3::MobileActor*)>(0x521800);
+
+    //
+    // Creatures that can only swim.
+    //
+    // The game keeps such a creature in the water by two things: the land around the water,
+    // and the surface over it. A volume can end in the open, where neither is there. A creature
+    // that swims out of a volume there is put back where it last was in the water, and is given
+    // that place as the one it is making for, so that it chooses again.
+    //
+
+    // A mobile that was not seen for this long may be another one at the same address.
+    constexpr DWORD KEPT_FOR_MILLISECONDS = 500;
+
+    // How far a creature can be from where it last was in a volume and still have swum there.
+    constexpr auto SWUM_ACROSS = 128.0f;
+
+    static void keepSwimmerInWater(TES3::MobileObject* object) {
+        // Only creatures can be unable to walk. Projectiles come this way too.
+        if (object == nullptr || object == lastLookedAt) {
+            return;
+        }
+        lastLookedAt = object;
+        if (object->objectType != TES3::ObjectType::MobileCreature) {
+            return;
+        }
+        const auto mobile = static_cast<TES3::MobileActor*>(object);
+        if (mobile->reference == nullptr || !TES3_MobileActor_canOnlySwim(mobile)) {
+            return;
+        }
+
+        auto& position = mobile->reference->position;
+        const auto now = GetTickCount();
+        float surface = 0.0f, floor = 0.0f;
+        if (findVolume(&position, false, surface, floor) != nullptr && position.z <= surface) {
+            if (keptSwimmers.size() > 256) {
+                keptSwimmers.clear();
+            }
+            keptSwimmers[mobile] = { position, now };
+            return;
+        }
+
+        const auto kept = keptSwimmers.find(mobile);
+        if (kept == keptSwimmers.end()) {
+            return;
+        }
+        if (now - kept->second.seen > KEPT_FOR_MILLISECONDS) {
+            keptSwimmers.erase(kept);
+            return;
+        }
+        // Other water, the sea or the water of an interior, is as good as the volume it left,
+        // if the creature swam into it. A creature that left through an open side high over
+        // the sea is set down at the level of the sea in the same step; that is no swim.
+        const auto dx = position.x - kept->second.position.x;
+        const auto dy = position.y - kept->second.position.y;
+        const auto dz = position.z - kept->second.position.z;
+        if (position.z < TES3_getWaterMinLevel() && dx * dx + dy * dy + dz * dz < SWUM_ACROSS * SWUM_ACROSS) {
+            keptSwimmers.erase(kept);
+            return;
+        }
+
+        position = kept->second.position;
+        mobile->actionData.walkDestination = kept->second.position;
+        mobile->velocity = NI::Point3(0.0f, 0.0f, 0.0f);
+        mobile->impulseVelocity = NI::Point3(0.0f, 0.0f, 0.0f);
+        kept->second.seen = now;
+    }
+
     static Subject resolveSubject(SubjectKind kind, DWORD ecx, const DWORD* stack, Frame& frame) {
         switch (kind) {
         case SubjectKind::ThisMobile:
+            // A creature far from the player is moved without the full simulation, so the
+            // look after swimmers is taken at every function that runs for a mobile.
+            keepSwimmerInWater(reinterpret_cast<TES3::MobileObject*>(ecx));
             return subjectFromMobile(reinterpret_cast<const TES3::MobileObject*>(ecx));
         case SubjectKind::Arg0Mobile:
             return subjectFromMobile(reinterpret_cast<const TES3::MobileObject*>(stack[1]));
@@ -642,7 +727,6 @@ namespace wv {
     // Stands in for the interior cell at call sites that skip the level query in exteriors.
     alignas(4) static BYTE proxyCell[sizeof(TES3::Cell)] = {};
 
-    const auto TES3_getWaterMinLevel = reinterpret_cast<float(__cdecl*)()>(0x51D760);
     const auto TES3_Cell_getWaterLevel = reinterpret_cast<float(__thiscall*)(const void*)>(0x4E28B0);
 
     static float __cdecl getWaterMinLevel() {
@@ -690,6 +774,41 @@ namespace wv {
         return level > position->z;
     }
 
+    // How far a position is under water, by the game's own rules: under the water of an interior
+    // that has water, or, outdoors, as deep as the land there lies under the level of the sea.
+    static float depthOfGameWater(const NI::Point3* position) {
+        const auto dataHandler = TES3::DataHandler::get();
+        const auto interior = dataHandler->currentInteriorCell;
+        if (interior != nullptr) {
+            if ((interior->cellFlags & TES3::CellFlag::HasWater) != 0) {
+                const auto level = TES3_getWaterMinLevel();
+                if (level > position->z) {
+                    return level - position->z;
+                }
+            }
+            return 0.0f;
+        }
+        float land = 0.0f;
+        dataHandler->getLandHeightAtPosition(*position, &land);
+        return land < 0.0f ? -land : 0.0f;
+    }
+
+    // How far a position is under water: under the surface of a volume, or else by the game's
+    // own rules. The game's two functions for this do not ask for the water level outdoors, so
+    // hooks on the level cannot reach them; these two take their place whole.
+    static float __cdecl getAbsDistanceBelowWater(const NI::Point3* position) {
+        float surface = 0.0f;
+        if (anyVolumes && GetCurrentThreadId() == mainThreadId && findSurface(position, false, surface) && surface > position->z) {
+            return surface - position->z;
+        }
+        return depthOfGameWater(position);
+    }
+
+    // True where the water is too deep for the actor to stand in.
+    static bool __cdecl mustActorSwimAtDestination(const TES3::MobileActor* mobile, const NI::Point3* position) {
+        return mobile->height * 0.75f < getAbsDistanceBelowWater(position);
+    }
+
     static __declspec(naked) void getInteriorCellOrProxy() {
         __asm {
             mov ecx, [eax + 0xAC]
@@ -721,11 +840,11 @@ namespace wv {
         0x529A42, 0x529AB6,                                // breathing
         0x52D502, 0x52D511,                                // standing position check
         0x53771A,                                          // combat weighting
-        0x53B553, 0x53B5D7,                                // distance below water, swim at destination
         0x53E973, 0x53E9A7,                                // movement physics
         0x560C1B,                                          // projectile water collision
         // 0x507986: script instruction, left alone.
         // 0x53B4A0: the whole function is replaced by isPointUnderwater.
+        // 0x53B553, 0x53B5D7: inside the two functions that are replaced whole.
     };
 
     // Call sites of the cell water level query (0x4E28B0).
@@ -782,8 +901,6 @@ namespace wv {
         { 0x52D420, 6, { 0x83, 0xEC, 0x08, 0x55, 0x8B, 0xE9 }, SubjectKind::ThisMobile },
         { 0x5375A0, 5, { 0x83, 0xEC, 0x44, 0x53, 0x55 }, SubjectKind::CombatSession },
         { 0x53B4C0, 6, { 0x53, 0x56, 0x8B, 0x74, 0x24, 0x0C }, SubjectKind::Arg0Mobile },
-        { 0x53B500, 9, { 0x83, 0xEC, 0x08, 0x8B, 0x0D, 0xE0, 0x67, 0x7C, 0x00 }, SubjectKind::Arg0Position },
-        { 0x53B580, 9, { 0x83, 0xEC, 0x08, 0x8B, 0x0D, 0xE0, 0x67, 0x7C, 0x00 }, SubjectKind::Arg1Position },
         { 0x53E270, 6, { 0x83, 0xEC, 0x70, 0x56, 0x8B, 0xF1 }, SubjectKind::AnimationController },
         { 0x560BE0, 5, { 0x55, 0x8B, 0xEC, 0x6A, 0xFF }, SubjectKind::ThisMobile },
         { 0x5679E0, 6, { 0x83, 0xEC, 0x28, 0x56, 0x8B, 0xF1 }, SubjectKind::ThisMobile },
@@ -795,6 +912,18 @@ namespace wv {
 
     // The function that begins with the global water level query and is replaced whole.
     constexpr DWORD POINT_UNDERWATER_FUNCTION = 0x53B4A0;
+
+    // Functions of the game that are replaced whole: where each begins, the bytes it begins
+    // with, and what takes its place.
+    struct ReplacedFunction {
+        DWORD address;
+        BYTE expected[9];
+        void* replacement;
+    };
+    static const ReplacedFunction replacedFunctions[] = {
+        { 0x53B500, { 0x83, 0xEC, 0x08, 0x8B, 0x0D, 0xE0, 0x67, 0x7C, 0x00 }, &getAbsDistanceBelowWater },
+        { 0x53B580, { 0x83, 0xEC, 0x08, 0x8B, 0x0D, 0xE0, 0x67, 0x7C, 0x00 }, &mustActorSwimAtDestination },
+    };
 
     // The call that tests a line of sight against the mesh of one reference.
     constexpr DWORD LINE_OF_SIGHT_CALL_SITE = 0x53B1DD;
@@ -846,6 +975,9 @@ namespace wv {
         for (const auto& hook : entryHooks) {
             expect(memcmp(reinterpret_cast<const void*>(hook.address), hook.expected, hook.length) == 0, "function", hook.address);
         }
+        for (const auto& function : replacedFunctions) {
+            expect(memcmp(reinterpret_cast<const void*>(function.address), function.expected, sizeof(function.expected)) == 0, "function", function.address);
+        }
         return ok;
     }
 
@@ -880,6 +1012,7 @@ namespace wv {
         count(isCallTo(LINE_OF_SIGHT_CALL_SITE, reinterpret_cast<DWORD>(&lineOfSightRayVsReferenceNode)));
         for (const auto site : interiorCellLoadSites) count(isCallTo(site, reinterpret_cast<DWORD>(&getInteriorCellOrProxy)));
         for (auto i = 0u; i < std::size(entryHooks); ++i) count(isJumpTo(entryHooks[i].address, entryStubs[i]));
+        for (const auto& function : replacedFunctions) count(isJumpTo(function.address, reinterpret_cast<DWORD>(function.replacement)));
     }
 
     bool install() {
@@ -946,6 +1079,9 @@ namespace wv {
             se::memory::genCallEnforced(site, 0x51D760, reinterpret_cast<DWORD>(&getWaterMinLevel));
         }
         se::memory::genJumpUnprotected(POINT_UNDERWATER_FUNCTION, reinterpret_cast<DWORD>(&isPointUnderwater));
+        for (const auto& function : replacedFunctions) {
+            se::memory::genJumpUnprotected(function.address, reinterpret_cast<DWORD>(function.replacement));
+        }
         for (const auto site : cellLevelCallSites) {
             se::memory::genCallEnforced(site, 0x4E28B0, reinterpret_cast<DWORD>(&cellGetWaterLevel));
         }

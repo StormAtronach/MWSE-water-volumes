@@ -1,0 +1,92 @@
+[harness.dump] magic effects resolved: 2808 spells, 13024 NPCs, 0 auto-calculated NPCs hold 0 spells, nothing applied
+[harness.dump] loading save 'quiksave.ess'
+[harness.dump] loaded, new game false, cell Vas
+[harness.dump] water: god mode on at load; player at 5874 185035 990, health 13, swimming false
+[harness.dump] water: 2 water pieces left in the save by earlier runs removed
+[harness.dump] step 1 of 60: god mode on, clear noon
+[harness.dump] step 2 of 60: travel to Narsis
+[harness.dump] step 3 of 60: stand in Narsis and count the actors
+[harness.dump] step 4 of 60: the actors of Narsis
+[harness.dump] OBSERVED Narsis: player at 53248 -413696 1680; 229 actors in the loaded cells, 10 within 2000 of the player, 18 that can only swim; 0 volumes registered
+[harness.dump] step 5 of 60: measure: Narsis, no volume
+[harness.dump] step 6 of 60: report: Narsis, no volume
+[harness.dump] MEASURED Narsis, no volume: simulation 6.641 ms mean, 16.223 ms max over 728 frames; frame 13.73 ms mean (73 per second)
+[harness.dump] step 7 of 60: one volume far away
+[harness.dump] step 8 of 60: measure: Narsis, 1 volume elsewhere
+[harness.dump] step 9 of 60: report: Narsis, 1 volume elsewhere
+[harness.dump] MEASURED Narsis, 1 volume elsewhere: simulation 6.665 ms mean, 13.380 ms max over 728 frames; frame 13.74 ms mean (73 per second)
+[harness.dump] step 10 of 60: a thousand volumes far away
+[harness.dump] step 11 of 60: measure: Narsis, 1000 volumes elsewhere
+[harness.dump] step 12 of 60: report: Narsis, 1000 volumes elsewhere
+[harness.dump] MEASURED Narsis, 1000 volumes elsewhere: simulation 6.572 ms mean, 11.506 ms max over 737 frames; frame 13.58 ms mean (74 per second)
+[harness.dump] step 13 of 60: no far volumes; a pond 2048 across over the place where the player stands, 40 deep
+[harness.dump] step 14 of 60: measure: Narsis, a pond around the player
+[harness.dump] step 15 of 60: report: Narsis, a pond around the player
+[harness.dump] MEASURED Narsis, a pond around the player: simulation 6.622 ms mean, 12.872 ms max over 733 frames; frame 13.65 ms mean (73 per second); 2 actors in or over the pond
+[harness.dump] step 16 of 60: pond away
+[harness.dump] step 17 of 60: settle
+[harness.dump] step 18 of 60: measure: Narsis, no volume
+[harness.dump] step 19 of 60: report: Narsis, no volume
+[harness.dump] MEASURED Narsis, no volume: simulation 6.580 ms mean, 12.426 ms max over 746 frames; frame 13.41 ms mean (75 per second)
+[harness.dump] step 20 of 60: one volume far away
+[harness.dump] step 21 of 60: measure: Narsis, 1 volume elsewhere
+[harness.dump] step 22 of 60: report: Narsis, 1 volume elsewhere
+[harness.dump] MEASURED Narsis, 1 volume elsewhere: simulation 6.568 ms mean, 14.560 ms max over 744 frames; frame 13.44 ms mean (74 per second)
+[harness.dump] step 23 of 60: a thousand volumes far away
+[harness.dump] step 24 of 60: measure: Narsis, 1000 volumes elsewhere
+[harness.dump] step 25 of 60: report: Narsis, 1000 volumes elsewhere
+[harness.dump] MEASURED Narsis, 1000 volumes elsewhere: simulation 6.465 ms mean, 14.297 ms max over 749 frames; frame 13.35 ms mean (75 per second)
+[harness.dump] step 26 of 60: no far volumes; a pond 2048 across over the place where the player stands, 40 deep
+[harness.dump] step 27 of 60: measure: Narsis, a pond around the player
+[harness.dump] step 28 of 60: report: Narsis, a pond around the player
+[harness.dump] MEASURED Narsis, a pond around the player: simulation 6.743 ms mean, 15.982 ms max over 723 frames; frame 13.84 ms mean (72 per second); 2 actors in or over the pond
+[harness.dump] step 29 of 60: pond away
+[harness.dump] step 30 of 60: settle
+[harness.dump] step 31 of 60: travel to Old Ebonheart docks
+[harness.dump] step 32 of 60: stand in Old Ebonheart docks and count the actors
+[harness.dump] step 33 of 60: the actors of Old Ebonheart docks
+[harness.dump] OBSERVED Old Ebonheart docks: player at 59188 -142060 50; 77 actors in the loaded cells, 1 within 2000 of the player, 17 that can only swim; 0 volumes registered
+[harness.dump] step 34 of 60: measure: Old Ebonheart docks, no volume
+[harness.dump] step 35 of 60: report: Old Ebonheart docks, no volume
+[harness.dump] MEASURED Old Ebonheart docks, no volume: simulation 3.673 ms mean, 9.202 ms max over 1408 frames; frame 7.11 ms mean (141 per second)
+[harness.dump] step 36 of 60: one volume far away
+[harness.dump] step 37 of 60: measure: Old Ebonheart docks, 1 volume elsewhere
+[harness.dump] step 38 of 60: report: Old Ebonheart docks, 1 volume elsewhere
+[harness.dump] MEASURED Old Ebonheart docks, 1 volume elsewhere: simulation 3.826 ms mean, 11.320 ms max over 1391 frames; frame 7.19 ms mean (139 per second)
+[harness.dump] step 39 of 60: a thousand volumes far away
+[harness.dump] step 40 of 60: measure: Old Ebonheart docks, 1000 volumes elsewhere
+[harness.dump] step 41 of 60: report: Old Ebonheart docks, 1000 volumes elsewhere
+[harness.dump] MEASURED Old Ebonheart docks, 1000 volumes elsewhere: simulation 3.776 ms mean, 8.849 ms max over 1398 frames; frame 7.16 ms mean (140 per second)
+[harness.dump] step 42 of 60: no far volumes; a pond 2048 across over the place where the player stands, 40 deep
+[harness.dump] step 43 of 60: measure: Old Ebonheart docks, a pond around the player
+[harness.dump] step 44 of 60: report: Old Ebonheart docks, a pond around the player
+[harness.dump] MEASURED Old Ebonheart docks, a pond around the player: simulation 3.752 ms mean, 8.727 ms max over 1431 frames; frame 6.99 ms mean (143 per second); 2 actors in or over the pond
+[harness.dump] step 45 of 60: pond away
+[harness.dump] step 46 of 60: settle
+[harness.dump] step 47 of 60: measure: Old Ebonheart docks, no volume
+[harness.dump] step 48 of 60: report: Old Ebonheart docks, no volume
+[harness.dump] MEASURED Old Ebonheart docks, no volume: simulation 3.564 ms mean, 8.837 ms max over 1456 frames; frame 6.87 ms mean (146 per second)
+[harness.dump] step 49 of 60: one volume far away
+[harness.dump] step 50 of 60: measure: Old Ebonheart docks, 1 volume elsewhere
+[harness.dump] step 51 of 60: report: Old Ebonheart docks, 1 volume elsewhere
+[harness.dump] MEASURED Old Ebonheart docks, 1 volume elsewhere: simulation 3.614 ms mean, 8.542 ms max over 1448 frames; frame 6.91 ms mean (145 per second)
+[harness.dump] step 52 of 60: a thousand volumes far away
+[harness.dump] step 53 of 60: measure: Old Ebonheart docks, 1000 volumes elsewhere
+[harness.dump] step 54 of 60: report: Old Ebonheart docks, 1000 volumes elsewhere
+[harness.dump] MEASURED Old Ebonheart docks, 1000 volumes elsewhere: simulation 3.581 ms mean, 10.361 ms max over 1464 frames; frame 6.83 ms mean (146 per second)
+[harness.dump] step 55 of 60: no far volumes; a pond 2048 across over the place where the player stands, 40 deep
+[harness.dump] step 56 of 60: measure: Old Ebonheart docks, a pond around the player
+[harness.dump] step 57 of 60: report: Old Ebonheart docks, a pond around the player
+[harness.dump] MEASURED Old Ebonheart docks, a pond around the player: simulation 3.503 ms mean, 9.283 ms max over 1508 frames; frame 6.63 ms mean (151 per second); 2 actors in or over the pond
+[harness.dump] step 58 of 60: pond away
+[harness.dump] step 59 of 60: settle
+[harness.dump] step 60 of 60: sum up
+[harness.dump] OBSERVED Narsis, mean of 2 rounds, no volume: simulation 6.611 ms (rounds 6.580 and 6.641), frame 13.57 ms; against no volume: simulation +0.000 ms, frame +0.00 ms; +0.00 microseconds per actor per frame for 229 actors
+[harness.dump] OBSERVED Narsis, mean of 2 rounds, 1 volume elsewhere: simulation 6.617 ms (rounds 6.568 and 6.665), frame 13.59 ms; against no volume: simulation +0.006 ms, frame +0.02 ms; +0.03 microseconds per actor per frame for 229 actors
+[harness.dump] OBSERVED Narsis, mean of 2 rounds, 1000 volumes elsewhere: simulation 6.519 ms (rounds 6.465 and 6.572), frame 13.47 ms; against no volume: simulation -0.092 ms, frame -0.10 ms; -0.40 microseconds per actor per frame for 229 actors
+[harness.dump] OBSERVED Narsis, mean of 2 rounds, a pond around the player: simulation 6.682 ms (rounds 6.622 and 6.743), frame 13.75 ms; against no volume: simulation +0.072 ms, frame +0.18 ms; +0.31 microseconds per actor per frame for 229 actors
+[harness.dump] OBSERVED Old Ebonheart docks, mean of 2 rounds, no volume: simulation 3.618 ms (rounds 3.564 and 3.673), frame 6.99 ms; against no volume: simulation +0.000 ms, frame +0.00 ms; +0.00 microseconds per actor per frame for 77 actors
+[harness.dump] OBSERVED Old Ebonheart docks, mean of 2 rounds, 1 volume elsewhere: simulation 3.720 ms (rounds 3.614 and 3.826), frame 7.05 ms; against no volume: simulation +0.102 ms, frame +0.06 ms; +1.32 microseconds per actor per frame for 77 actors
+[harness.dump] OBSERVED Old Ebonheart docks, mean of 2 rounds, 1000 volumes elsewhere: simulation 3.678 ms (rounds 3.581 and 3.776), frame 6.99 ms; against no volume: simulation +0.060 ms, frame +0.00 ms; +0.78 microseconds per actor per frame for 77 actors
+[harness.dump] OBSERVED Old Ebonheart docks, mean of 2 rounds, a pond around the player: simulation 3.628 ms (rounds 3.503 and 3.752), frame 6.81 ms; against no volume: simulation +0.010 ms, frame -0.18 ms; +0.12 microseconds per actor per frame for 77 actors
+[harness.dump] DONE

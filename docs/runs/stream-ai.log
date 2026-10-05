@@ -1,0 +1,43 @@
+[harness.dump] magic effects resolved: 2808 spells, 13024 NPCs, 0 auto-calculated NPCs hold 0 spells, nothing applied
+[harness.dump] loading save 'quiksave.ess'
+[harness.dump] loaded, new game false, cell Vas
+[harness.dump] water: god mode on at load; player at 5874 185035 990, health 13, swimming false
+[harness.dump] water: 2 water pieces left in the save by earlier runs removed
+[harness.dump] step 1 of 15: god mode on, clear noon, to the foyada
+[harness.dump] step 2 of 15: the stream
+[harness.dump] OBSERVED the place in the stream: wv_riv_512x1024 at 12800 28928: water at 1152, land under the middle 952 (200 deep), land under the west side 992 and under the east side 952: the sides of the water stand 160 and 200 above the land
+[harness.dump] OBSERVED the sides of the stream: at 377 of 394 points on its two sides the land is more than 20 under the water: there the water has an open side with nothing to hold a swimmer in
+[harness.dump] step 3 of 15: four slaughterfish in the middle of the stream
+[harness.dump] step 4 of 15: what the fish in the stream did
+[harness.dump] OBSERVED stream, fish, slaughterfish 1: in water at 60 of 60 looks, swimming flag at 60; never left the water; moved 402 in all; at the end in water (volume), 100 under the surface, 70 above the land, swimming true, in combat false, 157 from the middle of the stream (its side is at 256)
+[harness.dump] OBSERVED stream, fish, slaughterfish 2: in water at 60 of 60 looks, swimming flag at 60; never left the water; moved 1000 in all; at the end in water (volume), 99 under the surface, 6 above the land, swimming true, in combat false, 238 from the middle of the stream (its side is at 256)
+[harness.dump] OBSERVED stream, fish, slaughterfish 3: in water at 60 of 60 looks, swimming flag at 60; never left the water; moved 497 in all; at the end in water (volume), 91 under the surface, 26 above the land, swimming true, in combat false, 192 from the middle of the stream (its side is at 256)
+[harness.dump] OBSERVED stream, fish, slaughterfish 4: in water at 60 of 60 looks, swimming flag at 60; never left the water; moved 578 in all; at the end in water (volume), 86 under the surface, 108 above the land, swimming true, in combat false, 403 from the middle of the stream (its side is at 256)
+[harness.dump] step 5 of 15: two rats on the land beside the stream, the player in the water
+[harness.dump] OBSERVED stream, the player: at height 954, swimming true
+[harness.dump] step 6 of 15: what the rats at the stream did
+[harness.dump] OBSERVED stream, rat set on the swimming player, Rat 1: in water at 0 of 40 looks, swimming flag at 0; first out of the water after 0.0 s at 13320 28934 1008, 2 above the land, 520 from the middle of the stream (its side is at 256); moved 1 in all; at the end out of the water, 2 above the land, swimming false, in combat false, 520 from the middle of the stream (its side is at 256)
+[harness.dump] OBSERVED stream, rat set on the swimming player, Rat 2: in water at 0 of 40 looks, swimming flag at 0; first out of the water after 0.0 s at 12280 28934 1069, 2 above the land, 520 from the middle of the stream (its side is at 256); moved 379 in all; at the end out of the water, 2 above the land, swimming false, in combat false, 818 from the middle of the stream (its side is at 256)
+[harness.dump] step 7 of 15: to the sea near Vas
+[harness.dump] step 8 of 15: find deep sea and a shore
+[harness.dump] OBSERVED the sea: deep sea at 8460 188728, bed at -307; shore land at 9571 186976 64, water 700 away with its bed at -191
+[harness.dump] step 9 of 15: four slaughterfish in the sea
+[harness.dump] step 10 of 15: what the fish in the sea did
+[harness.dump] OBSERVED sea, fish, slaughterfish 1: in water at 60 of 60 looks, swimming flag at 60; never left the water; moved 606 in all; at the end in water (sea), 44 under the surface, 111 above the land, swimming true, in combat false
+[harness.dump] OBSERVED sea, fish, slaughterfish 2: in water at 60 of 60 looks, swimming flag at 60; never left the water; moved 296 in all; at the end in water (sea), 121 under the surface, 321 above the land, swimming true, in combat false
+[harness.dump] OBSERVED sea, fish, slaughterfish 3: in water at 60 of 60 looks, swimming flag at 60; never left the water; moved 662 in all; at the end in water (sea), 37 under the surface, 585 above the land, swimming true, in combat false
+[harness.dump] OBSERVED sea, fish, slaughterfish 4: in water at 60 of 60 looks, swimming flag at 60; never left the water; moved 43 in all; at the end in water (sea), 121 under the surface, 274 above the land, swimming true, in combat false
+[harness.dump] step 11 of 15: two rats on the shore, the player in the sea
+[harness.dump] OBSERVED sea, the player: at height -189, swimming true
+[harness.dump] step 12 of 15: what the rats at the sea did
+[harness.dump] OBSERVED sea, rat set on the swimming player, Rat 1: in water at 0 of 40 looks, swimming flag at 0; first out of the water after 0.0 s at 9521 186976 88, 2 above the land; moved 22 in all; at the end out of the water, 2 above the land, swimming false, in combat false
+[harness.dump] OBSERVED sea, rat set on the swimming player, Rat 2: in water at 0 of 40 looks, swimming flag at 0; first out of the water after 0.0 s at 9621 186976 38, 2 above the land; moved 11 in all; at the end out of the water, 2 above the land, swimming false, in combat false
+[harness.dump] step 13 of 15: a pond in the basin near Vas
+[harness.dump] step 14 of 15: four slaughterfish in the pond
+[harness.dump] OBSERVED the pond: water at 620, bed at 453; at 22 of 36 points of its rim the land is more than 20 under the water
+[harness.dump] step 15 of 15: what the fish in the pond did
+[harness.dump] OBSERVED pond, fish, slaughterfish 1: in water at 60 of 60 looks, swimming flag at 60; never left the water; moved 252 in all; at the end in water (volume), 36 under the surface, 128 above the land, swimming true, in combat false, 337 from the middle of the pond (its rim is at 512)
+[harness.dump] OBSERVED pond, fish, slaughterfish 2: in water at 60 of 60 looks, swimming flag at 60; never left the water; moved 307 in all; at the end in water (volume), 65 under the surface, 49 above the land, swimming true, in combat false, 346 from the middle of the pond (its rim is at 512)
+[harness.dump] OBSERVED pond, fish, slaughterfish 3: in water at 60 of 60 looks, swimming flag at 60; never left the water; moved 275 in all; at the end in water (volume), 36 under the surface, 76 above the land, swimming true, in combat false, 239 from the middle of the pond (its rim is at 512)
+[harness.dump] OBSERVED pond, fish, slaughterfish 4: in water at 60 of 60 looks, swimming flag at 60; never left the water; moved 313 in all; at the end in water (volume), 36 under the surface, 121 above the land, swimming true, in combat false, 191 from the middle of the pond (its rim is at 512)
+[harness.dump] DONE
