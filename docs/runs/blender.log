@@ -3,23 +3,30 @@
 [harness.dump] loaded, new game false, cell Vas
 [harness.dump] water: god mode on at load; player at 5874 185035 990, health 13, swimming false
 [harness.dump] water: 2 water pieces left in the save by earlier runs removed
-[harness.dump] step 1 of 9: god mode on, player beside the basin near Vas
-[harness.dump] step 2 of 9: write the mesh and place it in the air, tilted
+[harness.dump] step 1 of 12: god mode on, player beside the basin near Vas
+[harness.dump] step 2 of 12: write the mesh and place it in the air, tilted
 [harness.dump] OBSERVED mesh: Data Files\Meshes\wv\wv_test_blender.nif, 2319 bytes: no text entries on the root, surface and body each a node with two shapes
-[harness.dump] step 3 of 9: the mesh is taken as water by its names
+[harness.dump] step 3 of 12: the mesh is taken as water by its names
 [harness.dump] PASS a mesh with no text entries is water because an object in it is named WaterVolume: text entries on the root: false; 1 volumes registered
 [harness.dump] PASS the option in the name is used: both surface shapes are marked for sky-only water shading: 2 surface shapes, 2 marked sky-only
 [harness.dump] PASS the body, written as a group of two shapes, is hidden as a whole: 2 body shapes under a node that is hidden: true
 [harness.dump] PASS the body made of two shapes closes the mesh: the water is the inside of the piece, tilted 30 and 25 degrees: 0 of 3928 points wrong, 366 of them inside
-[harness.dump] step 4 of 9: down into the basin, level
-[harness.dump] step 5 of 9: the player is let go 60 above the surface
+[harness.dump] step 4 of 12: down into the basin, level
+[harness.dump] step 5 of 12: the player is let go 60 above the surface
 [harness.dump] OBSERVED collision flag: the reference has its collision switched off: true
-[harness.dump] step 6 of 9: the player falls through the surface into the water
-[harness.dump] PASS without an NCO entry nobody stands on the surface: the mod switches the collision off: player at height 499, surface of the piece at 620, swimming true
-[harness.dump] step 7 of 9: control: collision on again, the player let go 60 above the surface
-[harness.dump] step 8 of 9: control: the player stands on the surface
+[harness.dump] step 6 of 12: the player falls through the surface into the water
+[harness.dump] PASS without an NCO entry nobody stands on the surface: the mod switches the collision off: player at height 500, surface of the piece at 620, swimming true
+[harness.dump] step 7 of 12: control: collision on again, the player let go 60 above the surface
+[harness.dump] step 8 of 12: control: the player stands on the surface
 [harness.dump] PASS control: with its collision on the same mesh carries the player: player at height 622, surface of the piece at 620, swimming false
 [harness.dump] OBSERVED cost: working the collisions out again for the loaded cells takes 0.00 ms
-[harness.dump] step 9 of 9: clean up
+[harness.dump] step 9 of 12: save with the piece loaded
+[harness.dump] PASS the save is written with the collision of the reference on: saveGame returned true; collision switched off while saving: false
+[harness.dump] save removed: true
+[harness.dump] step 10 of 12: after the save
+[harness.dump] PASS the collision is switched off again after the save: switched off: true
+[harness.dump] step 11 of 12: the object registered as water nobody swims in
+[harness.dump] PASS a registration made later reaches the loaded reference: 0 volumes registered, surface under the piece nil, collision switched off true
+[harness.dump] step 12 of 12: clean up
 [harness.dump] mesh file removed: true
 [harness.dump] DONE

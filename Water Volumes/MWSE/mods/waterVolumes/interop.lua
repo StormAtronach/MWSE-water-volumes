@@ -1,19 +1,21 @@
 --[[
     Water Volumes interop.
 
-    The mesh of a static or an activator becomes water in one of three ways:
-      1. Its NIF root carries a NiStringExtraData that starts with "WaterVolume".
-         Options follow in the same string, for example "WaterVolume depth=300 plain".
-      2. Something in the mesh has a name that starts with "WaterVolume", with the options in
-         the name, or the mesh has a shape or node named "WaterBody". This is for modelling
-         programs that cannot write the text entry.
-      3. A mod registers the object id here, for meshes it cannot edit:
+    The mesh of a static or an activator becomes water in one of two ways:
+      1. Something in the mesh has a name that starts with "WaterVolume". Options follow in
+         the same name, for example "WaterVolume depth=300 plain". A mesh that has a shape or
+         node named "WaterBody" is water without such a name.
+      2. A mod registers the object id here, for meshes it cannot edit:
            local waterVolumes = include("waterVolumes.interop")
            if waterVolumes then waterVolumes.registerObject("my_pond_static", { depth = 300 }) end
 
+    Where both apply, the registration decides and the names are not looked at.
+
     Options:
-      depth  how far the water reaches below the surface. Default 512. A mesh with a shape
-             named WaterBody does not use it: its water is what is inside the closed mesh.
+      depth  for a mesh that is only the surface: how far the water reaches below it. Default
+             512. The surface must be one sheet, with no part of it over another. A mesh with
+             a shape named WaterBody does not use it: its water is what is inside the closed
+             mesh. With depth 0 a mesh without a WaterBody is taken as closed as it is.
       noswim  the mesh looks like water and holds none: nobody swims in it. For waterfalls.
              In registerObject the key is noSwim.
       plain  keep the mesh's own texture and material. Without it, a renderer that supports
@@ -37,7 +39,7 @@ interop.surfaceMarkerSkyOnly = 99997
 --- Object ids registered from Lua, lower case, to their settings.
 interop.objects = {}
 
---- Raised by one for every registration, so that the mod drops what it remembered about objects.
+--- Raised by one for every registration. The mod then looks at the loaded references again.
 interop.revision = 0
 
 --- @param id string
@@ -48,59 +50,37 @@ function interop.registerObject(id, settings)
 end
 
 --
--- The native plugin. It holds the volumes and answers the engine's questions about water.
+-- The native plugin. It holds the water and answers the engine's questions about it. Water
+-- always belongs to a placed reference: to make water from a script, place a reference of a
+-- water mesh with tes3.createReference, and move, disable or delete it like any other.
 --
 
 --- The table of watervolumes.dll, or nil when the DLL is missing.
 interop.native = include("watervolumes")
 
---- True once the plugin's engine hooks are in place.
+--- True once the plugin's engine hooks are in place. Without them there is no water.
 interop.supported = false
+--- Why the hooks are not in place, when they are not.
+--- @type string?
+interop.problem = nil
 if interop.native then
-    interop.supported = interop.native.install() == true
+    interop.supported, interop.problem = interop.native.install()
+else
+    interop.problem = "MWSE/lib/watervolumes.dll was not found."
 end
 
 local function component(value, key, index)
     return value[key] or value[index]
 end
 
---- The volumes, with the methods a water controller would have.
-local controller = { volumesSupported = interop.supported }
-
---- @param params { node: niAVObject?, depth: number?, min: tes3vector3|number[]?, max: tes3vector3|number[]? }
---- @return number id The id of the volume, or 0 if none was made.
-function controller:addVolume(params)
-    if params.node then
-        return interop.native.addNode(mwse.memory.convertFrom.niObject(params.node), params.depth or interop.defaultDepth)
-    end
-    local a, b = params.min, params.max
-    return interop.native.addBox(component(a, "x", 1), component(a, "y", 2), component(a, "z", 3), component(b, "x", 1), component(b, "y", 2), component(b, "z", 3))
-end
-
-function controller:removeVolume(id)
-    return interop.native.remove(id)
-end
-
-function controller:clearVolumes()
-    interop.native.clear()
-end
-
 --- The height of the surface of the water a position is in or over, or nil.
 --- @param position tes3vector3|number[]
-function controller:getVolumeSurfaceAt(position)
+--- @return number? surface
+function interop.getVolumeSurfaceAt(position)
+    if not interop.supported then
+        return nil
+    end
     return interop.native.surfaceAt(component(position, "x", 1), component(position, "y", 2), component(position, "z", 3))
-end
-
--- Anything else is read from the game's own water controller: the water plane, the surface
--- texture. Properties only; its methods cannot be called through this table.
-setmetatable(controller, { __index = function(_, key)
-    local real = tes3.dataHandler and tes3.dataHandler.waterController
-    return real and real[key]
-end })
-
---- The controller, or nil while water volumes are not available.
-function interop.getController()
-    return interop.supported and controller or nil
 end
 
 return interop

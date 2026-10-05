@@ -9,6 +9,8 @@ write any Lua.
   `MWSE\mods\waterVolumes\` the scripts.
 - The mod's plugin `MWSE\lib\watervolumes.dll` is installed with it. Without it the mod logs
   "MWSE/lib/watervolumes.dll was not found" and does nothing.
+- MGE XE G7 in a build with water volume support. It draws the surfaces as water and gives
+  the view under water.
 - The Construction Set can see `Data Files\Meshes\wv\`. With Mod Organizer, start the
   Construction Set from Mod Organizer.
 
@@ -100,7 +102,7 @@ For scale: an exterior cell is 8192 units wide and an actor is about 130 units t
    3D Scale in the same dialog (0.5 to 2.0).
 7. **Hide the edge.** The mesh has a hard edge, so its rim should end inside terrain, rocks or
    walls. Shape the land around it with the landscape editor (H) if needed.
-8. **Check the depth.** The water is everything under the mesh down to 512 units below it.
+8. **Check the depth.** The water is what is inside the blue body of the piece.
    Actors start to swim where the water is deeper than about nine tenths of their height, so a
    basin needs roughly 120 units of depth for a person to swim.
 9. **Save**, enable the plugin and walk in.
@@ -130,28 +132,45 @@ The water follows its reference:
 - a disabled reference has no water, an enabled one has it again;
 - a reference that moves takes the water with it.
 
-With more than 64 pieces of water loaded at once, such a change shows after a few frames
-rather than on the next one.
+The change shows on the next frame.
 
 To do this from a script, make the object an Activator instead of a Static (same mesh), give
 the placed reference its own ID and tick References Persist, then use `Disable`, `Enable` or
 `SetPos` on it as usual.
 
+Water is always a placed reference. A Lua mod that wants water at run time places one with
+`tes3.createReference` and handles it like any other reference.
+
+## How the surface looks
+
+MGE XE draws the surface with its water shading: you see the bottom through it, deep water
+darkens, ripples move and the sky and sun reflect, along with the things around the water that
+are on screen. The mesh's own texture is not used then.
+
+| Name of the surface object | Look |
+| --- | --- |
+| `WaterVolume` | MGE water, reflects the sky and what is on screen |
+| `WaterVolume skyonly` | MGE water, reflects the sky only |
+| `WaterVolume plain` | The mesh's own texture and material |
+
+- Use `plain` for rapids, foam, lava or anything else that should look the way you textured
+  it. Swimming works the same either way.
+- Use `skyonly` where the reflections of things on screen look wrong for your scene, or for
+  many small surfaces.
+- Reflections show only what is on screen. Something behind the camera or hidden behind a
+  nearer object is not reflected.
+
 ## Your own mesh
 
-Any mesh can be water. It needs one thing: the tag `WaterVolume`. There are two ways to give
-it, and either is enough:
-
-- **By name.** Name any object in the mesh so that its name starts with `WaterVolume`. This
-  is the way for Blender: name the surface object `WaterVolume`.
-- **As a text entry.** In NifSkope, add a NiStringExtraData block with the text `WaterVolume`
-  to the root node. The kit pieces are made this way.
+Any mesh can be water. It needs one thing: the tag `WaterVolume`, as a name. Name any object
+in the mesh so that its name starts with `WaterVolume`. In Blender, and in the kit pieces, it
+is the surface object that has this name.
 
 A mesh that has a `WaterBody` (see below) is water even without the tag.
 
-Options go after the tag, in the name or in the text entry:
+Options go after the tag, in the same name:
 
-- `depth=300` for a depth other than 512, in a mesh without a `WaterBody`;
+- `depth=300` for a depth other than 512, in a mesh that is only a surface (see below);
 - `plain` to keep the mesh's own texture. Without it, MGE XE draws the surface with its water
   shading and ignores the texture. Rapids, foam and lava want `plain`;
 - `skyonly` to keep MGE's water shading but reflect only the sky, not the things on screen;
@@ -163,13 +182,22 @@ So a surface object can be named `WaterVolume`, `WaterVolume plain` or
 Nobody walks on water: the mod switches the collision of every water mesh off. An `NCO`
 text entry on the root does the same and is not needed.
 
-The water is the area under the mesh's triangles, at the height of the mesh at each spot.
+There is one rule for where the water is: the water is what is inside a closed mesh. A mesh
+can be closed in two ways.
 
-To give the water a body, as the kit pieces have, add a shape named `WaterBody` for its sides
-and bottom. Surface and body together must be a closed mesh. The water is then exactly what
-is inside it, whatever its form: stepped or sloped bottom, leaning sides, overhangs. The mod
-hides the body in the game. Without a `WaterBody` the water reaches the depth in the tag
-below the surface.
+- **With a body, as the kit pieces have.** Add a shape named `WaterBody` for the sides and the
+  bottom. Surface and body together must be a closed mesh. The water is exactly what is
+  inside it, whatever its form: stepped or sloped bottom, leaning sides, overhangs. The mod
+  hides the body in the game.
+- **A surface alone.** A mesh without a `WaterBody` is taken as the surface of the water, and
+  the mod closes it: the bottom is the same surface, `depth` lower (512 unless the tag says
+  otherwise). The surface must be one sheet. It may slope, but no part of it may lie over
+  another part. A mesh that carries its surface twice, one a little over the other, or water
+  in steps over one another, does not work this way: give it a body, or make one mesh per
+  sheet.
+
+Where a mesh is not closed there is no water. With `depth=0` the mod adds no bottom and takes
+a mesh without a `WaterBody` as it is; use that for a closed mesh you cannot rename.
 
 ## Making a piece in Blender
 
@@ -205,7 +233,7 @@ Rules that keep a piece working:
 - **Keep it simple.** The body is only a boundary, so a few dozen triangles are enough. The
   surface needs no fine mesh either: the water shading of MGE XE does not move vertices.
 - **No more than about 30 walls over one another.** Where a vertical line crosses the mesh
-  32 times or more, the piece falls back to the simpler rule for meshes without a body.
+  32 times or more, there is no water.
 - **One piece, one cell.** A reference is loaded and unloaded with the cell its origin is
   in. Keep a piece well under a cell (8192 units) and do not let it reach far across a cell
   border.
@@ -220,20 +248,48 @@ Keep the path of a mesh short: the game stores `wv\name.nif` in 31 characters, s
 If the mesh's texture is the game's water surface (`water00.dds` and its siblings), the mod
 animates it.
 
+## A mesh you cannot edit
+
+A Lua mod can make any Static or Activator water by its id. Do it before the save loads: a
+registration made later changes the swimming at once, but the look of a mesh that is already
+loaded stays until its cell loads again.
+
+```lua
+local waterVolumes = include("waterVolumes.interop")
+if waterVolumes then
+    waterVolumes.registerObject("my_pond_static", { depth = 300, plain = false, skyOnly = false, noSwim = false })
+end
+```
+
+The same rule holds as for your own mesh: the mesh must be closed, or be one sheet that the
+mod closes `depth` below. A mesh that carries its surface twice does not work.
+
+## Limits
+
+- A piece is water while its cell is one of the loaded cells around the player. Keep each
+  piece inside one cell. Far away it is drawn with its own texture, not as water.
+- Water has no sides of its own. Where a piece stands free of terrain and walls, the player
+  and walking creatures can step out of its side and fall. Fish stay in.
+- No current: the water does not push anything, and the kit texture does not flow.
+- Under water MGE XE shows one level surface, at the camera's height. Keep slopes gentle
+  where the view under water matters.
+- Walking creatures do not follow into the water. Rats stay out, as they do at the sea.
+- Scripts that read the water level get the level of the cell, not of a piece.
+
 ## When it does not work
 
 | What you see | Likely cause |
 | --- | --- |
-| Actors walk on the surface | The mesh has no `NCO` tag |
-| The surface shows but nobody swims | The Water Volumes mod is not active, or MWSE has no water volume support. Look for `[Water Volumes]` in `MWSE.log` |
+| Actors walk on the surface, or the blue body shows in the game | The Water Volumes mod is not active, or its plugin could not start. Look for `[Water Volumes]` in `MWSE.log` |
+| The surface shows but nobody swims | The same; or the mesh is not closed: it has neither a `WaterBody` nor a single sheet as its surface |
+| The surface shows its own texture, not water | MGE XE is not the build with water volume support, or the name has `plain` |
 | Nobody swims although the water looks deep | The basin under the mesh is shallower than about 120 units |
-| Actors swim in the air beside the pond | The mesh reaches past the basin over lower ground. Use a smaller piece, or a mesh shaped to the basin |
+| Actors swim in the air beside the pond | The piece reaches past the basin over lower ground. Use a smaller piece, or a mesh shaped to the basin |
 | My texture does not show, the surface looks like the sea | That is MGE XE's water shading. Add `plain` to the tag to keep your texture |
-| Nothing happens in an interior | Interior cells without water of their own are not supported yet |
 
 ## What has been tested
 
 A plugin that places `wv_disc_1024` in an exterior cell was loaded in the game: the reference
 became water and the player swam in it. The same was done for disabling, enabling, moving and
-tilting a placed reference. The clicks inside the Construction Set and NifSkope described above
-were written from how those tools work and were not run as part of that testing.
+tilting a placed reference. The clicks inside the Construction Set described above were
+written from how that tool works and were not run as part of that testing.

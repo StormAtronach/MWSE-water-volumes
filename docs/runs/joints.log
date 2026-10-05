@@ -14,12 +14,12 @@
 [harness.dump] PASS 40 under the surface there is water at every point on lines through every joint, and the level has no step: 0 of 715 points without water; largest change of level between neighbouring points 2.554
 [harness.dump] step 6 of 12: set up: the stream from above
 [harness.dump] step 7 of 12: photograph: the stream from above
-[harness.dump] screenshot C:/Users/ivan_/source/repos/morrowind-test-harness/dump/work/runs/20261005-053455-wv6-joints/01 kit stream from above.jpg
+[harness.dump] screenshot <repos>/morrowind-test-harness/dump/work/runs/20261005-095905-wv11-joints/01 kit stream from above.jpg
 [harness.dump] step 8 of 12: set up: a joint from close by
 [harness.dump] step 9 of 12: photograph: a joint from close by
-[harness.dump] screenshot C:/Users/ivan_/source/repos/morrowind-test-harness/dump/work/runs/20261005-053455-wv6-joints/02 kit stream joint after the first bend.jpg
+[harness.dump] screenshot <repos>/morrowind-test-harness/dump/work/runs/20261005-095905-wv11-joints/02 kit stream joint after the first bend.jpg
 [harness.dump] step 10 of 12: set up: along the stream
 [harness.dump] step 11 of 12: photograph: along the stream
-[harness.dump] screenshot C:/Users/ivan_/source/repos/morrowind-test-harness/dump/work/runs/20261005-053455-wv6-joints/03 kit stream along the wide part.jpg
+[harness.dump] screenshot <repos>/morrowind-test-harness/dump/work/runs/20261005-095905-wv11-joints/03 kit stream along the wide part.jpg
 [harness.dump] step 12 of 12: clean up
 [harness.dump] DONE

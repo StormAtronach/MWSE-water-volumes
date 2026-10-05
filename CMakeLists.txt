@@ -39,17 +39,49 @@ if(NOT EXISTS "${LUAJIT_SRC}/lua51.lib")
         "`msvcbuild.bat lua52compat`.")
 endif()
 
-# SharedSE engine sources, compiled in full, as the msoc plugin does. They
-# build with the PCH, whose SharedSE prelude selects the Morrowind addresses.
-file(GLOB SHAREDSE_SOURCES CONFIGURE_DEPENDS "${MWSE_ROOT}/SharedSE/*.cpp")
-# The crash logger formats through fmtlib, which this project does not carry.
-list(FILTER SHAREDSE_SOURCES EXCLUDE REGEX "/CrashLog[^/]*\.cpp$")
+# The SharedSE engine sources the plugin uses. They build with the PCH, whose
+# SharedSE prelude selects the Morrowind addresses. If the linker reports an
+# unresolved NI:: or mwse:: symbol after an MWSE update, add its file here.
+set(SHAREDSE_NAMES
+    MemoryUtil
+    NIAVObject
+    NIBinaryStream
+    NIBound
+    NICamera
+    NICollisionSwitch
+    NIDynamicEffect
+    NIGeometry
+    NIGeometryData
+    NIMatrix33
+    NIMatrix44
+    NINode
+    NIObject
+    NIObjectNET
+    NIPoint3
+    NIPoint4
+    NIProperty
+    NIQuaternion
+    NIRTTI
+    NISkinInstance
+    NIStream
+    NISwitchNode
+    NITransform
+    NITriBasedGeometry
+    NITriBasedGeometryData
+    NITriShape
+    NITriShapeData
+)
+set(SHAREDSE_SOURCES "")
+foreach(name IN LISTS SHAREDSE_NAMES)
+    list(APPEND SHAREDSE_SOURCES "${MWSE_ROOT}/SharedSE/${name}.cpp")
+endforeach()
 
 add_library(watervolumes SHARED
     src/plugin.cpp
-    src/Log.cpp
-    # The water volumes themselves: registry, lookup, and the engine hooks.
+    # The water volumes themselves: registry and the engine hooks.
     src/WaterVolumes.cpp
+    # The geometry of the water. It knows nothing of the game.
+    src/Geometry.cpp
     # The few TES3 accessors the hooks call. SharedSE has no TES3 layer.
     src/MWSEImports.cpp
     ${SHAREDSE_SOURCES}
@@ -71,7 +103,8 @@ target_link_libraries(watervolumes PRIVATE
 
 # Full debug info in every config; the PDB stays in the build tree.
 target_compile_options(watervolumes PRIVATE /Zi)
-target_link_options(watervolumes PRIVATE /DEBUG /OPT:REF /OPT:ICF)
+# The DLL names its PDB by file name only, not by the path on the build machine.
+target_link_options(watervolumes PRIVATE /DEBUG /OPT:REF /OPT:ICF /PDBALTPATH:watervolumes.pdb)
 
 target_compile_definitions(watervolumes PRIVATE
     _CRT_SECURE_NO_WARNINGS
@@ -94,3 +127,12 @@ set_target_properties(watervolumes PROPERTIES
     PDB_OUTPUT_DIRECTORY_RELEASE     "${CMAKE_BINARY_DIR}/pdb"
     OUTPUT_NAME "watervolumes"
 )
+
+# The geometry of the water, tested without the game:
+#   build the target wv_geometry_test, then run ctest -C Release in the build folder.
+add_executable(wv_geometry_test tests/geometry_test.cpp src/Geometry.cpp)
+target_include_directories(wv_geometry_test PRIVATE src)
+set_property(TARGET wv_geometry_test PROPERTY
+    MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+enable_testing()
+add_test(NAME geometry COMMAND wv_geometry_test)

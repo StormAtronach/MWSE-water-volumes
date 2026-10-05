@@ -1,0 +1,43 @@
+[harness.dump] magic effects resolved: 2808 spells, 13024 NPCs, 0 auto-calculated NPCs hold 0 spells, nothing applied
+[harness.dump] loading save 'quiksave.ess'
+[harness.dump] loaded, new game false, cell Vas
+[harness.dump] water: god mode on at load; player at 5874 185035 990, health 13, swimming false
+[harness.dump] water: 2 water pieces left in the save by earlier runs removed
+[harness.dump] step 1 of 24: god mode on, player to the basin near Vas
+[harness.dump] step 2 of 24: 60 actors on the land
+[harness.dump] reference cost: 60 actors placed, kind of reference: water; 0 volumes hold water
+[harness.dump] step 3 of 24: measure: before, 1
+[harness.dump] step 4 of 24: report: before, 1
+[harness.dump] MEASURED before, 1: simulation mean 7.921 ms, median 6.859, 90th of 100 11.320, max 84.322 over 490 frames; frame mean 12.26 ms
+[harness.dump] step 5 of 24: measure: before, 2
+[harness.dump] step 6 of 24: report: before, 2
+[harness.dump] MEASURED before, 2: simulation mean 8.652 ms, median 7.474, 90th of 100 12.068, max 30.161 over 449 frames; frame mean 13.38 ms
+[harness.dump] step 7 of 24: place the references
+[harness.dump] placed: 5000 references of wv_square_512 in 2904 ms; 5000 more volumes hold water; plugin update 103.2 microseconds per call
+[harness.dump] step 8 of 24: measure: after, 1
+[harness.dump] step 9 of 24: report: after, 1
+[harness.dump] MEASURED after, 1: simulation mean 11.721 ms, median 10.310, 90th of 100 15.070, max 60.280 over 340 frames; frame mean 17.62 ms
+[harness.dump] step 10 of 24: measure: after, 2
+[harness.dump] step 11 of 24: report: after, 2
+[harness.dump] MEASURED after, 2: simulation mean 11.999 ms, median 10.543, 90th of 100 15.623, max 53.695 over 333 frames; frame mean 18.04 ms
+[harness.dump] step 12 of 24: measure: after, 3
+[harness.dump] step 13 of 24: report: after, 3
+[harness.dump] MEASURED after, 3: simulation mean 12.439 ms, median 10.906, 90th of 100 17.026, max 47.441 over 324 frames; frame mean 18.52 ms
+[harness.dump] step 14 of 24: measure: after, 4
+[harness.dump] step 15 of 24: report: after, 4
+[harness.dump] MEASURED after, 4: simulation mean 12.076 ms, median 10.618, 90th of 100 16.684, max 52.050 over 335 frames; frame mean 17.92 ms
+[harness.dump] step 16 of 24: measure: after, 5
+[harness.dump] step 17 of 24: report: after, 5
+[harness.dump] MEASURED after, 5: simulation mean 12.305 ms, median 10.867, 90th of 100 16.788, max 55.898 over 327 frames; frame mean 18.38 ms
+[harness.dump] step 18 of 24: the engine's own question
+[harness.dump] MEASURED engine query: 468 ns
+[harness.dump] step 19 of 24: delete the references
+[harness.dump] step 20 of 24: measure: after the references are deleted, 1
+[harness.dump] step 21 of 24: report: after the references are deleted, 1
+[harness.dump] MEASURED after the references are deleted, 1: simulation mean 9.583 ms, median 8.270, 90th of 100 13.563, max 44.105 over 412 frames; frame mean 14.58 ms
+[harness.dump] step 22 of 24: measure: after the references are deleted, 2
+[harness.dump] step 23 of 24: report: after the references are deleted, 2
+[harness.dump] MEASURED after the references are deleted, 2: simulation mean 9.796 ms, median 8.457, 90th of 100 13.771, max 48.370 over 402 frames; frame mean 14.93 ms
+[harness.dump] step 24 of 24: clean up
+[harness.dump] mesh file removed: nil
+[harness.dump] DONE

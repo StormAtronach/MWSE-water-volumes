@@ -4,7 +4,8 @@
 The script reads the land of the cells from the master files, finds the floor of the foyada
 between two points, lays 512 wide kit pieces along it on the grid of the kit (256 level, 64
 down), chooses for each piece how much it falls so that the water stays a sensible depth over
-the floor, and writes the references into a plugin.
+the floor, and writes the references into a plugin. The pieces, their ends and their falls are
+read from the list that make_kit.py writes.
 
 Usage:
     python make_river_demo.py <Data Files folder> <output.esp> [--land <plugin> ...]
@@ -34,8 +35,7 @@ CELLS = [(x, y) for x in range(0, 4) for y in range(1, 6)]
 ALLOWED = {(2, 4), (1, 3), (1, 2)}
 
 WIDTH = 512
-DEPTH = 256
-RADIUS = 512
+MANIFEST = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "Water Volumes", "MWSE", "mods", "waterVolumes", "kit.json")
 
 
 # --- plugin files ---------------------------------------------------------------------------
@@ -208,35 +208,51 @@ def to_world(origin, turn, lx, ly):
 
 class Move:
     """One kind of piece: where it ends, how it turns the stream, the line down its middle,
-    and the falls it is made with."""
+    and the piece for each fall it is made with."""
 
-    def __init__(self, key, end, turn, line, falls, name):
-        self.key, self.end, self.turn, self.line, self.falls, self.name = key, end, turn, line, falls, name
+    def __init__(self, end, turn, line, pieces):
+        self.end, self.turn, self.line, self.pieces = end, turn, line, pieces
+        self.falls = tuple(sorted(pieces))
 
     def piece(self, fall):
-        return self.name(fall)
+        return self.pieces[fall]
 
 
-def arc(side):
-    return [(side * (RADIUS - RADIUS * math.cos(a)), -RADIUS * math.sin(a))
-            for a in (math.pi / 2 * i / 8 for i in range(9))]
+def load_kit(width):
+    """The river pieces of one width from the list the kit script wrote: the moves, the piece
+    that ends a stream, and how deep the pieces are."""
+    with open(MANIFEST, encoding="ascii") as handle:
+        manifest = json.load(handle)
+    turns = {(0, -1): 0, (1, 0): -90, (-1, 0): 90}
+    moves, end_piece, depth = {}, None, None
+    for piece in manifest["pieces"]:
+        joint = piece.get("joint")
+        if not joint or joint.get("widthIn") != width:
+            continue
+        if "x" not in joint:
+            end_piece = piece["name"]
+            continue
+        if joint["width"] != width:
+            continue
+        depth = piece["depth"]
+        rows, points = piece["rows"], piece["points"]
+        line = [((points[i][0] + points[rows + i][0]) / 2, (points[i][1] + points[rows + i][1]) / 2) for i in range(rows)]
+        if rows == 2:
+            # A straight stretch has only its two ends; the land is looked at in between as well.
+            (ax, ay), (bx, by) = line
+            line = [(ax + (bx - ax) * k / 8, ay + (by - ay) * k / 8) for k in range(9)]
+        key = (joint["x"], joint["y"], joint["dx"], joint["dy"])
+        if key not in moves:
+            moves[key] = Move((joint["x"], joint["y"]), turns[(joint["dx"], joint["dy"])], line, {})
+        moves[key].pieces[-joint["z"]] = piece["name"]
+    for move in moves.values():
+        move.falls = tuple(sorted(move.pieces))
+    if not moves or end_piece is None:
+        raise SystemExit("the kit has no river pieces %d wide; run make_kit.py first" % width)
+    return list(moves.values()), end_piece, depth
 
 
-def sway(side):
-    return [(side * 256 * (1 - math.cos(math.pi * i / 8)) / 2, -1024 * i / 8) for i in range(9)]
-
-
-MOVES = [
-    Move("straight", (0, -1024), 0, [(0, -1024 * i / 8) for i in range(9)], (0, 64, 128),
-         lambda fall: "wv_riv_512x1024" + ("_f%d" % fall if fall else "")),
-    Move("bend left", (RADIUS, -RADIUS), -90, arc(1), (0, 64),
-         lambda fall: "wv_riv_512_bend_e" + ("_f%d" % fall if fall else "")),
-    Move("bend right", (-RADIUS, -RADIUS), 90, arc(-1), (0, 64),
-         lambda fall: "wv_riv_512_bend_w" + ("_f%d" % fall if fall else "")),
-    Move("sway left", (256, -1024), 0, sway(1), (0,), lambda fall: "wv_riv_512_sway_e"),
-    Move("sway right", (-256, -1024), 0, sway(-1), (0,), lambda fall: "wv_riv_512_sway_w"),
-]
-END_PIECE = "wv_riv_512_end"
+MOVES, END_PIECE, DEPTH = load_kit(WIDTH)
 
 
 # --- the way of the river -------------------------------------------------------------------------

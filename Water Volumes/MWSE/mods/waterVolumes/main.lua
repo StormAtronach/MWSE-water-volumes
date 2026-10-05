@@ -2,13 +2,14 @@
     Water Volumes
 
     Turns placed references into water. A reference counts when it is a static or an activator
-    and its mesh is tagged or its object id is registered through interop.lua. The water covers
-    the area under the mesh's triangles, from the mesh height down to the configured depth.
+    and its mesh is marked as water or its object id is registered through interop.lua. The
+    water is what is inside the mesh. A mesh that is only a surface is closed with a bottom the
+    configured depth below it.
 
-    The volume follows the reference: moving, scaling, disabling, enabling or unloading it
-    updates or removes the water. A new reference becomes water on the next frame. After that
-    the references are looked at in turn, a fixed number per frame, so with many pieces of
-    water in the loaded cells a change to one of them takes a few frames to be noticed.
+    The mod finds the references and prepares their meshes. The plugin, watervolumes.dll, holds
+    the water and keeps it in line with each reference: moving, scaling, disabling, enabling or
+    deleting the reference moves or removes the water by the next frame. Nothing is done per
+    reference in Lua per frame.
 ]]
 
 local interop = require("waterVolumes.interop")
@@ -16,20 +17,14 @@ local interop = require("waterVolumes.interop")
 local STATIC = tes3.objectType.static
 local ACTIVATOR = tes3.objectType.activator
 
---- How many tracked references are looked at per frame.
-local SYNC_PER_FRAME = 64
-
 --- @type table<tes3reference, table>
 local tracked = {}
---- The tracked references as a list, to look at them in turn. entry.index is the place in it.
---- @type tes3reference[]
-local order = {}
-local cursor = 0
---- References tracked since the last frame.
---- @type tes3reference[]
-local pending = {}
---- The texturing properties to animate, for the references that have any.
---- @type table<tes3reference, niTexturingProperty[]>
+--- The tracked references by the id of their volume in the plugin.
+--- @type table<number, tes3reference>
+local byId = {}
+--- The base maps to animate, for the references that have any. Each list also holds the
+--- properties the maps belong to, under "owners", so that the maps stay alive.
+--- @type table<tes3reference, table>
 local animated = {}
 local flip = nil
 --- A reference had its collision switched off and the game has not taken it up yet.
@@ -39,24 +34,15 @@ local function log(fmt, ...)
     mwse.log("[Water Volumes] " .. fmt, ...)
 end
 
-local function getController()
-    return interop.getController()
-end
-
 --- Settings per object id: a table for water, false for anything else. The tag is on the mesh,
 --- so every reference of an object has the same answer and the mesh is looked at once.
 local settingsByObject = {}
 local settingsRevision = 0
 
---- The text that makes a mesh water, in lower case, or nil if it is not water. It is the tag
---- on the root. A modelling program that cannot write the tag can name an object instead: the
---- name of anything in the mesh that starts with the tag counts as the tag, options included.
---- A mesh with a WaterBody is water without either.
+--- The text that makes a mesh water, in lower case, or nil if it is not water: the name of the
+--- first object in the mesh whose name starts with the tag, options included. A mesh with a
+--- WaterBody is water without it.
 local function tagText(node)
-    local data = node:getStringDataStartingWith(interop.tag)
-    if data then
-        return data.string:lower()
-    end
     local tag = interop.tag:lower()
     local named, body = nil, false
     local function look(object)
@@ -127,20 +113,30 @@ end
 -- Surface animation for meshes that use the engine's water surface frames.
 --
 
-local function getFlip()
+local surfacePrefix = nil
+
+--- What the file names of the engine's water surface frames start with, in lower case.
+local function getSurfacePrefix()
+    if not surfacePrefix then
+        surfacePrefix = tes3.dataHandler.waterController.surfaceTexturePath:lower():match("([^\\/]+)$")
+    end
+    return surfacePrefix
+end
+
+--- The frames are loaded when the first mesh that uses them is taken up.
+local function loadFlip()
     if flip then
-        return flip
+        return
     end
     local controller = tes3.dataHandler.waterController
     local base = controller.surfaceTexturePath
-    flip = { frames = {}, fps = controller.surfaceFPS, index = 0, prefix = base:lower():match("([^\\/]+)$") }
+    flip = { frames = {}, fps = controller.surfaceFPS, index = 0 }
     for i = 0, controller.surfaceFrameCount - 1 do
         local texture = niSourceTexture.createFromPath(string.format("%s%02d.tga", base, i))
         if texture then
             flip.frames[#flip.frames + 1] = texture
         end
     end
-    return flip
 end
 
 --- True for a texture file that is one of the engine's water surface frames.
@@ -160,9 +156,9 @@ local function animate()
     end
     f.index = index
     local texture = f.frames[index]
-    for _, properties in pairs(animated) do
-        for i = 1, #properties do
-            properties[i].baseMap.texture = texture
+    for _, maps in pairs(animated) do
+        for i = 1, #maps do
+            maps[i].texture = texture
         end
     end
 end
@@ -182,12 +178,12 @@ local function isWaterBody(object)
     return object.name ~= nil and object.name:lower():find("^waterbody") ~= nil
 end
 
---- Hides the bodies, marks the surfaces for the renderer, and returns the texturing properties
---- to animate. Everything under a WaterBody is body: an exporter may write one object as a
---- group of shapes, one per material.
+--- Hides the bodies, marks the surfaces for the renderer, and returns the base maps to
+--- animate. Everything under a WaterBody is body: an exporter may write one object as a group
+--- of shapes, one per material.
 local function prepareNode(node, marker)
-    local prefix = getFlip().prefix
-    local properties = {}
+    local prefix = getSurfacePrefix()
+    local maps = { owners = {} }
     local function walk(object)
         if isWaterBody(object) then
             object.appCulled = true
@@ -206,7 +202,8 @@ local function prepareNode(node, marker)
         local texture = property and property.baseMap and property.baseMap.texture
         local fileName = texture and texture.fileName
         if fileName and isSurfaceFrame(fileName, prefix) then
-            properties[#properties + 1] = property
+            maps[#maps + 1] = property.baseMap
+            maps.owners[#maps] = property
         end
 
         local children = object.children
@@ -219,7 +216,7 @@ local function prepareNode(node, marker)
         end
     end
     walk(node)
-    return properties
+    return maps
 end
 
 --
@@ -276,12 +273,19 @@ local function unflagCell(cell)
     end
 end
 
+--- A save holds the game as it would be without the mod: the cells without the flag, and the
+--- references with their collision. Both are put back as soon as the save is written.
 local function setFlagsForSave(saving)
     for cell, flag in pairs(flaggedCells) do
         if saving then
             restoreWater(cell, flag.level)
         else
             sinkWater(cell)
+        end
+    end
+    for reference, entry in pairs(tracked) do
+        if entry.madePassable then
+            reference:setNoCollisionFlag(not saving, false)
         end
     end
     restoredForSave = saving
@@ -304,16 +308,16 @@ local function isActive(cell)
     return activeCells[cell] == true
 end
 
-local function addressOf(node)
-    return mwse.memory.convertFrom.niObject(node)
-end
-
 --- Takes up the mesh of a tracked reference: the one it has now, which is not the one it had
 --- if the mesh was loaded anew.
 local function prepare(reference, entry, node)
-    entry.node = addressOf(node)
-    local properties = prepareNode(node, entry.settings.marker)
-    animated[reference] = #properties > 0 and properties or nil
+    local maps = prepareNode(node, entry.settings.marker)
+    if #maps > 0 then
+        loadFlip()
+        animated[reference] = maps
+    else
+        animated[reference] = nil
+    end
 end
 
 --- @param reference tes3reference
@@ -336,21 +340,26 @@ local function track(reference, onlyIfActive)
         return
     end
 
-    local index = #order + 1
-    local entry = { settings = settings, cell = reference.cell, index = index, id = nil, node = nil }
-    order[index] = reference
+    local entry = { settings = settings, cell = reference.cell, id = 0 }
     tracked[reference] = entry
-    pending[#pending + 1] = reference
     if settings.swim then
         flagCell(entry.cell)
     end
     -- Nobody walks on water. A mesh that does not say so itself is told here; the game takes
-    -- it up when the collisions are next worked out, which sync asks for once.
+    -- it up when the collisions are next worked out, which is asked for once.
     if settings.solid and not reference.hasNoCollision then
         reference:setNoCollisionFlag(true, false)
+        entry.madePassable = true
         collisionsStale = true
     end
     prepare(reference, entry, node)
+
+    -- From here on the plugin keeps the water in line with the reference. A mesh that only
+    -- looks like water holds none, and is followed for its mesh alone.
+    entry.id = interop.native.addReference(mwse.memory.convertFrom.tes3object(reference), settings.depth, settings.swim)
+    if entry.id ~= 0 then
+        byId[entry.id] = reference
+    end
 end
 
 local function untrack(reference)
@@ -358,107 +367,43 @@ local function untrack(reference)
     if not entry then
         return
     end
-    if entry.id then
-        local controller = getController()
-        if controller then
-            controller:removeVolume(entry.id)
-        end
+    if entry.id ~= 0 then
+        interop.native.remove(entry.id)
+        byId[entry.id] = nil
     end
     if entry.settings.swim then
         unflagCell(entry.cell)
     end
-
-    -- The last of the list takes the place of this one.
-    local last = #order
-    local moved = order[last]
-    order[entry.index] = moved
-    tracked[moved].index = entry.index
-    order[last] = nil
-
+    -- What the mod changed on the reference is changed back.
+    if entry.madePassable then
+        reference:setNoCollisionFlag(false, false)
+    end
     tracked[reference] = nil
     animated[reference] = nil
 end
 
 local function untrackAll()
-    for i = #order, 1, -1 do
-        untrack(order[i])
-    end
-    pending = {}
-    cursor = 0
-end
-
---- Brings the water of one reference in line with the reference.
-local function syncReference(controller, reference)
-    local entry = tracked[reference]
-    if not entry then
-        return
-    end
-    local node = reference.sceneNode
-    if reference.deleted or not node then
+    for reference in pairs(tracked) do
         untrack(reference)
-        return
     end
-    local renewed = addressOf(node) ~= entry.node
-    if renewed then
-        prepare(reference, entry, node)
-    end
-    -- A mesh that only looks like water holds none.
-    if not entry.settings.swim then
-        return
-    end
-    if reference.disabled then
-        if entry.id then
-            controller:removeVolume(entry.id)
-            entry.id = nil
-        end
-        return
-    end
-
-    local p, o, scale = reference.position, reference.orientation, reference.scale
-    local px, py, pz, ox, oy, oz = p.x, p.y, p.z, o.x, o.y, o.z
-    if entry.id and not renewed
-        and px == entry.px and py == entry.py and pz == entry.pz
-        and ox == entry.ox and oy == entry.oy and oz == entry.oz
-        and scale == entry.scale then
-        return
-    end
-
-    if entry.id then
-        controller:removeVolume(entry.id)
-    end
-    node:update()
-    -- The depth is given for the mesh as modelled, so it scales with the reference.
-    entry.id = controller:addVolume{ node = node, depth = entry.settings.depth * scale }
-    entry.px, entry.py, entry.pz, entry.ox, entry.oy, entry.oz, entry.scale = px, py, pz, ox, oy, oz, scale
 end
 
-local function sync()
-    local controller = getController()
-    if not controller then
-        return
-    end
-
+--- Once per frame. The plugin looks at every tracked reference; a reference whose mesh was
+--- loaded anew comes back, and its new mesh is prepared.
+local function update()
     if collisionsStale then
         collisionsStale = false
         tes3.dataHandler:updateCollisionGroupsForActiveCells()
     end
 
-    if #pending > 0 then
-        local list = pending
-        pending = {}
-        for i = 1, #list do
-            syncReference(controller, list[i])
-        end
-    end
-
-    for _ = 1, math.min(#order, SYNC_PER_FRAME) do
-        if cursor >= #order then
-            cursor = 0
-        end
-        cursor = cursor + 1
-        local reference = order[cursor]
-        if reference then
-            syncReference(controller, reference)
+    local renewed = interop.native.update()
+    if renewed then
+        for i = 1, #renewed do
+            local reference = byId[renewed[i]]
+            local node = reference and reference.sceneNode
+            if node then
+                prepare(reference, tracked[reference], node)
+            end
         end
     end
 end
@@ -472,9 +417,8 @@ local function scanActiveCells()
 end
 
 event.register("initialized", function()
-    if not getController() then
-        log(interop.native and "The engine hooks of watervolumes.dll could not be installed; see WaterVolumes.log. The mod is inactive."
-            or "MWSE/lib/watervolumes.dll was not found. The mod is inactive.")
+    if not interop.supported then
+        log("The mod is inactive. %s", interop.problem or "The engine hooks of watervolumes.dll could not be installed.")
         return
     end
 
@@ -497,13 +441,20 @@ event.register("initialized", function()
     end)
     event.register("save", function() setFlagsForSave(true) end, { priority = -1000 })
     event.register("saved", function() setFlagsForSave(false) end)
+    local seenRevision = interop.revision
     event.register("enterFrame", function()
         activeCells = nil
         -- A save that failed never said it was done.
         if restoredForSave then
             setFlagsForSave(false)
         end
-        sync()
+        -- A mod registered an object: what is loaded is looked at again with the new settings.
+        if seenRevision ~= interop.revision then
+            seenRevision = interop.revision
+            untrackAll()
+            scanActiveCells()
+        end
+        update()
         animate()
     end)
     log("Initialized.")

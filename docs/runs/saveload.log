@@ -6,18 +6,18 @@
 [harness.dump] step 1 of 16: god mode on, player to the basin near Vas
 [harness.dump] step 2 of 16: a pond over the basin, the player on its bottom
 [harness.dump] step 3 of 16: outdoors, before the save
-[harness.dump] PASS outdoors: the pond is water before the save: surface 620, expected 620; player at 7060 186303 455, swimming true, underwater true; 84 of 84 hooks, 1 volumes
+[harness.dump] PASS outdoors: the pond is water before the save: surface 620, expected 620; player at 7060 186303 455, swimming true, underwater true; 82 of 82 hooks, 1 volumes
 [harness.dump] step 4 of 16: outdoors: save
 [harness.dump] PASS outdoors: the game saves with a pond loaded: saveGame returned true
 [harness.dump] step 5 of 16: outdoors, after the save: raise the pond, so that the load has something to undo
-[harness.dump] PASS outdoors: the pond is still water after the save: surface 620; player at 7060 186303 455, swimming true, underwater true; 84 of 84 hooks, 1 volumes
+[harness.dump] PASS outdoors: the pond is still water after the save: surface 620; player at 7060 186303 455, swimming true, underwater true; 82 of 82 hooks, 1 volumes
 [harness.dump] step 6 of 16: outdoors: load the save
 [harness.dump] OBSERVED outdoors: raised pond before the load: surface 720
 [harness.dump] step 7 of 16: outdoors, after the load
 [harness.dump] PASS outdoors: the pond's reference is back where it was saved: z 620, expected 620
-[harness.dump] PASS outdoors: the pond is water after the load: surface 620, expected 620; 84 of 84 hooks, 1 volumes
+[harness.dump] PASS outdoors: the pond is water after the load: surface 620, expected 620; 82 of 82 hooks, 1 volumes
 [harness.dump] PASS outdoors: the player loads into the water swimming: player at 7060 186303 455, swimming true, underwater true
-[harness.dump] PASS outdoors: one volume after the load, none left over: 84 of 84 hooks, 1 volumes
+[harness.dump] PASS outdoors: one volume after the load, none left over: 82 of 82 hooks, 1 volumes
 [harness.dump] step 8 of 16: indoors: to an interior without water
 [harness.dump] step 9 of 16: indoors: a pond over the player
 [harness.dump] OBSERVED indoors: the cell: Seyda Neen, Arrille's Tradehouse, has water false, water level nil
@@ -30,10 +30,10 @@
 [harness.dump] PASS indoors: the cell is flagged again after the save and the player still swims: cell has water true, level -100000; player at -242 -12 130, swimming true, underwater true
 [harness.dump] step 13 of 16: indoors: load the save
 [harness.dump] step 14 of 16: indoors, after the load
-[harness.dump] PASS indoors: the pond is water after the load: cell Seyda Neen, Arrille's Tradehouse, surface 280, expected 280; 84 of 84 hooks, 1 volumes
+[harness.dump] PASS indoors: the pond is water after the load: cell Seyda Neen, Arrille's Tradehouse, surface 280, expected 280; 82 of 82 hooks, 1 volumes
 [harness.dump] PASS indoors: the player loads into the water swimming: player at -242 -12 130, swimming true, underwater true; cell has water true, level -100000
 [harness.dump] step 15 of 16: indoors, the pond removed after the load
-[harness.dump] PASS indoors: without the pond the loaded cell has no water flag, so the save did not keep it: has water false, had false; player at -242 -12 130, swimming false, underwater false; 84 of 84 hooks, 0 volumes
+[harness.dump] PASS indoors: without the pond the loaded cell has no water flag, so the save did not keep it: has water false, had false; player at -242 -12 130, swimming false, underwater false; 82 of 82 hooks, 0 volumes
 [harness.dump] step 16 of 16: clean up
 [harness.dump] save wv_saveload_out removed: true
 [harness.dump] save wv_saveload_in removed: true

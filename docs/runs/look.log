@@ -1,0 +1,43 @@
+[harness.dump] magic effects resolved: 2808 spells, 13024 NPCs, 0 auto-calculated NPCs hold 0 spells, nothing applied
+[harness.dump] loading save 'quiksave.ess'
+[harness.dump] loaded, new game false, cell Vas
+[harness.dump] water: god mode on at load; player at 5874 185035 990, health 13, swimming false
+[harness.dump] water: 2 water pieces left in the save by earlier runs removed
+[harness.dump] step 1 of 25: god mode on, player to the basin near Vas
+[harness.dump] step 2 of 25: place a kit disc
+[harness.dump] step 3 of 25: set up: renderer water from above midday
+[harness.dump] step 4 of 25: photograph: renderer water from above midday
+[harness.dump] screenshot <repos>/morrowind-test-harness/dump/work/runs/20261005-100337-wv11-look/01 renderer water from above midday.jpg
+[harness.dump] step 5 of 25: the surface carries the renderer's marker
+[harness.dump] PASS surface marker: material shininess 99998
+[harness.dump] step 6 of 25: set up: renderer water grazing angle
+[harness.dump] step 7 of 25: photograph: renderer water grazing angle
+[harness.dump] screenshot <repos>/morrowind-test-harness/dump/work/runs/20261005-100337-wv11-look/02 renderer water grazing angle.jpg
+[harness.dump] step 8 of 25: set up: renderer water straight down
+[harness.dump] step 9 of 25: photograph: renderer water straight down
+[harness.dump] screenshot <repos>/morrowind-test-harness/dump/work/runs/20261005-100337-wv11-look/03 renderer water straight down.jpg
+[harness.dump] step 10 of 25: set up: renderer water from above sunset
+[harness.dump] step 11 of 25: photograph: renderer water from above sunset
+[harness.dump] screenshot <repos>/morrowind-test-harness/dump/work/runs/20261005-100337-wv11-look/04 renderer water from above sunset.jpg
+[harness.dump] step 12 of 25: set up: renderer water from above night
+[harness.dump] step 13 of 25: photograph: renderer water from above night
+[harness.dump] screenshot <repos>/morrowind-test-harness/dump/work/runs/20261005-100337-wv11-look/05 renderer water from above night.jpg
+[harness.dump] step 14 of 25: set up: renderer water from above rain
+[harness.dump] step 15 of 25: photograph: renderer water from above rain
+[harness.dump] screenshot <repos>/morrowind-test-harness/dump/work/runs/20261005-100337-wv11-look/06 renderer water from above rain.jpg
+[harness.dump] step 16 of 25: set up: renderer water tilted 5 degrees
+[harness.dump] step 17 of 25: photograph: renderer water tilted 5 degrees
+[harness.dump] screenshot <repos>/morrowind-test-harness/dump/work/runs/20261005-100337-wv11-look/07 renderer water tilted 5 degrees.jpg
+[harness.dump] step 18 of 25: set up: renderer water from below first person
+[harness.dump] step 19 of 25: photograph: renderer water from below first person
+[harness.dump] screenshot <repos>/morrowind-test-harness/dump/work/runs/20261005-100337-wv11-look/08 renderer water from below first person.jpg
+[harness.dump] step 20 of 25: set up: plain option own texture from above
+[harness.dump] step 21 of 25: photograph: plain option own texture from above
+[harness.dump] screenshot <repos>/morrowind-test-harness/dump/work/runs/20261005-100337-wv11-look/09 plain option own texture from above.jpg
+[harness.dump] step 22 of 25: the plain option leaves the material alone
+[harness.dump] PASS plain option: material shininess 0
+[harness.dump] step 23 of 25: set up: plain option own texture grazing angle
+[harness.dump] step 24 of 25: photograph: plain option own texture grazing angle
+[harness.dump] screenshot <repos>/morrowind-test-harness/dump/work/runs/20261005-100337-wv11-look/10 plain option own texture grazing angle.jpg
+[harness.dump] step 25 of 25: clean up
+[harness.dump] DONE

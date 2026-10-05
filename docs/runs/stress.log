@@ -8,51 +8,55 @@
 [harness.dump] stress: 60 actors placed
 [harness.dump] step 3 of 61: measure: 60 actors in the water
 [harness.dump] step 4 of 61: report: 60 actors in the water
-[harness.dump] MEASURED 60 actors in the water: simulation 5.752 ms mean, 14.355 ms max over 836 frames; frame 9.57 ms mean, 26.87 ms max; 55 of 60 actors swimming
+[harness.dump] MEASURED 60 actors in the water: simulation 5.237 ms mean, 13.890 ms max over 924 frames; frame 8.66 ms mean, 28.79 ms max; 57 of 60 actors swimming
 [harness.dump] step 5 of 61: drain the pond; one volume stays registered far away
+[harness.dump] far pieces: 1 placed, 1 more volumes hold water
 [harness.dump] step 6 of 61: measure: 60 actors on land, 1 volume registered elsewhere
 [harness.dump] step 7 of 61: report: 60 actors on land, 1 volume registered elsewhere
-[harness.dump] MEASURED 60 actors on land, 1 volume registered elsewhere: simulation 6.645 ms mean, 69.988 ms max over 757 frames; frame 10.57 ms mean, 75.70 ms max; 0 of 60 actors swimming, engine query 477 ns
+[harness.dump] MEASURED 60 actors on land, 1 volume registered elsewhere: simulation 6.471 ms mean, 72.873 ms max over 810 frames; frame 9.88 ms mean, 79.39 ms max; 0 of 60 actors swimming, engine query 472 ns
 [harness.dump] step 8 of 61: no volume at all
 [harness.dump] step 9 of 61: measure: 60 actors on land, no volume registered
 [harness.dump] step 10 of 61: report: 60 actors on land, no volume registered
-[harness.dump] MEASURED 60 actors on land, no volume registered: simulation 6.412 ms mean, 59.122 ms max over 794 frames; frame 10.09 ms mean, 63.58 ms max; 0 of 60 actors swimming, engine query 395 ns
+[harness.dump] MEASURED 60 actors on land, no volume registered: simulation 5.974 ms mean, 30.113 ms max over 879 frames; frame 9.11 ms mean, 33.87 ms max; 0 of 60 actors swimming, engine query 390 ns
 [harness.dump] step 11 of 61: 1000 volumes registered elsewhere
+[harness.dump] far pieces: 1000 placed, 1000 more volumes hold water
 [harness.dump] step 12 of 61: measure: 60 actors on land, 1000 volumes registered elsewhere
 [harness.dump] step 13 of 61: report: 60 actors on land, 1000 volumes registered elsewhere
-[harness.dump] MEASURED 60 actors on land, 1000 volumes registered elsewhere: simulation 6.361 ms mean, 56.470 ms max over 606 frames; frame 9.91 ms mean, 60.91 ms max; 0 of 60 actors swimming, engine query 470 ns
+[harness.dump] MEASURED 60 actors on land, 1000 volumes registered elsewhere: simulation 6.558 ms mean, 41.070 ms max over 612 frames; frame 9.81 ms mean, 44.82 ms max; 0 of 60 actors swimming, engine query 468 ns
 [harness.dump] step 14 of 61: 5000 volumes registered elsewhere
+[harness.dump] far pieces: 4000 placed, 4000 more volumes hold water
+[harness.dump] plugin update with 5000 volumes: 69.6 microseconds per call
 [harness.dump] step 15 of 61: measure: 60 actors on land, 5000 volumes registered elsewhere
 [harness.dump] step 16 of 61: report: 60 actors on land, 5000 volumes registered elsewhere
-[harness.dump] MEASURED 60 actors on land, 5000 volumes registered elsewhere: simulation 6.473 ms mean, 47.871 ms max over 601 frames; frame 10.00 ms mean, 52.50 ms max; 0 of 60 actors swimming, engine query 484 ns
+[harness.dump] MEASURED 60 actors on land, 5000 volumes registered elsewhere: simulation 7.628 ms mean, 39.547 ms max over 521 frames; frame 11.53 ms mean, 45.31 ms max; 0 of 60 actors swimming, engine query 469 ns
 [harness.dump] step 17 of 61: remove the far volumes and the actors
 [harness.dump] step 18 of 61: measure: 1 surface in view
 [harness.dump] step 19 of 61: report: 1 surface in view
-[harness.dump] MEASURED 1 surface in view: simulation 1.127 ms mean, 3.752 ms max over 864 frames; frame 6.94 ms mean, 17.60 ms max; 0 of 0 actors swimming
+[harness.dump] MEASURED 1 surface in view: simulation 1.080 ms mean, 4.586 ms max over 1459 frames; frame 4.11 ms mean, 15.40 ms max; 0 of 0 actors swimming
 [harness.dump] step 20 of 61: 24 more surfaces in view: reflecting the scene
 [harness.dump] step 21 of 61: measure: 25 surfaces in view, reflecting the scene
 [harness.dump] step 22 of 61: report: 25 surfaces in view, reflecting the scene
-[harness.dump] MEASURED 25 surfaces in view, reflecting the scene: simulation 1.083 ms mean, 3.522 ms max over 864 frames; frame 6.94 ms mean, 15.07 ms max; 0 of 0 actors swimming
+[harness.dump] MEASURED 25 surfaces in view, reflecting the scene: simulation 1.026 ms mean, 3.433 ms max over 1467 frames; frame 4.09 ms mean, 12.56 ms max; 0 of 0 actors swimming
 [harness.dump] step 23 of 61: photograph them
 [harness.dump] step 24 of 61: remove them
 [harness.dump] step 25 of 61: 24 more surfaces in view: reflecting the sky only
 [harness.dump] step 26 of 61: measure: 25 surfaces in view, reflecting the sky only
 [harness.dump] step 27 of 61: report: 25 surfaces in view, reflecting the sky only
-[harness.dump] MEASURED 25 surfaces in view, reflecting the sky only: simulation 1.106 ms mean, 4.090 ms max over 864 frames; frame 6.94 ms mean, 13.82 ms max; 0 of 0 actors swimming
+[harness.dump] MEASURED 25 surfaces in view, reflecting the sky only: simulation 1.027 ms mean, 3.781 ms max over 1473 frames; frame 4.07 ms mean, 11.96 ms max; 0 of 0 actors swimming
 [harness.dump] step 28 of 61: photograph them
 [harness.dump] step 29 of 61: remove them
 [harness.dump] step 30 of 61: 24 more surfaces in view: plain
 [harness.dump] step 31 of 61: measure: 25 surfaces in view, plain
 [harness.dump] step 32 of 61: report: 25 surfaces in view, plain
-[harness.dump] MEASURED 25 surfaces in view, plain: simulation 1.128 ms mean, 4.009 ms max over 865 frames; frame 6.94 ms mean, 13.12 ms max; 0 of 0 actors swimming
+[harness.dump] MEASURED 25 surfaces in view, plain: simulation 1.052 ms mean, 4.473 ms max over 1457 frames; frame 4.12 ms mean, 13.37 ms max; 0 of 0 actors swimming
 [harness.dump] step 33 of 61: photograph them
 [harness.dump] step 34 of 61: remove them
 [harness.dump] step 35 of 61: the pond moves every frame
 [harness.dump] step 36 of 61: measure: pond re-registered every frame
 [harness.dump] step 37 of 61: report: pond re-registered every frame
-[harness.dump] MEASURED pond re-registered every frame: simulation 1.164 ms mean, 4.445 ms max over 864 frames; frame 6.94 ms mean, 14.03 ms max; 0 of 0 actors swimming
+[harness.dump] MEASURED pond re-registered every frame: simulation 1.033 ms mean, 4.192 ms max over 1470 frames; frame 4.08 ms mean, 10.20 ms max; 0 of 0 actors swimming
 [harness.dump] step 38 of 61: stop moving it
-[harness.dump] stress: the pond moved on 1152 frames
+[harness.dump] stress: the pond moved on 1970 frames
 [harness.dump] step 39 of 61: the water is where the pond stopped
 [harness.dump] PASS surface after moving every frame: surface 900, expected 900
 [harness.dump] step 40 of 61: check in the water, throw the player out
