@@ -1,0 +1,31 @@
+[harness.dump] magic effects resolved: 2808 spells, 13024 NPCs, 0 auto-calculated NPCs hold 0 spells, nothing applied
+[harness.dump] loading save 'quiksave.ess'
+[harness.dump] loaded, new game false, cell Vas
+[harness.dump] water: god mode on at load; player at 5874 185035 990, health 13, swimming false
+[harness.dump] water: 2 water pieces left in the save by earlier runs removed
+[harness.dump] PASS the palace water has the new mesh: one surface, one hidden body: WaterVolume, WaterBody (hidden)
+[harness.dump] PASS every waterfall around the palace is marked for the renderer's water shading: 10 of 10
+[harness.dump] OBSERVED the plugin: 1 volumes hold water; 82 of 82 hooks in place
+[harness.dump] PASS on the floor of every channel the surface is the raised one (613.4, 997.0, 1381.2, 1765.3): tier 1 east 613.4; tier 1 west 613.4; tier 1 south 613.4; tier 2 east 997.0; tier 2 west 997.0; tier 2 south 997.0; tier 3 east 1381.2; tier 3 west 1381.2; tier 3 south 1381.2; tier 4 east 1765.3; tier 4 west 1765.3; tier 4 south 1765.3
+[harness.dump] PASS outside the parapet there is none of the tier's water: tier 1: outside nil, 40 above the surface the water below is at 613.40698242188; tier 2: outside 613.40698242188, 40 above the surface the water below is at 997.01403808594; tier 3: outside 997.01397705078, 40 above the surface the water below is at 1381.1599121094; tier 4: outside 1381.1599121094, 40 above the surface the water below is at 1765.2670898438
+[harness.dump] PASS at each opening of a parapet the water ends between the pillars: tier 2 at -1120: 997.01403808594 before, 613.40698242188 beyond; tier 2 at 1184: 997.01403808594 before, 613.40698242188 beyond; tier 3 at -862: 1381.1599121094 before, 997.01397705078 beyond; tier 3 at 930: 1381.1599121094 before, 997.01397705078 beyond; tier 4 at -606: 1765.2669677734 before, 1381.1599121094 beyond; tier 4 at 675: 1765.2669677734 before, 1381.1599121094 beyond
+[harness.dump] OBSERVED tier 1: player at 30368 -107305 481, the water 132 over the feet, swimming true
+[harness.dump] screenshot 2026-10-05 palace run 1 01 palace tier 1 the player swims in the channel.jpg
+[harness.dump] OBSERVED tier 2: player at 30816 -107471 865, the water 132 over the feet, swimming true
+[harness.dump] screenshot 2026-10-05 palace run 1 02 palace tier 2 the player swims in the channel.jpg
+[harness.dump] OBSERVED tier 3: player at 31200 -107535 1249, the water 132 over the feet, swimming true
+[harness.dump] screenshot 2026-10-05 palace run 1 03 palace tier 3 the player swims in the channel.jpg
+[harness.dump] OBSERVED tier 4: player at 31584 -107625 1633, the water 132 over the feet, swimming true
+[harness.dump] screenshot 2026-10-05 palace run 1 04 palace tier 4 the player swims in the channel.jpg
+[harness.dump] PASS put on the floor of each channel, the player swims: 4 of 4
+[harness.dump] screenshot 2026-10-05 palace run 1 05 palace from the north west, falls and openings.jpg
+[harness.dump] screenshot 2026-10-05 palace run 1 06 palace opening of tier 2 from outside.jpg
+[harness.dump] screenshot 2026-10-05 palace run 1 07 palace opening of tier 2 from the front.jpg
+[harness.dump] screenshot 2026-10-05 palace run 1 08 palace opening of tier 4 from above.jpg
+[harness.dump] screenshot 2026-10-05 palace run 1 09 palace fall into the sea.jpg
+[harness.dump] screenshot 2026-10-05 palace run 1 10 palace lowest tier along the water.jpg
+[harness.dump] screenshot 2026-10-05 palace run 1 11 palace from the south east.jpg
+[harness.dump] screenshot 2026-10-05 palace run 1 12 palace from above.jpg
+[harness.dump] screenshot 2026-10-05 palace run 1 13 palace from 9000 south east.jpg
+[harness.dump] screenshot 2026-10-05 palace run 1 14 palace from 20000 south.jpg
+[harness.dump] DONE
