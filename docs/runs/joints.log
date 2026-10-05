@@ -1,0 +1,25 @@
+[harness.dump] magic effects resolved: 2808 spells, 13024 NPCs, 0 auto-calculated NPCs hold 0 spells, nothing applied
+[harness.dump] loading save 'quiksave.ess'
+[harness.dump] loaded, new game false, cell Vas
+[harness.dump] water: god mode on at load; player at 5874 185035 990, health 13, swimming false
+[harness.dump] water: 2 water pieces left in the save by earlier runs removed
+[harness.dump] step 1 of 12: god mode on, player to the basin near Vas
+[harness.dump] step 2 of 12: lay the stream
+[harness.dump] step 3 of 12: the pieces are on the grid
+[harness.dump] PASS the far end of every piece is a grid point: 256 level, 64 down: 12 pieces; farthest far end from the grid 0.0000 (); farthest origin from the 256 grid 0.0000
+[harness.dump] stream: wv_riv_512x1024 at 2048 191488 2048 turned 0; wv_riv_512_bend_e at 2048 190464 2048 turned 0; wv_riv_512x1024_f64 at 2560 189952 2048 turned 270; wv_riv_512_bend_w_f64 at 3584 189952 1984 turned 270; wv_riv_512_sway_e at 4096 189440 1920 turned 0; wv_riv_512_sway_w at 4352 188416 1920 turned 0; wv_riv_taper_512_1024 at 4096 187392 1920 turned 0; wv_riv_1024_bend_w_f128 at 4096 186368 1920 turned 0; wv_riv_1024x2048_f256 at 3072 185344 1792 turned 90; wv_riv_1024_sway_e at 1024 185344 1536 turned 90; wv_riv_1024_bend_e at -1024 184832 1536 turned 90; wv_riv_1024_end at -2048 183808 1536 turned 0
+[harness.dump] step 4 of 12: the ends of neighbours share their corners
+[harness.dump] PASS at every joint both pieces have a surface corner on the same two points: 22 corners at 11 joints; farthest corner from its point 0.00000 ()
+[harness.dump] step 5 of 12: the water is unbroken across every joint
+[harness.dump] PASS 40 under the surface there is water at every point on lines through every joint, and the level has no step: 0 of 715 points without water; largest change of level between neighbouring points 2.554
+[harness.dump] step 6 of 12: set up: the stream from above
+[harness.dump] step 7 of 12: photograph: the stream from above
+[harness.dump] screenshot C:/Users/ivan_/source/repos/morrowind-test-harness/dump/work/runs/20261005-053455-wv6-joints/01 kit stream from above.jpg
+[harness.dump] step 8 of 12: set up: a joint from close by
+[harness.dump] step 9 of 12: photograph: a joint from close by
+[harness.dump] screenshot C:/Users/ivan_/source/repos/morrowind-test-harness/dump/work/runs/20261005-053455-wv6-joints/02 kit stream joint after the first bend.jpg
+[harness.dump] step 10 of 12: set up: along the stream
+[harness.dump] step 11 of 12: photograph: along the stream
+[harness.dump] screenshot C:/Users/ivan_/source/repos/morrowind-test-harness/dump/work/runs/20261005-053455-wv6-joints/03 kit stream along the wide part.jpg
+[harness.dump] step 12 of 12: clean up
+[harness.dump] DONE

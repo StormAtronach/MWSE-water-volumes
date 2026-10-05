@@ -21,10 +21,10 @@ where more than that are loaded at once the change shows after a few frames.
 
 ## Your own mesh
 
-Any mesh can be water. On the root node add two text entries (NiStringExtraData):
-
-- `WaterVolume`, or `WaterVolume depth=300` to set the depth
-- `NCO`, so actors do not walk on the surface
+Any mesh can be water. Name an object in it `WaterVolume` (in Blender: the surface object),
+or add `WaterVolume` as a text entry (NiStringExtraData) on the root node. Options follow the
+tag, for example `WaterVolume depth=300`. The mod switches the collision of a water mesh
+off, so no `NCO` entry is needed. The guide has a section on making a piece in Blender.
 
 The footprint is the area under the mesh's triangles, so the shape is yours to model.
 

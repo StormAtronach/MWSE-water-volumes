@@ -5,7 +5,7 @@
 [harness.dump] water: 2 water pieces left in the save by earlier runs removed
 [harness.dump] step 1 of 8: player to the site
 [harness.dump] step 2 of 8: the kit plugin and the pieces
-[harness.dump] PASS the kit plugin provides every piece as a static: 14 of 14 found
+[harness.dump] PASS the kit plugin provides every piece as a static: 31 of 31 found
 [harness.dump] OBSERVED set up: 0 stale pieces removed; pieces around 8485 188771
 [harness.dump] step 3 of 8: what the bodies do
 [harness.dump] PASS the piece has a body shape and the game does not draw it: 1 body shapes, 1 hidden
@@ -13,13 +13,13 @@
 [harness.dump] PASS the water is as deep as the body, 512, although the piece is registered with a depth of 100: 90 under 250, 300 under 250, 500 under 250, 530 under nil
 [harness.dump] PASS a piece at half scale has water half as deep and half as wide: 200 under 250, 270 under nil; 400 from its middle 250, 600 from its middle nil
 [harness.dump] PASS the shallow piece is 128 deep: 100 under 250, 140 under nil
-[harness.dump] river piece: at 10477 187621 250 in cell 1,22, scene node true, shapes Water, WaterBody (hidden); surface over its middle 250
-[harness.dump] PASS the falling river piece has a sloped surface and a floor 256 under it: surface 900 north of its middle 362.5, 900 south 137.5 (expected 362.5 and 137.5); 300 under the north surface nil
+[harness.dump] river piece: at 10477 187621 250 in cell 1,22, scene node true, shapes Water, WaterBody (hidden); surface over its middle 122
+[harness.dump] PASS the falling river piece has a sloped surface and a floor 256 under it: surface 124 from its start 234.5, 1924 from its start 9.5 (expected 234.5 and 9.5); 300 under the surface near the start nil
 [harness.dump] step 4 of 8: set up: kit bodies in game from the side
 [harness.dump] step 5 of 8: photograph: kit bodies in game from the side
-[harness.dump] screenshot C:/Users/ivan_/source/repos/morrowind-test-harness/dump/work/runs/20261004-194312-wv4-marker/01 kit bodies in game from the side.jpg
+[harness.dump] screenshot C:/Users/ivan_/source/repos/morrowind-test-harness/dump/work/runs/20261005-053347-wv6-marker/01 kit bodies in game from the side.jpg
 [harness.dump] step 6 of 8: set up: kit bodies in game from above
 [harness.dump] step 7 of 8: photograph: kit bodies in game from above
-[harness.dump] screenshot C:/Users/ivan_/source/repos/morrowind-test-harness/dump/work/runs/20261004-194312-wv4-marker/02 kit bodies in game from above.jpg
+[harness.dump] screenshot C:/Users/ivan_/source/repos/morrowind-test-harness/dump/work/runs/20261005-053347-wv6-marker/02 kit bodies in game from above.jpg
 [harness.dump] step 8 of 8: clean up
 [harness.dump] DONE

@@ -200,11 +200,13 @@ namespace wv {
             && sideOf(t.edges[2], x, y) == t.edges[2].inside;
     }
 
-    static void collectFootprint(NI::AVObject* object, Volume& volume) {
+    // Everything under a WaterBody is body: an exporter may write one object as a group of
+    // shapes, one per material.
+    static void collectFootprint(NI::AVObject* object, Volume& volume, bool inBody = false) {
         if (object == nullptr) {
             return;
         }
-        const auto body = isWaterBody(object);
+        const auto body = inBody || isWaterBody(object);
         if (object->getAppCulled() && !body) {
             return;
         }
@@ -240,7 +242,7 @@ namespace wv {
         }
         else if (object->isInstanceOfType(NI::RTTIStaticPtr::NiNode)) {
             for (const auto& child : static_cast<NI::Node*>(object)->children) {
-                collectFootprint(child.get(), volume);
+                collectFootprint(child.get(), volume, body);
             }
         }
     }

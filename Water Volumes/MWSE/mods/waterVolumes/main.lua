@@ -32,6 +32,8 @@ local pending = {}
 --- @type table<tes3reference, niTexturingProperty[]>
 local animated = {}
 local flip = nil
+--- A reference had its collision switched off and the game has not taken it up yet.
+local collisionsStale = false
 
 local function log(fmt, ...)
     mwse.log("[Water Volumes] " .. fmt, ...)
@@ -46,10 +48,45 @@ end
 local settingsByObject = {}
 local settingsRevision = 0
 
+--- The text that makes a mesh water, in lower case, or nil if it is not water. It is the tag
+--- on the root. A modelling program that cannot write the tag can name an object instead: the
+--- name of anything in the mesh that starts with the tag counts as the tag, options included.
+--- A mesh with a WaterBody is water without either.
+local function tagText(node)
+    local data = node:getStringDataStartingWith(interop.tag)
+    if data then
+        return data.string:lower()
+    end
+    local tag = interop.tag:lower()
+    local named, body = nil, false
+    local function look(object)
+        local name = object.name
+        if name then
+            name = name:lower()
+            if name:sub(1, #tag) == tag then
+                named = name
+                return
+            end
+            body = body or name:sub(1, 9) == "waterbody"
+        end
+        local children = object.children
+        if children then
+            for _, child in ipairs(children) do
+                if child and not named then
+                    look(child)
+                end
+            end
+        end
+    end
+    look(node)
+    return named or (body and tag) or nil
+end
+
 --- The settings for an object, or nil if it is not water. The node is that of one of its references.
 --- depth: how far the water reaches below the surface.
 --- marker: the material marker for the renderer's water shading, or nil to keep the mesh's own look.
 --- swim: false for a mesh that only looks like water.
+--- solid: the mesh does not say that it has no collision, so the mod has to switch it off.
 local function getSettings(object, node)
     if settingsRevision ~= interop.revision then
         settingsByObject = {}
@@ -66,9 +103,8 @@ local function getSettings(object, node)
     if registered then
         depth, plain, skyOnly, noSwim = registered.depth, registered.plain == true, registered.skyOnly == true, registered.noSwim == true
     else
-        local data = node:getStringDataStartingWith(interop.tag)
-        if data then
-            local text = data.string:lower()
+        local text = tagText(node)
+        if text then
             depth = tonumber(text:match("depth%s*=%s*([%d%.]+)"))
             plain = text:find("%f[%a]plain%f[%A]") ~= nil
             skyOnly = text:find("%f[%a]skyonly%f[%A]") ~= nil
@@ -79,7 +115,7 @@ local function getSettings(object, node)
         end
     end
 
-    known = { depth = depth or interop.defaultDepth, swim = not noSwim }
+    known = { depth = depth or interop.defaultDepth, swim = not noSwim, solid = not node:hasStringDataStartingWith("NCO") }
     if not plain then
         known.marker = skyOnly and interop.surfaceMarkerSkyOnly or interop.surfaceMarker
     end
@@ -147,15 +183,17 @@ local function isWaterBody(object)
 end
 
 --- Hides the bodies, marks the surfaces for the renderer, and returns the texturing properties
---- to animate.
+--- to animate. Everything under a WaterBody is body: an exporter may write one object as a
+--- group of shapes, one per material.
 local function prepareNode(node, marker)
     local prefix = getFlip().prefix
     local properties = {}
-    for object in table.traverse{ node } do
-        local body = isWaterBody(object)
-        if body then
+    local function walk(object)
+        if isWaterBody(object) then
             object.appCulled = true
-        elseif marker and object:isInstanceOfType(ni.type.NiTriShape) then
+            return
+        end
+        if marker and object:isInstanceOfType(ni.type.NiTriShape) then
             -- A material of its own, so that other users of the mesh keep theirs.
             local material = object.materialProperty
             material = material and material:clone() or niMaterialProperty.new()
@@ -170,7 +208,17 @@ local function prepareNode(node, marker)
         if fileName and isSurfaceFrame(fileName, prefix) then
             properties[#properties + 1] = property
         end
+
+        local children = object.children
+        if children then
+            for _, child in ipairs(children) do
+                if child then
+                    walk(child)
+                end
+            end
+        end
     end
+    walk(node)
     return properties
 end
 
@@ -296,6 +344,12 @@ local function track(reference, onlyIfActive)
     if settings.swim then
         flagCell(entry.cell)
     end
+    -- Nobody walks on water. A mesh that does not say so itself is told here; the game takes
+    -- it up when the collisions are next worked out, which sync asks for once.
+    if settings.solid and not reference.hasNoCollision then
+        reference:setNoCollisionFlag(true, false)
+        collisionsStale = true
+    end
     prepare(reference, entry, node)
 end
 
@@ -382,6 +436,11 @@ local function sync()
     local controller = getController()
     if not controller then
         return
+    end
+
+    if collisionsStale then
+        collisionsStale = false
+        tes3.dataHandler:updateCollisionGroupsForActiveCells()
     end
 
     if #pending > 0 then

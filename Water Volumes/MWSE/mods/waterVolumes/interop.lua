@@ -1,10 +1,13 @@
 --[[
     Water Volumes interop.
 
-    The mesh of a static or an activator becomes water in one of two ways:
+    The mesh of a static or an activator becomes water in one of three ways:
       1. Its NIF root carries a NiStringExtraData that starts with "WaterVolume".
          Options follow in the same string, for example "WaterVolume depth=300 plain".
-      2. A mod registers the object id here, for meshes it cannot edit:
+      2. Something in the mesh has a name that starts with "WaterVolume", with the options in
+         the name, or the mesh has a shape or node named "WaterBody". This is for modelling
+         programs that cannot write the text entry.
+      3. A mod registers the object id here, for meshes it cannot edit:
            local waterVolumes = include("waterVolumes.interop")
            if waterVolumes then waterVolumes.registerObject("my_pond_static", { depth = 300 }) end
 
