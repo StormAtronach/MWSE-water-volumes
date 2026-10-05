@@ -181,28 +181,9 @@ the file.
 | `Water Volumes/` | The mod as it is installed: the Lua mod, the kit, `Water Volumes Kit.esp`, `distantwater.toml`, the guide, and a short README for players |
 | `Water Volumes/meshes/wv/` | The 37 kit meshes: squares, discs, corners, river pieces, and four solids |
 | `Water Volumes/meshes/wvs/`, `wvm/`, `wvb/` | The kit again in the swamp, mud and blood colours |
-| `demo/` | Demo plugins and the mod `Vivec Palace Water` (see "Demos") |
-| `tools/` | The scripts that write the kit, the demos and the palace meshes |
+| `tools/make_kit.py` | The script that writes the kit |
 | `tests/geometry_test.cpp` | Tests of the geometry, which run without the game |
-| `tests/harness/` | A copy of the scenarios that run in the game |
-| `docs/runs/` | The output of test runs |
 | `deps/mwse-upstream/` | Submodule: the MWSE source that the plugin compiles against |
-
-## Demos
-
-The demo plugins need `Water Volumes Kit.esp`. Load them after it.
-
-| File | What it places | Written by |
-| --- | --- | --- |
-| `demo/Water Volumes River Demo.esp` | A river of kit pieces along a stretch of Foyada Mamaea | `tools/make_river_demo.py` |
-| `demo/Water Volumes Solids Demo.esp` | The four solids of the kit in a row, high over the sea north of Vas | `tools/make_demo_plugin.py --solids` |
-| `demo/Water Volumes Colours Demo.esp` | The kit cube in its usual colour and in each palette, in a row north of the solids | `tools/make_demo_plugin.py --colours` |
-
-`demo/Vivec Palace Water/` is a mod of its own: four mesh replacers, with no plugin and no
-script. They make the channels of the Palace of Vivec deep enough to swim in, and give the
-waterfalls of Vivec the water shading. It is also the example of how to make water of a game
-mesh that is neither one sheet nor closed. Its `README.md` says what it changes and what its
-limits are.
 
 ## Building
 
@@ -245,35 +226,15 @@ replaces the Release DLL.
 - `CMakeLists.txt` lists the MWSE source files that are compiled into the DLL. If the linker
   reports an unresolved `NI::` symbol after the submodule moves, add the file that defines it.
 
-## Tools
+## The kit
 
-The scripts in `tools/` are Python. The docstring at the top of each one says what it writes
-and how to call it.
-
-| Script | What it writes |
-| --- | --- |
-| `make_kit.py` | The kit: the meshes, `Water Volumes Kit.esp`, and `kit.json`, the list of the pieces with their sizes and joints. Its list `PALETTES` gives the colours in which the whole kit is written again |
-| `make_river_demo.py` | The river demo plugin, from the land in the master files and the pieces in `kit.json` |
-| `make_demo_plugin.py` | Small plugins that place kit meshes: one disc near Vas; that disc and one over each of the next three cells to the east (`--grid`); the solids (`--solids`); the cube in each colour (`--colours`) |
-| `make_palace_water.py` | The meshes of `Vivec Palace Water`, from the game's own meshes. It uses `nif4.py` to read and write the meshes and the outlines in `palace_outlines.json` |
-| `palace_outlines_from_scan.py` | `palace_outlines.json`, from height maps of the palace that the in-game scenario `palacescan` measures. It needs `numpy`, `scipy`, `contourpy` and `shapely` |
-
-`make_kit.py` is the one place where the kit pieces are defined. After a change to a piece,
-write the kit and the river demo again, and commit what they write:
+`tools/make_kit.py` is the one place where the kit pieces are defined. It is a Python script
+and writes the meshes, `Water Volumes Kit.esp`, and `kit.json`, the list of the pieces with
+their sizes and joints. Its list `PALETTES` gives the colours in which the whole kit is
+written again. After a change to a piece or to a palette, run it and commit what it writes:
 
 ```pwsh
 python tools\make_kit.py "<Data Files>\Morrowind.esm"
-python tools\make_river_demo.py "<Data Files>" "demo\Water Volumes River Demo.esp"
-```
-
-`make_kit.py` also writes the palettes into `kit.json`, where the in-game scenario `colour`
-reads them. `make_demo_plugin.py` has its own list of the cubes for `--colours`, so a new
-palette needs a line there too.
-
-To write the palace meshes again:
-
-```pwsh
-python tools\make_palace_water.py "<Data Files>"
 ```
 
 ## Tests
@@ -287,10 +248,10 @@ grid against a search of every triangle.
 ctest --test-dir build\win32-release -C Release
 ```
 
-In the game: `tests/harness/water.lua` holds the scenarios that the mod was tested with. They
-run inside the Morrowind Test Harness, a separate MWSE mod with a Python runner, which is not
-part of this repository. `tests/harness/README.md` says how a scenario is run and lists the
-scenarios. One known check fails; that README describes it.
+In the game: the mod was tested with scripted scenarios that run inside a separate test
+harness. The harness and the scenarios are not part of this repository. One check is known to
+fail: the first time the player is put straight into water raised over the sea, the player
+ends on the sea floor. The cause is not known.
 
 ## Licence
 

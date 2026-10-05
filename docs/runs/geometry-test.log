@@ -1,9 +1,0 @@
-PASS a box: the surface is its top and the floor its bottom, whatever the order of the corners; a box with no area is no water
-PASS a sheet closed below: water from the sheet down to the depth, none below it or beside it
-PASS a sloped sheet closed below: the surface over a point is the height of the sheet there, the floor the depth under it: largest error 0.0001
-PASS a mesh that is not closed holds no water
-PASS bodies over one another: each holds its own water, and the air between them gets the water under it
-PASS a closed box holds exactly the water inside it at any tilt: 0 of 198745 points wrong over 40 placements, 18260 of them inside
-PASS a point under an edge that two triangles share is counted once: 0 of 90 points wrong
-PASS the grid gives the same answers as looking at every triangle: 64 by 64 cells against 1; 0 of 20000 answers differ, 9466 found water
-0 failed
