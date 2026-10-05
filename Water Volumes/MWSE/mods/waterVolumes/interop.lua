@@ -24,6 +24,12 @@
       skyonly  with the renderer's water shading, reflect the sky but not what is on screen.
              Cheaper, and steadier where on-screen reflections look wrong. In registerObject
              the key is skyOnly.
+
+    The colour of the water is not an option in the name. It is the emissive colour of the
+    material of the surface; black, which most materials have, is water of the usual colour.
+    For a mesh that cannot be edited, registerObject takes color: "4a6b3c", or
+    { 0.29, 0.42, 0.24 }. The renderer's water shading shows the colour, and so does the view
+    from under the surface.
 ]]
 
 local interop = {}
@@ -42,8 +48,26 @@ interop.objects = {}
 --- Raised by one for every registration. The mod then looks at the loaded references again.
 interop.revision = 0
 
+--- A colour as three numbers from 0 to 1, from "RRGGBB", "#RRGGBB" or three numbers. Nil for
+--- anything else.
+--- @param color string|number[]|nil
+--- @return number? red, number? green, number? blue
+function interop.parseColor(color)
+    if type(color) == "string" then
+        local r, g, b = color:match("^#?(%x%x)(%x%x)(%x%x)$")
+        if r then
+            return tonumber(r, 16) / 255, tonumber(g, 16) / 255, tonumber(b, 16) / 255
+        end
+    elseif type(color) == "table" then
+        local r, g, b = tonumber(color.r or color[1]), tonumber(color.g or color[2]), tonumber(color.b or color[3])
+        if r and g and b then
+            return math.clamp(r, 0, 1), math.clamp(g, 0, 1), math.clamp(b, 0, 1)
+        end
+    end
+end
+
 --- @param id string
---- @param settings { depth: number?, plain: boolean?, skyOnly: boolean?, noSwim: boolean? }?
+--- @param settings { depth: number?, plain: boolean?, skyOnly: boolean?, noSwim: boolean?, color: string|number[]|nil }?
 function interop.registerObject(id, settings)
     interop.objects[id:lower()] = settings or {}
     interop.revision = interop.revision + 1
@@ -71,6 +95,21 @@ end
 
 local function component(value, key, index)
     return value[key] or value[index]
+end
+
+--- Gives the water of the cell a colour: the sea, or the water of an interior. It is apart
+--- from the water volumes, which have their colours in their meshes. Nil or black gives the
+--- usual colour back. The renderer's water shading (MGE XE) shows the colour. It lasts until
+--- it is changed or the game is closed, so set it when a save is loaded or a cell is entered.
+--- The view from under that water has a colour of its own, which the game keeps:
+--- tes3.worldController.weatherController.underwaterColor.
+--- @param color string|number[]|nil "RRGGBB", three numbers from 0 to 1, or nil
+function interop.setWorldWaterColor(color)
+    local red, green, blue = interop.parseColor(color)
+    local material = tes3.dataHandler.waterController.waterPlane.materialProperty
+    if material then
+        material.emissive = niColor.new(red or 0, green or 0, blue or 0)
+    end
 end
 
 --- The height of the surface of the water a position is in or over, or nil.

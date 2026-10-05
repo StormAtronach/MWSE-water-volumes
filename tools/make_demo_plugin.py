@@ -14,7 +14,13 @@ Usage:
                                                                        in a row high over the sea
                                                                        north of Vas
 
---solids places the Statics of "Water Volumes Kit.esp"; load the output after that plugin.
+    python make_demo_plugin.py <Morrowind.esm> <output.esp> --colours  the cube of the kit in its
+                                                                       usual colour and in the
+                                                                       colour of each palette, in
+                                                                       a row north of the solids
+
+--solids and --colours place the Statics of "Water Volumes Kit.esp"; load the output after that
+plugin.
 """
 import os
 import struct
@@ -27,6 +33,10 @@ CELL_SIZE = 8192.0
 SOLIDS = ("wv_sphere_1024", "wv_cube_1024", "wv_pyramid_1024", "wv_octa_1024")
 SOLIDS_SITE = (2048.0, 200704.0, 2048.0)
 SOLIDS_STEP = 3072.0
+# The cube in every colour of the kit, 1792 apart in a row that runs east, in one cell.
+COLOURS = ("wv_cube_1024", "wv_swamp_cube_1024", "wv_mud_cube_1024", "wv_blood_cube_1024")
+COLOURS_SITE = (2048.0, 208000.0, 1024.0)
+COLOURS_STEP = 1792.0
 
 
 def sub(name, data):
@@ -82,7 +92,8 @@ def main():
     master, output = args[0], args[1]
     grid = "--grid" in sys.argv
 
-    solids = "--solids" in sys.argv
+    colours = "--colours" in sys.argv
+    solids = "--solids" in sys.argv or colours
     placements = [("wv_demo_disc", SITE)]
     if grid:
         for step in (1, 2, 3):
@@ -90,6 +101,9 @@ def main():
     if solids:
         placements = [(name, (SOLIDS_SITE[0] + index * SOLIDS_STEP, SOLIDS_SITE[1], SOLIDS_SITE[2]))
                       for index, name in enumerate(SOLIDS)]
+    if colours:
+        placements = [(name, (COLOURS_SITE[0] + index * COLOURS_STEP, COLOURS_SITE[1], COLOURS_SITE[2]))
+                      for index, name in enumerate(COLOURS)]
 
     cells = exterior_cells(master)
     records = []

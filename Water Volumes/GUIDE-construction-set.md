@@ -168,6 +168,43 @@ are on screen. The mesh's own texture is not used then.
 - Reflections show only what is on screen. Something behind the camera or hidden behind a
   nearer object is not reflected.
 
+## Water of a colour
+
+The kit comes again in three colours. Each has a Static for every piece, with the name of
+the colour after `wv_`: `wv_square_1024` is `wv_swamp_square_1024` in the swamp colour.
+
+| Palette | Colour | Statics |
+| --- | --- | --- |
+| swamp | murky green, `4a6b3c` | `wv_swamp_...` |
+| mud | brown, `7a5a38` | `wv_mud_...` |
+| blood | dark red, `8a1010` | `wv_blood_...` |
+
+What a colour does, with MGE XE:
+
+- Deep water of a colour tends to that colour. What you see through it loses the other
+  colours, more with depth: a pond 60 deep has a tint, a pond 500 deep is the colour.
+- Far away the piece has the same colour.
+- Under the surface the view has the colour, as dark as the game's own underwater colour.
+
+In your own mesh, the colour of the water is the emissive colour of the material of the
+surface shape. Black, which a material has unless you change it, is the usual water. The
+colour is not a word in the name. For another palette of the kit, add a line to `PALETTES`
+in `tools/make_kit.py` of the repository and run the script.
+
+The water of the cell, the sea or the water of an interior, can have a colour as well. It is
+apart from the pieces: a Lua mod sets it, and no piece changes with it.
+
+```lua
+local waterVolumes = include("waterVolumes.interop")
+if waterVolumes then
+    waterVolumes.setWorldWaterColor("2e8b57")   -- or { 0.18, 0.55, 0.34 }; nil for the usual colour
+end
+```
+
+It lasts until it is changed or the game is closed, so set it when a save is loaded or a
+cell is entered. The view from under that water keeps the game's own colour,
+`tes3.worldController.weatherController.underwaterColor`, which a mod can set too.
+
 ## Your own mesh
 
 Any mesh can be water. It needs one thing: the tag `WaterVolume`, as a name. Name any object
@@ -265,12 +302,19 @@ loaded stays until its cell loads again.
 ```lua
 local waterVolumes = include("waterVolumes.interop")
 if waterVolumes then
-    waterVolumes.registerObject("my_pond_static", { depth = 300, plain = false, skyOnly = false, noSwim = false })
+    waterVolumes.registerObject("my_pond_static", { depth = 300, plain = false, skyOnly = false, noSwim = false, color = "4a6b3c" })
 end
 ```
 
+`color` gives the water a colour, as `"RRGGBB"` or as three numbers from 0 to 1; leave it
+out for the colour the mesh has. Far away the mesh is drawn from the distant land data,
+which a script cannot reach: give the same colour there with `water_color` in
+`distantwater.toml` (see "Water far away").
+
 The same rule holds as for your own mesh: the mesh must be closed, or be one sheet that the
-mod closes `depth` below. A mesh that carries its surface twice does not work.
+mod closes `depth` below. A mesh that carries its surface twice does not work. The water of
+the Palace of Vivec is such a mesh; for it, and for any mesh that the rule does not fit, put
+a mesh of your own in the place of the game's, with the names from "Your own mesh".
 
 ## Limits
 
@@ -300,6 +344,9 @@ piece far away is drawn as water too, and not with its own texture.
   [tools.mge-xe.distantland.statics]
   'x\ex_my_pond.nif' = { water = true }
   ```
+
+  A colour that the Lua mod gave it goes into the same line, as three numbers from 0 to 1:
+  `{ water = true, water_color = [0.29, 0.42, 0.24] }`.
 
 - Far water reflects the sky. Out to 8 cells from the player it also reflects what is on
   screen; `distant_land.water.volume_reflection_cells` in the MGE XE settings changes that

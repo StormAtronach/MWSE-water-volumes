@@ -525,6 +525,7 @@ event.register("enterFrame", function()
       probe.frame = probe.frame + taken
       probe.frameMax = math.max(probe.frameMax, taken)
       probe.frames = probe.frames + 1
+      if probe.frameSamples then probe.frameSamples[#probe.frameSamples + 1] = taken end
     end
     probe.frameStarted = t
   end
@@ -4066,7 +4067,696 @@ local function runSolids(spec, say, after, done)
   sequence(steps, say, after, function() done(rows) end)
 end
 
+-------------------------------------------------------------------------------
+-- Renderer cost: the time of a frame at fixed views, to set one build of the renderer against
+-- another. Three views have no water volume in them: the sea north of Vas, Balmora, Vivec.
+-- Three look at the place of the solids of the kit; they show the solids only when the demo
+-- plugin that places them is loaded. Nothing is checked: read the numbers.
+-------------------------------------------------------------------------------
+
+local function runRendererCost(spec, say, after, done)
+  local rows = {}
+  local function measured(name, detail)
+    rows[#rows + 1] = { ok = true, name = name, detail = detail }
+    say("MEASURED %s: %s", name, detail)
+  end
+  local interop = require("waterVolumes.interop")
+  local steps = {}
+  local function step(name, wait, run) steps[#steps + 1] = { name = name, wait = wait, run = run } end
+  local pin
+  local function onFrame()
+    if pin and tes3.player.position:distance(pin) > 40 then
+      tes3.positionCell({ reference = tes3.player, position = { pin.x, pin.y, pin.z } })
+    end
+  end
+  local function lookFrom(position, target)
+    tes3.changeWeather({ id = 0, immediate = true })
+    camera = { position = position, target = target }
+    pin = position - tes3vector3.new(0, 0, 130)
+    tes3.positionCell({ reference = tes3.player, position = { pin.x, pin.y, pin.z } })
+  end
+
+  local solids = tes3vector3.new(6656, 200704, 2560)
+  local VIEWS = {
+    { name = "sea north of Vas", from = tes3vector3.new(7060, 186303, 2600), to = tes3vector3.new(7060, 200000, 0) },
+    { name = "Balmora", from = tes3vector3.new(-20480, -6000, 3200), to = tes3vector3.new(-22000, -14000, 600) },
+    { name = "Vivec", from = tes3vector3.new(29000, -58000, 5200), to = tes3vector3.new(30000, -86000, 400) },
+    { name = "solids site from 4200", from = solids + tes3vector3.new(0, -4200, 552), to = solids },
+    { name = "solids site from 10000", from = solids + tes3vector3.new(0, -10000, 900), to = solids },
+    { name = "solids site from 20000", from = solids + tes3vector3.new(0, -20000, 1500), to = solids },
+  }
+  -- "mgecostquick": one view of the sea, one of a town and one of the solids, for a short time
+  -- each. For a first answer; repeats of one build differ by more than a short run resolves.
+  local settle, duration = 8, 18
+  if spec.water == "mgecostquick" then
+    VIEWS = { VIEWS[1], VIEWS[2], VIEWS[4] }
+    settle, duration = 4, 8
+  end
+
+  step("god mode on, clear noon", 1, function()
+    tes3.mobilePlayer.vanityDisabled = true
+    tes3.setVanityMode({ enabled = false, checkVanityDisabled = false })
+    tes3.worldController.menuController.godModeEnabled = true
+    tes3.worldController.hour.value = 13
+    tes3.force1stPerson()
+    event.register("enterFrame", onFrame)
+  end)
+
+  for _, view in ipairs(VIEWS) do
+    step("go to: " .. view.name, 1, function() lookFrom(view.from, view.to) end)
+    -- The cells and the distant statics around a new place load for some seconds.
+    step("settle: " .. view.name, settle, function()
+      probe = { sim = 0, simMax = 0, simFrames = 0, frame = 0, frameMax = 0, frames = 0, samples = {}, frameSamples = {} }
+    end)
+    step("report: " .. view.name, duration, function()
+      local p = probe
+      probe = nil
+      local function quantile(samples, q)
+        table.sort(samples)
+        local n = #samples
+        return n > 0 and samples[math.max(1, math.ceil(n * q))] * 1000 or -1
+      end
+      measured(view.name, string.format("frame median %.3f ms, mean %.3f, 90th of 100 %.3f over %d frames; simulation median %.3f ms; %d volumes hold water",
+        quantile(p.frameSamples, 0.5), p.frames > 0 and p.frame / p.frames * 1000 or -1, quantile(p.frameSamples, 0.9), p.frames,
+        quantile(p.samples, 0.5), interop.native.count()))
+    end)
+  end
+
+  step("clean up", 1, function()
+    camera, pin = nil, nil
+    event.unregister("enterFrame", onFrame)
+  end)
+  sequence(steps, say, after, function() done(rows) end)
+end
+
+-------------------------------------------------------------------------------
+-- Palace scan: measures the channels of the Palace of Vivec, and lists the references around
+-- it that look like water. Nothing is checked: read the numbers.
+-------------------------------------------------------------------------------
+
+local function runPalaceScan(spec, say, after, done)
+  local rows = {}
+  local function observed(name, detail)
+    rows[#rows + 1] = { ok = true, name = name, detail = detail }
+    say("OBSERVED %s: %s", name, detail)
+  end
+  local steps = {}
+  local function step(name, wait, run) steps[#steps + 1] = { name = name, wait = wait, run = run } end
+
+  -- The water static, and the middle of its sheets, which lie 489 north of it.
+  local origin = tes3vector3.new(32832, -106880, 512)
+  local middle = tes3vector3.new(origin.x, origin.y + 489, origin.z)
+  -- Surface heights measured on 2026-10-04, and how far each sheet reaches from the middle
+  -- along x (the sheets are a little longer along y).
+  local tiers = {
+    { surface = 498.4, inner = 2168, outer = 2658 },
+    { surface = 883.0, inner = 1748, outer = 2168 },
+    { surface = 1255.2, inner = 1360, outer = 1748 },
+    { surface = 1639.3, inner = 600, outer = 1360 },
+  }
+  local water
+
+  local function solidBelow(x, y, z)
+    local ignore = {}
+    for reference in pairs(water) do ignore[#ignore + 1] = reference end
+    local hit = tes3.rayTest({ position = tes3vector3.new(x, y, z), direction = tes3vector3.new(0, 0, -1), ignore = ignore })
+    return hit and hit.intersection.z or nil, hit and hit.reference
+  end
+
+  step("god mode on, player to the lowest tier of the palace", 1, function()
+    tes3.mobilePlayer.vanityDisabled = true
+    tes3.setVanityMode({ enabled = false, checkVanityDisabled = false })
+    tes3.worldController.menuController.godModeEnabled = true
+    tes3.worldController.hour.value = 13
+    tes3.changeWeather({ id = 0, immediate = true })
+    tes3.positionCell({ reference = tes3.player, position = { origin.x + 2504, origin.y, 483 } })
+  end)
+
+  step("list what looks like water around the palace", 10, function()
+    water = {}
+    for _, cell in ipairs(tes3.getActiveCells()) do
+      for reference in cell:iterateReferences() do
+        local object = reference.baseObject
+        local mesh = object.mesh or ""
+        local text = (object.id .. " " .. mesh):lower()
+        if (text:find("water") or text:find("fall")) and reference.position:distance(origin) < 6000 then
+          if text:find("ex_vivec_p_water") then water[reference] = true end
+          local o = reference.orientation
+          say("REFERENCE %s mesh %s type %s at %.1f %.1f %.1f turned %.3f %.3f %.3f scale %.3f cell %d,%d%s", object.id, mesh, tostring(object.objectType),
+            reference.position.x, reference.position.y, reference.position.z, o.x, o.y, o.z, reference.scale, cell.gridX, cell.gridY,
+            reference.disabled and " DISABLED" or "")
+        end
+      end
+    end
+    local mobile = tes3.mobilePlayer
+    observed("the player", string.format("mobile height %.1f, fSwimHeightScale %.3f", mobile.height, tes3.findGMST(tes3.gmst.fSwimHeightScale).value))
+  end)
+
+  -- A line across each channel in the four directions, a solid height every 4 units.
+  local directions = { { 1, 0, "east" }, { -1, 0, "west" }, { 0, 1, "north" }, { 0, -1, "south" } }
+  for index, tier in ipairs(tiers) do
+    step(string.format("profiles of tier %d", index), 0.5, function()
+      for _, direction in ipairs(directions) do
+        -- The sheets reach about 500 further north and south than east and west on the lowest tier.
+        for _, offset in ipairs({ 0, 700 }) do
+          local parts = {}
+          local last
+          for r = tier.inner - 120, tier.outer + 220, 4 do
+            local x = middle.x + direction[1] * r + direction[2] * offset
+            local y = middle.y + direction[2] * r + direction[1] * offset
+            local z = solidBelow(x, y, tier.surface + 300)
+            local value = z and math.floor(z - tier.surface + 0.5) or nil
+            if value ~= last then
+              parts[#parts + 1] = string.format("%d:%s", r, value and tostring(value) or "none")
+              last = value
+            end
+          end
+          say("PROFILE tier %d %s offset %d (distance:height against the vanilla surface %.1f): %s", index, direction[3], offset, tier.surface, table.concat(parts, " "))
+        end
+      end
+    end)
+  end
+
+  -- The same along a channel, in its middle, to find bridges, stairs and falls.
+  step("along the channels", 0.5, function()
+    for index, tier in ipairs(tiers) do
+      if index < 4 then
+        local r = (tier.inner + tier.outer) / 2
+        for _, side in ipairs({ { 1, "east" }, { -1, "west" } }) do
+          local parts = {}
+          local last
+          for along = -tier.outer - 100, tier.outer + 100, 8 do
+            local z = solidBelow(middle.x + side[1] * r, middle.y + along, tier.surface + 300)
+            local value = z and math.floor(z - tier.surface + 0.5) or nil
+            if value ~= last then
+              parts[#parts + 1] = string.format("%d:%s", along, value and tostring(value) or "none")
+              last = value
+            end
+          end
+          say("ALONG tier %d %s side at distance %d (north:height against the surface): %s", index, side[2], r, table.concat(parts, " "))
+        end
+      end
+    end
+  end)
+
+  -- A map of solid heights around each tier, written to a file: two bytes a point, the height
+  -- against the vanilla surface plus 1000, held between 0 and 65535. Rows go north.
+  local mapStep = 8
+  local halves = { { 2912, 3480 }, { 2440, 3016 }, { 2024, 2640 }, { 1624, 2240 } }
+  step("how long a ray takes", 0.5, function()
+    local started = os.clock()
+    for i = 1, 20000 do
+      solidBelow(origin.x - 2800 + (i % 700) * 8, origin.y - 2000 + math.floor(i / 700) * 130, tiers[1].surface + 200)
+    end
+    local each = (os.clock() - started) / 20000
+    if each * 1650000 > 900 then mapStep = 16 end
+    observed("ray cost", string.format("%.1f microseconds a ray; the maps use a step of %d", each * 1e6, mapStep))
+  end)
+  for index, tier in ipairs(tiers) do
+    step(string.format("map of tier %d", index), 0.5, function()
+      local half = halves[index]
+      local path = string.format("C:/tmp/pondwater/palace/tier%d.bin", index)
+      lfs.mkdir("C:/tmp/pondwater/palace")
+      local file = assert(io.open(path, "wb"))
+      local columns = math.floor(2 * half[1] / mapStep) + 1
+      local lines = math.floor(2 * half[2] / mapStep) + 1
+      local started = os.clock()
+      local char, floor = string.char, math.floor
+      for j = 0, lines - 1 do
+        local y = origin.y - half[2] + j * mapStep
+        local row = {}
+        for i = 0, columns - 1 do
+          local z = solidBelow(origin.x - half[1] + i * mapStep, y, tier.surface + 200)
+          local value = z and floor(z - tier.surface + 1000.5) or 0
+          if value < 0 then value = 0 elseif value > 65535 then value = 65535 end
+          row[i + 1] = char(value % 256, floor(value / 256))
+        end
+        file:write(table.concat(row))
+      end
+      file:close()
+      say("MAP tier %d file %s columns %d lines %d step %d west %.1f south %.1f surface %.1f seconds %.1f", index, path, columns, lines, mapStep,
+        origin.x - half[1], origin.y - half[2], tier.surface, os.clock() - started)
+    end)
+  end
+
+  step("clean up", 1, function() end)
+  sequence(steps, say, after, function() done(rows) end)
+end
+
+-------------------------------------------------------------------------------
+-- Palace: the mod "Vivec Palace Water". The water static of the Palace of Vivec has a mesh
+-- with one closed body of water for each tier, raised so that a person swims in the channels,
+-- and the waterfalls of Vivec are water to look at only. "palacehold" hands the game over.
+-------------------------------------------------------------------------------
+
+local function runPalace(spec, say, after, done)
+  local rows = {}
+  local function note(ok, name, detail)
+    rows[#rows + 1] = { ok = ok, name = name, detail = detail }
+    say("%s %s: %s", ok and "PASS" or "FAIL", name, detail)
+  end
+  local function observed(name, detail)
+    rows[#rows + 1] = { ok = true, name = name, detail = detail }
+    say("OBSERVED %s: %s", name, detail)
+  end
+
+  local controller = waterController()
+  local interop = require("waterVolumes.interop")
+  local directory = spec.waterShotDir or runDirectory(spec)
+  local prefix = spec.waterShotPrefix or ""
+  local shots = 0
+  local steps = {}
+  local function step(name, wait, run) steps[#steps + 1] = { name = name, wait = wait, run = run } end
+  local function shot(name)
+    shots = shots + 1
+    local path = string.format("%s/%s%02d %s.jpg", directory, prefix, shots, name)
+    os.remove(path)
+    mge.saveScreenshot({ path = path })
+    say("screenshot %s", path)
+  end
+  local pin
+  local function onFrame()
+    if pin and tes3.player.position:distance(pin) > 40 then
+      tes3.positionCell({ reference = tes3.player, position = { pin.x, pin.y, pin.z } })
+    end
+  end
+  local function view(name, settle, from, to, hold)
+    step("set up: " .. name, 1.5, function()
+      camera = { position = from, target = to }
+      if hold then
+        pin = hold
+        tes3.positionCell({ reference = tes3.player, position = { pin.x, pin.y, pin.z } })
+      end
+    end)
+    step("photograph: " .. name, settle, function() shot(name) end)
+  end
+
+  -- The water static. The places below are against it; they come from the height maps of
+  -- the scenario "palacescan" and from tools/palace_outlines.json of the plugin repository.
+  local origin = tes3vector3.new(32832, -106880, 512)
+  local function at(place, z) return tes3vector3.new(origin.x + place[1], origin.y + place[2], z) end
+  local tiers = {
+    { level = 613.4, floor = 478.4, vanilla = 498.4, east = { 2528, -448 }, west = { -2464, -448 }, south = { 32, -3064 }, outside = { 2750, -448 } },
+    { level = 997.0, floor = 862.0, vanilla = 883.0, east = { 2080, -614 }, west = { -2016, -614 }, south = { 32, -2680 }, outside = { 2242, -614 } },
+    { level = 1381.2, floor = 1246.2, vanilla = 1255.2, east = { 1696, -678 }, west = { -1632, -678 }, south = { 32, -2296 }, outside = { 1858, -678 } },
+    { level = 1765.3, floor = 1630.3, vanilla = 1639.3, east = { 1312, -768 }, west = { -1248, -768 }, south = { 32, -1912 }, outside = { 1474, -768 } },
+  }
+  -- The openings of the parapets, through which the waterfalls leave: tier, then the place.
+  local openings = { { 2, -1120, 1492 }, { 2, 1184, 1492 }, { 3, -862, 976 }, { 3, 930, 976 }, { 4, -606, 472 }, { 4, 675, 472 } }
+
+  step("god mode on, player to the lowest tier of the palace", 1, function()
+    if not controller.volumesSupported then error("water volumes are not available") end
+    tes3.mobilePlayer.vanityDisabled = true
+    tes3.setVanityMode({ enabled = false, checkVanityDisabled = false })
+    tes3.worldController.menuController.godModeEnabled = true
+    tes3.worldController.hour.value = 13
+    tes3.changeWeather({ id = 0, immediate = true })
+    tes3.force3rdPerson()
+    local first = at(tiers[1].east, tiers[1].floor + 3)
+    tes3.positionCell({ reference = tes3.player, position = { first.x, first.y, first.z } })
+    event.register("enterFrame", onFrame)
+  end)
+
+  step("what the mod made water", 10, function()
+    local water = tes3.getReference("ex_vivec_p_water_01")
+    if not water then error("the palace water reference was not found") end
+    local names = {}
+    local function look(object)
+      if object.name and object:isInstanceOfType(ni.type.NiTriShape) then names[#names + 1] = object.name .. (object.appCulled and " (hidden)" or "") end
+      if object.children then for _, child in ipairs(object.children) do if child then look(child) end end end
+    end
+    look(water.sceneNode)
+    note(#names == 2 and names[1] == "WaterVolume" and names[2] == "WaterBody (hidden)", "the palace water has the new mesh: one surface, one hidden body", table.concat(names, ", "))
+    local falls, shaded = 0, 0
+    for _, cell in ipairs(tes3.getActiveCells()) do
+      for reference in cell:iterateReferences(tes3.objectType.activator) do
+        if reference.baseObject.id:lower():find("^ex_vivec_waterfall") and reference.sceneNode then
+          falls = falls + 1
+          local marked = false
+          local function find(object)
+            if object:isInstanceOfType(ni.type.NiTriShape) and object.materialProperty and object.materialProperty.shininess == interop.surfaceMarker then marked = true end
+            if object.children then for _, child in ipairs(object.children) do if child then find(child) end end end
+          end
+          find(reference.sceneNode)
+          if marked then shaded = shaded + 1 end
+        end
+      end
+    end
+    note(falls > 0 and shaded == falls, "every waterfall around the palace is marked for the renderer's water shading", string.format("%d of %d", shaded, falls))
+    local intact, total = interop.native.hookStatus()
+    observed("the plugin", string.format("%d volumes hold water; %d of %d hooks in place", interop.native.count(), intact, total))
+  end)
+
+  step("where the water is", 1, function()
+    local wrong, lines = 0, {}
+    for index, tier in ipairs(tiers) do
+      for _, side in ipairs({ "east", "west", "south" }) do
+        local surface = controller:getVolumeSurfaceAt(at(tier[side], tier.floor + 5))
+        local ok = surface ~= nil and math.abs(surface - tier.level) < 0.6
+        if not ok then wrong = wrong + 1 end
+        lines[#lines + 1] = string.format("tier %d %s %s", index, side, surface and string.format("%.1f", surface) or "none")
+      end
+    end
+    note(wrong == 0, "on the floor of every channel the surface is the raised one (613.4, 997.0, 1381.2, 1765.3)", table.concat(lines, "; "))
+
+    wrong, lines = 0, {}
+    for index, tier in ipairs(tiers) do
+      -- Outside the parapet there is none of this tier's water; lower water may lie under the point.
+      local surface = controller:getVolumeSurfaceAt(at(tier.outside, tier.level - 20))
+      if surface ~= nil and math.abs(surface - tier.level) < 5 then wrong = wrong + 1 end
+      -- Over the water there is air.
+      local above = controller:getVolumeSurfaceAt(at(tier.east, tier.level + 40))
+      local over = tes3.mobilePlayer.underwater
+      lines[#lines + 1] = string.format("tier %d: outside %s, 40 above the surface the water below is at %s", index, tostring(surface), tostring(above))
+    end
+    note(wrong == 0, "outside the parapet there is none of the tier's water", table.concat(lines, "; "))
+
+    wrong, lines = 0, {}
+    for _, opening in ipairs(openings) do
+      local tier = tiers[opening[1]]
+      local inside = controller:getVolumeSurfaceAt(tes3vector3.new(origin.x + opening[2], origin.y + opening[3] - 40, tier.level - 20))
+      local beyond = controller:getVolumeSurfaceAt(tes3vector3.new(origin.x + opening[2], origin.y + opening[3] + 40, tier.level - 20))
+      local ok = inside ~= nil and math.abs(inside - tier.level) < 0.6 and not (beyond ~= nil and math.abs(beyond - tier.level) < 5)
+      if not ok then wrong = wrong + 1 end
+      lines[#lines + 1] = string.format("tier %d at %d: %s before, %s beyond", opening[1], opening[2], tostring(inside), tostring(beyond))
+    end
+    note(wrong == 0, "at each opening of a parapet the water ends between the pillars", table.concat(lines, "; "))
+  end)
+
+  local swam, checks = 0, 0
+  for index, tier in ipairs(tiers) do
+    step(string.format("player onto the floor of the channel of tier %d", index), 1, function()
+      pin = nil
+      local place = at(tier.west, tier.floor + 3)
+      tes3.positionCell({ reference = tes3.player, position = { place.x, place.y, place.z } })
+    end)
+    step(string.format("player in the water of tier %d", index), 3, function()
+      local position = tes3.player.position
+      local swimming = tes3.mobilePlayer.isSwimming == true
+      checks = checks + 1
+      if swimming then swam = swam + 1 end
+      observed(string.format("tier %d", index), string.format("player at %.0f %.0f %.0f, the water %.0f over the feet, swimming %s", position.x, position.y, position.z,
+        tier.level - position.z, tostring(swimming)))
+    end)
+    local place = at(tier.west, tier.level)
+    view(string.format("palace tier %d the player swims in the channel", index), 2, tes3vector3.new(place.x - 60, place.y - 700, tier.level + 260), tes3vector3.new(place.x + 40, place.y, tier.level))
+  end
+  step("the player swims on every tier", 0.5, function()
+    note(checks > 0 and swam == checks, "put on the floor of each channel, the player swims", string.format("%d of %d", swam, checks))
+  end)
+
+  local c = origin
+  local hold = at(tiers[1].east, tiers[1].floor + 3)
+  view("palace from the north west, falls and openings", 3, tes3vector3.new(c.x - 2600, c.y + 3900, c.z + 1500), tes3vector3.new(c.x, c.y + 500, c.z + 700), hold)
+  view("palace opening of tier 2 from outside", 3, tes3vector3.new(c.x - 1120 - 420, c.y + 1492 + 620, 1130), tes3vector3.new(c.x - 1120, c.y + 1492, 940), hold)
+  view("palace opening of tier 2 from the front", 3, tes3vector3.new(c.x - 1120, c.y + 1492 + 520, 1010), tes3vector3.new(c.x - 1120, c.y + 1492, 950), hold)
+  view("palace opening of tier 4 from above", 3, tes3vector3.new(c.x - 606 + 260, c.y + 472 + 420, 1990), tes3vector3.new(c.x - 606, c.y + 472, 1740), hold)
+  view("palace fall into the sea", 3, tes3vector3.new(c.x - 1626 - 500, c.y + 3149 + 700, 420), tes3vector3.new(c.x - 1626, c.y + 3149, 150), hold)
+  view("palace lowest tier along the water", 3, tes3vector3.new(c.x + 2528, c.y - 2700, tiers[1].level + 60), tes3vector3.new(c.x + 2528, c.y + 1500, tiers[1].level), hold)
+  view("palace from the south east", 3, tes3vector3.new(c.x + 4200, c.y - 4600, c.z + 1900), tes3vector3.new(c.x, c.y - 400, c.z + 600), hold)
+  view("palace from above", 3, tes3vector3.new(c.x + 300, c.y - 1900, c.z + 4200), tes3vector3.new(c.x, c.y - 400, c.z), hold)
+  -- From far away the palace is drawn from the distant land data.
+  view("palace from 9000 south east", 8, tes3vector3.new(c.x + 6400, c.y - 6800, c.z + 2600), tes3vector3.new(c.x, c.y - 400, c.z + 600), tes3vector3.new(c.x + 6400, c.y - 6800, 3000))
+  view("palace from 20000 south", 10, tes3vector3.new(c.x + 3000, c.y - 20000, c.z + 3600), tes3vector3.new(c.x, c.y - 400, c.z + 600), tes3vector3.new(c.x + 3000, c.y - 20000, 4000))
+
+  if spec.water == "palacehold" then
+    step("hand the game over", 2, function()
+      camera, pin = nil, nil
+      event.unregister("enterFrame", onFrame)
+      local place = at(tiers[1].east, tiers[1].floor + 3)
+      tes3.positionCell({ reference = tes3.player, position = { place.x, place.y, place.z } })
+      tes3.messageBox("Test harness: the game is yours. You are in the lowest channel of the palace. God mode is on. Quit the game when you are done.")
+      for _, row in ipairs(rows) do if not row.ok then say("SUMMARY FAIL %s: %s", row.name, row.detail) end end
+      say("HANDED OVER: at the Palace of Vivec; quit the game to end the run")
+    end)
+    sequence(steps, say, after, function() end)
+    return
+  end
+
+  step("clean up", 1, function()
+    camera, pin = nil, nil
+    event.unregister("enterFrame", onFrame)
+  end)
+  sequence(steps, say, after, function() done(rows) end)
+end
+
+-------------------------------------------------------------------------------
+-- Probe: runs the Lua file C:/tmp/pondwater/probe.lua once the save is loaded and logs what
+-- it returns. For a quick look at something in the running game.
+-------------------------------------------------------------------------------
+
+local function runProbe(spec, say, after, done)
+  local rows = {}
+  local steps = {}
+  local function step(name, wait, run) steps[#steps + 1] = { name = name, wait = wait, run = run } end
+  step("run the probe", 5, function()
+    local chunk, problem = loadfile("C:/tmp/pondwater/probe.lua")
+    if not chunk then error(problem) end
+    local results = { chunk() }
+    for index, result in ipairs(results) do
+      rows[#rows + 1] = { ok = true, name = "probe " .. index, detail = tostring(result) }
+      say("PROBE %d: %s", index, tostring(result))
+    end
+  end)
+  sequence(steps, say, after, function() done(rows) end)
+end
+
+-------------------------------------------------------------------------------
+-- Colour: water of a colour. Four cubes of the kit, one of the usual colour and one of each
+-- palette, placed by demo/Water Volumes Colours Demo.esp over the sea north of Vas; a piece
+-- whose colour a mod registers; the colour of the view from under the surface; and the
+-- colour of the water of the cell, set apart from the volumes.
+-------------------------------------------------------------------------------
+
+local function runColour(spec, say, after, done)
+  local rows = {}
+  local function note(ok, name, detail)
+    rows[#rows + 1] = { ok = ok, name = name, detail = detail }
+    say("%s %s: %s", ok and "PASS" or "FAIL", name, detail)
+  end
+  local function observed(name, detail)
+    rows[#rows + 1] = { ok = true, name = name, detail = detail }
+    say("OBSERVED %s: %s", name, detail)
+  end
+
+  local interop = require("waterVolumes.interop")
+  local directory = spec.waterShotDir or runDirectory(spec)
+  local prefix = spec.waterShotPrefix or ""
+  local shots = 0
+  local steps = {}
+  local function step(name, wait, run) steps[#steps + 1] = { name = name, wait = wait, run = run } end
+  local function shot(name)
+    shots = shots + 1
+    local path = string.format("%s/%s%02d %s.jpg", directory, prefix, shots, name)
+    os.remove(path)
+    mge.saveScreenshot({ path = path })
+    say("screenshot %s", path)
+  end
+  local pin
+  local function onFrame()
+    if pin and tes3.player.position:distance(pin) > 40 then
+      tes3.positionCell({ reference = tes3.player, position = { pin.x, pin.y, pin.z } })
+    end
+  end
+  local function hold(position)
+    pin = position
+    tes3.positionCell({ reference = tes3.player, position = { pin.x, pin.y, pin.z } })
+  end
+  local function view(name, settle, from, to, stand)
+    step("set up: " .. name, 1.5, function()
+      tes3.changeWeather({ id = 0, immediate = true })
+      camera = from and { position = from, target = to } or nil
+      if stand then hold(stand) end
+    end)
+    step("photograph: " .. name, settle, function() shot(name) end)
+  end
+
+  local manifest = json.loadfile("mods\\waterVolumes\\kit")
+  -- As tools/make_demo_plugin.py --colours places them: a row that runs east.
+  local site = tes3vector3.new(2048, 208000, 1024)
+  local stepEast = 1792
+  local cubes = { { id = "wv_cube_1024", name = "usual", color = { 0, 0, 0 } } }
+  for _, palette in ipairs(manifest and manifest.palettes or {}) do
+    local red, green, blue = interop.parseColor(palette.color)
+    cubes[#cubes + 1] = { id = "wv_" .. palette.name .. "_cube_1024", name = palette.name, color = { red, green, blue } }
+  end
+  for index, cube in ipairs(cubes) do
+    cube.middle = tes3vector3.new(site.x + (index - 1) * stepEast, site.y, site.z + 512)
+  end
+  local rowMiddle = tes3vector3.new(site.x + (#cubes - 1) * stepEast / 2, site.y, site.z + 512)
+  local weather = tes3.worldController.weatherController
+  local gameUnder
+
+  local function colorText(c) return string.format("%.3f %.3f %.3f", c.r or c.x or c[1], c.g or c.y or c[2], c.b or c.z or c[3]) end
+  local function sameColor(a, b)
+    local ar, ag, ab = a.r or a.x or a[1], a.g or a.y or a[2], a.b or a.z or a[3]
+    local br, bg, bb = b.r or b.x or b[1], b.g or b.y or b[2], b.b or b.z or b[3]
+    return math.abs(ar - br) < 0.006 and math.abs(ag - bg) < 0.006 and math.abs(ab - bb) < 0.006
+  end
+  -- The emissive colour of the first shape of a reference that carries the mark for the renderer.
+  local function surfaceColor(reference)
+    local found
+    local function look(object)
+      if found then return end
+      local material = object:isInstanceOfType(ni.type.NiTriShape) and object.materialProperty
+      if material and (material.shininess == interop.surfaceMarker or material.shininess == interop.surfaceMarkerSkyOnly) then
+        found = material.emissive
+        return
+      end
+      if object.children then for _, child in ipairs(object.children) do if child then look(child) end end end
+    end
+    if reference and reference.sceneNode then look(reference.sceneNode) end
+    return found
+  end
+
+  step("god mode on, player to the cubes", 1, function()
+    if not interop.supported then error("water volumes are not available") end
+    if #cubes < 2 then error("the kit has no palettes") end
+    tes3.mobilePlayer.vanityDisabled = true
+    tes3.setVanityMode({ enabled = false, checkVanityDisabled = false })
+    tes3.worldController.menuController.godModeEnabled = true
+    tes3.worldController.hour.value = 13
+    tes3.changeWeather({ id = 0, immediate = true })
+    tes3.force1stPerson()
+    gameUnder = { weather.underwaterColor.x, weather.underwaterColor.y, weather.underwaterColor.z }
+    event.register("enterFrame", onFrame)
+    hold(tes3vector3.new(rowMiddle.x, rowMiddle.y - 2600, site.z + 700))
+  end)
+
+  step("the cubes have the colour of their palette", 10, function()
+    local wrong, lines = 0, {}
+    for _, cube in ipairs(cubes) do
+      cube.reference = tes3.getReference(cube.id)
+      local color = surfaceColor(cube.reference)
+      local ok = color ~= nil and sameColor(color, cube.color)
+      if not ok then wrong = wrong + 1 end
+      lines[#lines + 1] = string.format("%s: %s", cube.name, color and colorText(color) or (cube.reference and "no marked surface" or "not placed"))
+    end
+    note(wrong == 0, "the surface of each cube has the emissive colour of its palette, and black for the usual one", table.concat(lines, "; "))
+    observed("the game's underwater colour", colorText(gameUnder))
+  end)
+
+  view("colour four cubes from the south", 3, tes3vector3.new(rowMiddle.x, rowMiddle.y - 4200, site.z + 1500), rowMiddle,
+    tes3vector3.new(rowMiddle.x, rowMiddle.y - 2600, site.z + 700))
+  view("colour four cubes from above", 3, tes3vector3.new(rowMiddle.x, rowMiddle.y - 1800, site.z + 4200), rowMiddle)
+
+  -- From inside. The view is the player's own, so that the game decides what is under water.
+  local underWrong, underLines = 0, {}
+  for _, cube in ipairs(cubes) do
+    step("player into the cube: " .. cube.name, 1, function()
+      camera = nil
+      hold(cube.middle)
+    end)
+    step("under water in the cube: " .. cube.name, 3, function()
+      local now = weather.underwaterColor
+      -- A colour is made as dark as the game's own underwater colour: one half is as bright as that.
+      local darkness = math.max(gameUnder[1], gameUnder[2], gameUnder[3]) / 0.5
+      local expected = gameUnder
+      if cube.color[1] + cube.color[2] + cube.color[3] > 0 then
+        expected = { cube.color[1] * darkness, cube.color[2] * darkness, cube.color[3] * darkness }
+      end
+      local ok = sameColor(now, expected) and tes3.mobilePlayer.isSwimming == true
+      if not ok then underWrong = underWrong + 1 end
+      underLines[#underLines + 1] = string.format("%s: %s, swimming %s", cube.name, colorText(now), tostring(tes3.mobilePlayer.isSwimming))
+      shot("colour from inside the cube " .. cube.name)
+    end)
+  end
+  step("player out of the water", 1, function()
+    hold(tes3vector3.new(rowMiddle.x, rowMiddle.y - 2600, site.z + 700))
+  end)
+  step("the underwater colour", 3, function()
+    note(underWrong == 0, "inside a cube of a colour the game's underwater colour is that colour, as dark as the game's own; inside the usual one it is the game's own", table.concat(underLines, "; "))
+    note(sameColor(weather.underwaterColor, gameUnder), "out of the water the game's underwater colour is back", colorText(weather.underwaterColor))
+  end)
+
+  -- The water of the cell, apart from the volumes.
+  local seaFrom = tes3vector3.new(rowMiddle.x, rowMiddle.y - 3600, 900)
+  local seaTo = tes3vector3.new(rowMiddle.x, rowMiddle.y + 2000, 0)
+  view("colour the sea as it is, cubes above", 3, seaFrom, seaTo)
+  step("give the sea a colour", 1, function()
+    interop.setWorldWaterColor("2e8b57")
+  end)
+  step("the sea has it and the cubes keep theirs", 2, function()
+    local plane = tes3.dataHandler.waterController.waterPlane.materialProperty.emissive
+    local red, green, blue = interop.parseColor("2e8b57")
+    local kept = true
+    for _, cube in ipairs(cubes) do
+      local color = surfaceColor(cube.reference)
+      kept = kept and color ~= nil and sameColor(color, cube.color)
+    end
+    note(sameColor(plane, { red, green, blue }) and kept, "the water of the cell has its colour, and every cube still has its own",
+      string.format("water of the cell %s; cubes kept %s", colorText(plane), tostring(kept)))
+    shot("colour the sea in green, cubes above")
+  end)
+  step("take the colour of the sea away", 1, function()
+    interop.setWorldWaterColor(nil)
+  end)
+  step("the sea is as it was", 2, function()
+    local plane = tes3.dataHandler.waterController.waterPlane.materialProperty.emissive
+    note(sameColor(plane, { 0, 0, 0 }), "without a colour the water of the cell is black in its material again", colorText(plane))
+    shot("colour the sea as it is again")
+  end)
+
+  -- From far away the cubes come from the distant land.
+  view("colour four cubes from 12000", 8, tes3vector3.new(rowMiddle.x, rowMiddle.y - 12000, site.z + 2600), rowMiddle,
+    tes3vector3.new(rowMiddle.x, rowMiddle.y - 12000, site.z + 2400))
+  view("colour four cubes from 25000", 10, tes3vector3.new(rowMiddle.x, rowMiddle.y - 25000, site.z + 4200), rowMiddle,
+    tes3vector3.new(rowMiddle.x, rowMiddle.y - 25000, site.z + 4000))
+
+  -- A colour that a mod registers, on a piece over land, where the water is shallow.
+  local pieces = {}
+  step("player to the basin near Vas", 1, function()
+    camera = nil
+    hold(tes3vector3.new(SITE.x - 700, SITE.y - 700, SITE.level + 500))
+  end)
+  step("a swamp disc and a disc with a registered colour", 6, function()
+    local swamp = tes3.getObject("wv_swamp_disc_1024")
+    pieces[1] = tes3.createReference({ object = swamp, position = { SITE.x, SITE.y, SITE.level }, orientation = { 0, 0, 0 }, cell = tes3.player.cell })
+    local object = tes3.getObject("wv_colour_registered") or tes3.createObject({ objectType = tes3.objectType.static, id = "wv_colour_registered", mesh = "wv\\wv_disc_1024.nif" })
+    interop.registerObject("wv_colour_registered", { depth = 512, color = { 0.78, 0.63, 0.13 } })
+    pieces[2] = tes3.createReference({ object = object, position = { SITE.x + 1300, SITE.y, SITE.level + 40 }, orientation = { 0, 0, 0 }, cell = tes3.player.cell })
+  end)
+  step("their colours", 3, function()
+    local swamp, registered = surfaceColor(pieces[1]), surfaceColor(pieces[2])
+    local red, green, blue = interop.parseColor("4a6b3c")
+    note(swamp ~= nil and sameColor(swamp, { red, green, blue }) and registered ~= nil and sameColor(registered, { 0.78, 0.63, 0.13 }),
+      "a placed swamp piece has the swamp colour, and a registered colour is on the surface of its piece",
+      string.format("swamp %s; registered %s", swamp and colorText(swamp) or "none", registered and colorText(registered) or "none"))
+  end)
+  view("colour a swamp disc and a registered colour over land", 3, tes3vector3.new(SITE.x + 650, SITE.y - 1700, SITE.level + 900), tes3vector3.new(SITE.x + 650, SITE.y, SITE.level))
+
+  step("clean up", 1, function()
+    camera, pin = nil, nil
+    event.unregister("enterFrame", onFrame)
+    for _, piece in ipairs(pieces) do piece:delete() end
+    interop.objects["wv_colour_registered"] = nil
+    interop.revision = interop.revision + 1
+    interop.setWorldWaterColor(nil)
+  end)
+  sequence(steps, say, after, function() done(rows) end)
+end
+
 function this.run(spec, say, after, done)
+  if spec.water == "colour" then
+    runColour(spec, say, after, done)
+    return
+  end
+  if spec.water == "probe" then
+    runProbe(spec, say, after, done)
+    return
+  end
+  if spec.water == "palace" or spec.water == "palacehold" then
+    runPalace(spec, say, after, done)
+    return
+  end
+  if spec.water == "palacescan" then
+    runPalaceScan(spec, say, after, done)
+    return
+  end
+  if spec.water == "mgecost" or spec.water == "mgecostquick" then
+    runRendererCost(spec, say, after, done)
+    return
+  end
   if spec.water == "solids" then
     runSolids(spec, say, after, done)
     return

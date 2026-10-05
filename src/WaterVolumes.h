@@ -35,6 +35,12 @@ namespace wv {
 
     bool remove(int id);
 
+    // Gives the water of a volume a colour: red, green and blue from 0 to 1. While the camera
+    // is under the surface of that volume, the colour, made as dark as the game's own
+    // underwater colour, is the game's underwater colour. Black takes the colour away. The colour of the surface is not set here: it is in the material
+    // of the mesh, where the renderer reads it.
+    bool setColor(int id, float red, float green, float blue);
+
     // How many volumes hold water now.
     size_t count();
 

@@ -11,6 +11,7 @@
 #include "TES3MobilePlayer.h"
 #include "TES3Reference.h"
 #include "TES3WaterController.h"
+#include "TES3WeatherController.h"
 #include "TES3WorldController.h"
 
 #include "NICamera.h"
@@ -50,6 +51,10 @@ namespace wv {
         NI::Matrix33 rotation;
         NI::Point3 translation;
         float scale = 0.0f;
+
+        // The colour of the water, for the view from under its surface. Black is the game's own.
+        NI::Point3 color = { 0.0f, 0.0f, 0.0f };
+        bool colored = false;
     };
 
     static std::unordered_map<int, std::unique_ptr<Volume>> volumes;
@@ -327,6 +332,17 @@ namespace wv {
         if (id == rendererVolumeId) {
             setRendererVolume(nullptr, 0.0f, 0.0f);
         }
+        return true;
+    }
+
+    bool setColor(int id, float red, float green, float blue) {
+        const auto itt = volumes.find(id);
+        if (itt == volumes.end()) {
+            return false;
+        }
+        auto& volume = *itt->second;
+        volume.color = { std::clamp(red, 0.0f, 1.0f), std::clamp(green, 0.0f, 1.0f), std::clamp(blue, 0.0f, 1.0f) };
+        volume.colored = volume.color.x > 0.0f || volume.color.y > 0.0f || volume.color.z > 0.0f;
         return true;
     }
 
@@ -620,12 +636,38 @@ namespace wv {
 
     const auto TES3_WeatherController_updateUnderwaterState = reinterpret_cast<void(__thiscall*)(void*, float, float)>(0x440AF0);
 
+    // While the camera is under the surface of a volume that has a colour, that colour is the
+    // game's underwater colour, made as dark as the game's own is: a colour whose brightest
+    // part is one half comes out as bright as the game's. The game's own is put back when the
+    // camera leaves.
+    static void setUnderwaterColor(TES3::WeatherController* weatherController, const Volume* volume) {
+        static bool changed = false;
+        static NI::Point3 gameColor;
+        if (volume != nullptr && volume->colored) {
+            if (!changed) {
+                gameColor = weatherController->underwaterCol;
+                changed = true;
+            }
+            const auto darkness = std::max({ gameColor.x, gameColor.y, gameColor.z }) / 0.5f;
+            weatherController->underwaterCol = {
+                std::min(volume->color.x * darkness, 1.0f),
+                std::min(volume->color.y * darkness, 1.0f),
+                std::min(volume->color.z * darkness, 1.0f),
+            };
+        }
+        else if (changed) {
+            weatherController->underwaterCol = gameColor;
+            changed = false;
+        }
+    }
+
     // The underwater state is decided against the height of the water plane node, so a camera
     // inside a volume is reported relative to that node.
     static void __fastcall updateUnderwaterState(void* weatherController, DWORD _UNUSED_, float cameraZ, float waterLevel) {
         float surface = 0.0f, floor = 0.0f;
         const auto volume = (anyVolumes && subject.position != nullptr) ? findVolume(subject.position, false, surface, floor) : nullptr;
         setRendererVolume(volume, surface, floor);
+        setUnderwaterColor(static_cast<TES3::WeatherController*>(weatherController), (volume != nullptr && subject.position->z < surface) ? volume : nullptr);
         if (volume != nullptr) {
             const auto dataHandler = TES3::DataHandler::get();
             const auto plane = dataHandler && dataHandler->waterController ? dataHandler->waterController->waterPlane : nullptr;

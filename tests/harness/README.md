@@ -43,21 +43,27 @@ The ones to run after a change to the plugin or to the Lua mod:
 | `interior` | A disc in an interior with water and in one without |
 | `streamai` | Where slaughterfish and rats go in a stream, a pond, a raised pond and the sea. It reports what it saw and judges nothing: read the lines |
 | `solids` | The four solids of the kit, placed by `demo/Water Volumes Solids Demo.esp`: water inside and none outside, the player swims inside each, pictures from 4,200 to 70,000 units away (far away they come from the distant land) |
+| `palace` | The mod `demo/Vivec Palace Water`, installed as a mod: the palace water has the new mesh, the surface on every tier is the raised one, there is none of it outside the parapets or beyond their openings, the player swims in every channel, the waterfalls carry the mark for the renderer; pictures near and from far away |
+| `colour` | Water of a colour, with `demo/Water Volumes Colours Demo.esp`: the cube in each palette has the colour on its surface, the view from inside has it as dark as the game's own underwater colour and the game's colour comes back outside, the water of the cell takes a colour from Lua while the cubes keep theirs, a registered colour is on its piece; pictures near, from inside and from 12,000 and 25,000 units away |
 | `riverdemo` | The demo river: one chain of pieces, corners of joined pieces on the same points, water all the way down the middle and not under the land, the player swims |
 
-The others measure cost (`stress`, `fishcost`, `citycost`, and `refcost`, which places 5000
+The others measure cost (`stress`, `fishcost`, `citycost`, `mgecost` and its short form
+`mgecostquick`, which time a frame at fixed views to set one build of the renderer against
+another, and `refcost`, which places 5000
 references of one kind per run: `refcost` none, `refcostplain` plain statics, `refcostnoswim`,
 `refcostwater`, and with a 0 at the end the same without actors), take pictures (`look`), hold the
-game open for a look by hand (the names that end in `hold`), or cover one case each (`grid`,
+game open for a look by hand (the names that end in `hold`), measure a place (`palacescan`:
+height maps of the tiers of the Palace of Vivec, from which the outlines of its water were
+made; `probe`: runs a Lua file and logs what it returns), or cover one case each (`grid`,
 `plugin`, `river`, `creatures`, `combat`, `ranged`, `swimdepth`, `fishair`). Each is described
 at its function in `water.lua`.
 
 `plugin` and `grid` need a plugin that `tools/make_demo_plugin.py` writes, given with
 `--water-plugin`.
 
-The scenarios that made whole vanilla buildings water (the palace, a canton, four cities, the
-shell of Ald-ruhn) are removed. They were written when a mesh could be water by its layers;
-a building is neither one sheet nor a closed mesh.
+The scenarios that made whole vanilla buildings water (a canton, four cities, the shell of
+Ald-ruhn) are removed. They were written when a mesh could be water by its layers; a
+building is neither one sheet nor a closed mesh. The palace is back with a mesh of its own.
 
 `docs/runs/` in this repository holds the output of runs. All logs but four are from the last
 build of 2026-10-05: one rule for the water, water only as a placed reference, the plugin

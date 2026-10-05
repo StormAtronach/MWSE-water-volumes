@@ -18,8 +18,12 @@ This repository holds the whole mod:
   scenarios that run in the game.
 - `demo/`: a river of kit pieces along a stretch of Foyada Mamaea, written by
   `tools/make_river_demo.py`, and the four solids of the kit in a row over the sea north of
-  Vas, written by `tools/make_demo_plugin.py --solids`. Load them after
-  `Water Volumes Kit.esp`.
+  Vas, written by `tools/make_demo_plugin.py --solids`, and the cube in every colour of the
+  kit, written with `--colours`. Load them after
+  `Water Volumes Kit.esp`. And `Vivec Palace Water`, a mod of its own: meshes that make the
+  water of the Palace of Vivec deep enough to swim in, written by
+  `tools/make_palace_water.py` from the game's meshes. It is the example of how to make
+  water of a mesh of the game.
 - `docs/runs/`: the output of the test runs.
 
 ## Requirements
@@ -105,7 +109,9 @@ reports an unresolved `NI::` symbol after the submodule moves, add the file that
 ## The kit
 
 `tools/make_kit.py` is the one place where the kit pieces are defined. It writes the meshes,
-the plugin, and `kit.json`, the list of the pieces with their sizes and joints. The demo
+the plugin, and `kit.json`, the list of the pieces with their sizes and joints. Its list
+`PALETTES` gives the colours in which the whole kit is written again; the colour of water is
+the emissive colour of the material of its surface, which the renderer reads. The demo
 script and the tests read that list.
 
 ```pwsh

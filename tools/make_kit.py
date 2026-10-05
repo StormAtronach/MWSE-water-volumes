@@ -10,6 +10,10 @@ This script is the one place where the pieces of the kit are defined. It writes
 Usage:
     python make_kit.py <Morrowind.esm>
 
+A palette is the whole kit again in one colour of water: the meshes in a folder of their own,
+Water Volumes/meshes/wv<letter>/, and one Static per piece with the name of the palette in
+its id. The palettes are listed in PALETTES below.
+
 Each mesh is a root with the text entry "NCO", a shape named WaterVolume for the surface, and a
 shape named WaterBody for the sides and the bottom of the water. The names are what makes the
 mesh water.
@@ -36,6 +40,13 @@ BODY_COLOR = (60, 120, 220, 90)
 SURFACE_TEXTURE = "Textures\\water\\water00.dds"
 RIVER_DEPTH = 256
 SEGMENTS = 12
+# The palettes: the name in the ids of the statics, the folder of the meshes beside "wv" (a
+# model path has room for 31 characters), and the colour of the water as red, green, blue.
+PALETTES = [
+    ("swamp", "wvs", (0x4a, 0x6b, 0x3c)),
+    ("mud", "wvm", (0x7a, 0x5a, 0x38)),
+    ("blood", "wvb", (0x8a, 0x10, 0x10)),
+]
 
 
 # --- the pieces -----------------------------------------------------------------------------------
@@ -272,7 +283,8 @@ def text_entry(text, following):
     return block("NiStringExtraData", struct.pack("<iI", following, len(text) + 4) + string(text))
 
 
-def mesh_of(piece):
+def mesh_of(piece, color=(0, 0, 0)):
+    """color is the colour of the water, red, green and blue to 255: the emissive colour."""
     points = piece["points"]
     body_vertices, body_normals, body_triangles = body_of(piece)
     # The place of every block in the file, in the order the blocks are written.
@@ -281,7 +293,7 @@ def mesh_of(piece):
         text_entry("NCO", -1),
         block("NiTriShape", av_object("WaterVolume", 2, [3, 4, 5, 6, 7, 8]) + struct.pack("<ii", 10, -1)),
         stencil_both_sides(),
-        material((0.0, 0.0, 0.0), 1.0),
+        material([c / 255.0 for c in color], 1.0),
         vertex_colors(),
         depth_test_no_write(),
         alpha_blend(),
@@ -382,14 +394,14 @@ def kit_solids():
     return solids
 
 
-def solid_mesh(solid):
+def solid_mesh(solid, color=(0, 0, 0)):
     vertices, normals, triangles = solid["shape"]
     blocks = [
         block("NiNode", av_object(solid["name"], 10, [], extra=1) + struct.pack("<Ii", 1, 2) + struct.pack("<I", 0)),
         text_entry("NCO", -1),
         block("NiTriShape", av_object("WaterVolume depth=0", 2, [3, 4, 5, 6, 7, 8]) + struct.pack("<ii", 10, -1)),
         stencil_both_sides(),
-        material((0.0, 0.0, 0.0), 1.0),
+        material([c / 255.0 for c in color], 1.0),
         vertex_colors(),
         depth_test_no_write(),
         alpha_blend(),
@@ -417,9 +429,14 @@ def zstr(text):
     return text.encode("cp1252") + b"\0"
 
 
-def write_plugin(master, names, output):
-    """One Static per piece and no references. A path in a plugin is relative to Meshes."""
-    records = [record("STAT", [sub("NAME", zstr(name)), sub("MODL", zstr("wv\\" + name + ".nif"))]) for name in names]
+def palette_id(name, palette):
+    """The id of the static of a piece in a palette: wv_square_1024 is wv_swamp_square_1024."""
+    return "wv_" + palette + name[2:]
+
+
+def write_plugin(master, statics, output):
+    """One Static per piece and no references. statics: ids with their paths, relative to Meshes."""
+    records = [record("STAT", [sub("NAME", zstr(name)), sub("MODL", zstr(path))]) for name, path in statics]
     description = b"Water Volumes kit: water pieces to place in the world. Needs the Water Volumes mod."
     header = struct.pack("<fI32s256sI", 1.3, 0, b"Water Volumes", description, len(records))
     tes3 = record("TES3", [
@@ -455,15 +472,27 @@ def main():
         with open(os.path.join(MESHES, solid["name"] + ".nif"), "wb") as handle:
             handle.write(solid_mesh(solid))
 
+    statics = [(p["name"], "wv\\" + p["name"] + ".nif") for p in pieces + solids]
+    for palette, folder, color in PALETTES:
+        os.makedirs(os.path.join(MESHES, "..", folder), exist_ok=True)
+        for piece in pieces + solids:
+            with open(os.path.join(MESHES, "..", folder, piece["name"] + ".nif"), "wb") as handle:
+                handle.write(mesh_of(piece, color) if "points" in piece else solid_mesh(piece, color))
+            statics.append((palette_id(piece["name"], palette), "%s\\%s.nif" % (folder, piece["name"])))
+    too_long = [path for _, path in statics if len(path) > 31]
+    if too_long:
+        raise SystemExit("model paths too long: %s" % ", ".join(too_long))
+
     manifest = {"gridLevel": 256, "gridDown": 64, "pieces": [
         {key: piece[key] for key in ("name", "depth", "points", "rows", "joint") if key in piece} for piece in pieces],
-        "solids": [{key: solid[key] for key in ("name", "min", "max")} for solid in solids]}
+        "solids": [{key: solid[key] for key in ("name", "min", "max")} for solid in solids],
+        "palettes": [{"name": palette, "folder": folder, "color": "%02x%02x%02x" % color} for palette, folder, color in PALETTES]}
     with open(MANIFEST, "w", encoding="ascii", newline="\n") as handle:
         json.dump(manifest, handle, separators=(",", ":"))
         handle.write("\n")
 
-    write_plugin(master, sorted(p["name"] for p in pieces + solids), PLUGIN)
-    print("%d meshes in %s" % (len(pieces) + len(solids), os.path.normpath(MESHES)))
+    write_plugin(master, sorted(statics), PLUGIN)
+    print("%d meshes in %s" % (len(statics), os.path.normpath(MESHES)))
     print("list of pieces in %s" % os.path.normpath(MANIFEST))
 
 

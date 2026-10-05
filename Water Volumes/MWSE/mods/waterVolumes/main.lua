@@ -73,6 +73,7 @@ end
 --- marker: the material marker for the renderer's water shading, or nil to keep the mesh's own look.
 --- swim: false for a mesh that only looks like water.
 --- solid: the mesh does not say that it has no collision, so the mod has to switch it off.
+--- color: the colour a registration gives the water, in place of the one in the mesh.
 local function getSettings(object, node)
     if settingsRevision ~= interop.revision then
         settingsByObject = {}
@@ -84,10 +85,12 @@ local function getSettings(object, node)
         return known or nil
     end
 
-    local depth, plain, skyOnly, noSwim
+    local depth, plain, skyOnly, noSwim, color
     local registered = interop.objects[id:lower()]
     if registered then
         depth, plain, skyOnly, noSwim = registered.depth, registered.plain == true, registered.skyOnly == true, registered.noSwim == true
+        local red, green, blue = interop.parseColor(registered.color)
+        color = red and niColor.new(red, green, blue)
     else
         local text = tagText(node)
         if text then
@@ -101,7 +104,7 @@ local function getSettings(object, node)
         end
     end
 
-    known = { depth = depth or interop.defaultDepth, swim = not noSwim, solid = not node:hasStringDataStartingWith("NCO") }
+    known = { depth = depth or interop.defaultDepth, swim = not noSwim, solid = not node:hasStringDataStartingWith("NCO"), color = color }
     if not plain then
         known.marker = skyOnly and interop.surfaceMarkerSkyOnly or interop.surfaceMarker
     end
@@ -180,8 +183,10 @@ end
 
 --- Hides the bodies, marks the surfaces for the renderer, and returns the base maps to
 --- animate. Everything under a WaterBody is body: an exporter may write one object as a group
---- of shapes, one per material.
-local function prepareNode(node, marker)
+--- of shapes, one per material. The colour of the water is the emissive colour of a marked
+--- surface: the one given, or else the one the mesh has. It comes back as "color" in the maps
+--- when it is not black.
+local function prepareNode(node, marker, color)
     local prefix = getSurfacePrefix()
     local maps = { owners = {} }
     local function walk(object)
@@ -194,8 +199,17 @@ local function prepareNode(node, marker)
             local material = object.materialProperty
             material = material and material:clone() or niMaterialProperty.new()
             material.shininess = marker
+            if color then
+                material.emissive = color
+            end
             object.materialProperty = material
             object:updateProperties()
+            if not maps.color then
+                local emissive = material.emissive
+                if emissive.r > 0 or emissive.g > 0 or emissive.b > 0 then
+                    maps.color = emissive
+                end
+            end
         end
 
         local property = object.texturingProperty
@@ -311,7 +325,8 @@ end
 --- Takes up the mesh of a tracked reference: the one it has now, which is not the one it had
 --- if the mesh was loaded anew.
 local function prepare(reference, entry, node)
-    local maps = prepareNode(node, entry.settings.marker)
+    local maps = prepareNode(node, entry.settings.marker, entry.settings.color)
+    entry.color = maps.color
     if #maps > 0 then
         loadFlip()
         animated[reference] = maps
@@ -359,6 +374,10 @@ local function track(reference, onlyIfActive)
     entry.id = interop.native.addReference(mwse.memory.convertFrom.tes3object(reference), settings.depth, settings.swim)
     if entry.id ~= 0 then
         byId[entry.id] = reference
+        local color = entry.color
+        if color then
+            interop.native.setColor(entry.id, color.r, color.g, color.b)
+        end
     end
 end
 

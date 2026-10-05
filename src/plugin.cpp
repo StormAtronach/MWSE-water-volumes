@@ -86,6 +86,16 @@ int remove_lua(lua_State* L) {
     return 1;
 }
 
+// watervolumes.setColor(id, red, green, blue) -> bool. The colour of the water
+// of a volume, each part from 0 to 1, for the view from under its surface.
+// Black takes the colour away.
+int setColor_lua(lua_State* L) {
+    const auto id = static_cast<int>(luaL_checknumber(L, 1));
+    const auto color = checkPoint(L, 2);
+    lua_pushboolean(L, wv::setColor(id, color.x, color.y, color.z) ? 1 : 0);
+    return 1;
+}
+
 // watervolumes.surfaceAt(x, y, z) -> height of the surface of the water the
 // point is in or over, or nil.
 int surfaceAt_lua(lua_State* L) {
@@ -124,6 +134,7 @@ extern "C" __declspec(dllexport) int luaopen_watervolumes(lua_State* L) {
     setCFunctionField(L, "addReference", &addReference_lua);
     setCFunctionField(L, "update", &update_lua);
     setCFunctionField(L, "remove", &remove_lua);
+    setCFunctionField(L, "setColor", &setColor_lua);
     setCFunctionField(L, "surfaceAt", &surfaceAt_lua);
     setCFunctionField(L, "count", &count_lua);
     setCFunctionField(L, "hookStatus", &hookStatus_lua);

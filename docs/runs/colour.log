@@ -1,0 +1,25 @@
+[harness.dump] magic effects resolved: 2808 spells, 13024 NPCs, 0 auto-calculated NPCs hold 0 spells, nothing applied
+[harness.dump] loading save 'quiksave.ess'
+[harness.dump] loaded, new game false, cell Vas
+[harness.dump] water: god mode on at load; player at 5874 185035 990, health 13, swimming false
+[harness.dump] water: 2 water pieces left in the save by earlier runs removed
+[harness.dump] PASS the surface of each cube has the emissive colour of its palette, and black for the usual one: usual: 0.000 0.000 0.000; swamp: 0.290 0.420 0.235; mud: 0.478 0.353 0.220; blood: 0.541 0.063 0.063
+[harness.dump] OBSERVED the game's underwater colour: 0.047 0.118 0.145
+[harness.dump] screenshot 2026-10-05 colour run 2 01 colour four cubes from the south.jpg
+[harness.dump] screenshot 2026-10-05 colour run 2 02 colour four cubes from above.jpg
+[harness.dump] screenshot 2026-10-05 colour run 2 03 colour from inside the cube usual.jpg
+[harness.dump] screenshot 2026-10-05 colour run 2 04 colour from inside the cube swamp.jpg
+[harness.dump] screenshot 2026-10-05 colour run 2 05 colour from inside the cube mud.jpg
+[harness.dump] screenshot 2026-10-05 colour run 2 06 colour from inside the cube blood.jpg
+[harness.dump] PASS inside a cube of a colour the game's underwater colour is that colour, as dark as the game's own; inside the usual one it is the game's own: usual: 0.047 0.118 0.145, swimming true; swamp: 0.084 0.122 0.068, swimming true; mud: 0.139 0.102 0.064, swimming true; blood: 0.157 0.018 0.018, swimming true
+[harness.dump] PASS out of the water the game's underwater colour is back: 0.047 0.118 0.145
+[harness.dump] screenshot 2026-10-05 colour run 2 07 colour the sea as it is, cubes above.jpg
+[harness.dump] PASS the water of the cell has its colour, and every cube still has its own: water of the cell 0.180 0.545 0.341; cubes kept true
+[harness.dump] screenshot 2026-10-05 colour run 2 08 colour the sea in green, cubes above.jpg
+[harness.dump] PASS without a colour the water of the cell is black in its material again: 0.000 0.000 0.000
+[harness.dump] screenshot 2026-10-05 colour run 2 09 colour the sea as it is again.jpg
+[harness.dump] screenshot 2026-10-05 colour run 2 10 colour four cubes from 12000.jpg
+[harness.dump] screenshot 2026-10-05 colour run 2 11 colour four cubes from 25000.jpg
+[harness.dump] PASS a placed swamp piece has the swamp colour, and a registered colour is on the surface of its piece: swamp 0.290 0.420 0.235; registered 0.780 0.630 0.130
+[harness.dump] screenshot 2026-10-05 colour run 2 12 colour a swamp disc and a registered colour over land.jpg
+[harness.dump] DONE
