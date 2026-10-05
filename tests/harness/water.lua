@@ -4342,6 +4342,7 @@ local function runPalace(spec, say, after, done)
   end
   local function view(name, settle, from, to, hold)
     step("set up: " .. name, 1.5, function()
+      tes3.changeWeather({ id = 0, immediate = true })
       camera = { position = from, target = to }
       if hold then
         pin = hold
@@ -4476,6 +4477,9 @@ local function runPalace(spec, say, after, done)
   view("palace from the south east", 3, tes3vector3.new(c.x + 4200, c.y - 4600, c.z + 1900), tes3vector3.new(c.x, c.y - 400, c.z + 600), hold)
   view("palace from above", 3, tes3vector3.new(c.x + 300, c.y - 1900, c.z + 4200), tes3vector3.new(c.x, c.y - 400, c.z), hold)
   -- From far away the palace is drawn from the distant land data.
+  -- Near the lowest channel and beyond the distance to which the game draws: the far water lies
+  -- beside the sloped wall, which it reflects out to the renderer's reflection distance.
+  view("palace east channel from 8500 east", 8, tes3vector3.new(c.x + 11000, c.y - 400, c.z + 1500), tes3vector3.new(c.x + 2528, c.y - 400, tiers[1].level), tes3vector3.new(c.x + 11000, c.y - 400, 1900))
   view("palace from 9000 south east", 8, tes3vector3.new(c.x + 6400, c.y - 6800, c.z + 2600), tes3vector3.new(c.x, c.y - 400, c.z + 600), tes3vector3.new(c.x + 6400, c.y - 6800, 3000))
   view("palace from 20000 south", 10, tes3vector3.new(c.x + 3000, c.y - 20000, c.z + 3600), tes3vector3.new(c.x, c.y - 400, c.z + 600), tes3vector3.new(c.x + 3000, c.y - 20000, 4000))
 
