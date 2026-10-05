@@ -17,7 +17,9 @@ This repository holds the whole mod:
 - `tests/`: the tests of the geometry, which run without the game, and a copy of the
   scenarios that run in the game.
 - `demo/`: a river of kit pieces along a stretch of Foyada Mamaea, written by
-  `tools/make_river_demo.py`. Load it after `Water Volumes Kit.esp`.
+  `tools/make_river_demo.py`, and the four solids of the kit in a row over the sea north of
+  Vas, written by `tools/make_demo_plugin.py --solids`. Load them after
+  `Water Volumes Kit.esp`.
 - `docs/runs/`: the output of the test runs.
 
 ## Requirements
@@ -125,6 +127,16 @@ ctest --test-dir build\win32-release -C Release
 ```
 
 In the game: `tests/harness/` holds the scenarios and says how they are run.
+
+## Water far away
+
+Beyond the game's own view distance MGE XE draws from its distant land data. Its generator
+reads `Water Volumes/distantwater.toml` from the data folder: the names that mark the surface
+and the body of the water in a mesh, and meshes that are water without such a name. The file
+has the format of MGE XE's plugin metadata and carries a version of its own, so the rules can
+change with this mod. A water surface becomes a distant static with a water flag, which the
+renderer draws with the water shading in place of its texture. This needs the MGE XE G7 build
+named under "Requirements"; an older build does not read the file.
 
 ## Not together with a patched MWSE
 

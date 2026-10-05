@@ -16,11 +16,15 @@ the one it knows, the mod does nothing and says why in `MWSE.log`, on a line tha
 
 ## Using it
 
-`Water Volumes Kit.esp` has a Static for each of the 33 kit meshes: squares, discs, corners,
-and river pieces that join without a gap. Place a piece in the Construction Set at the height
+`Water Volumes Kit.esp` has a Static for each of the 37 kit meshes: squares, discs, corners,
+river pieces that join without a gap, and four solids (sphere, cube, pyramid, octahedron).
+Place a piece in the Construction Set at the height
 the water should have. Each placed piece is an ordinary reference: disable it, enable it or
 move it, from a script or from Lua, and the water follows.
 
 Everything else is in `GUIDE-construction-set.md`: the kit, how the pieces snap together, a
 pond and a river step by step, how the surface looks, your own mesh, making a piece in
-Blender, a mesh you cannot edit, and the limits.
+Blender, a mesh you cannot edit, water far away, and the limits.
+
+`distantwater.toml` holds the rules by which MGE XE's distant land knows a water mesh. It is
+part of the mod; keep it in the data folder.

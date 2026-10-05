@@ -10,6 +10,11 @@ Usage:
     python make_demo_plugin.py <Morrowind.esm> <output.esp> --grid     that disc, and one high in
                                                                        the air over each of the
                                                                        next three cells to the east
+    python make_demo_plugin.py <Morrowind.esm> <output.esp> --solids   the four solids of the kit,
+                                                                       in a row high over the sea
+                                                                       north of Vas
+
+--solids places the Statics of "Water Volumes Kit.esp"; load the output after that plugin.
 """
 import os
 import struct
@@ -18,6 +23,10 @@ import sys
 MESH = "wv\\wv_disc_1024.nif"
 SITE = (7060.0, 186303.0, 620.0)
 CELL_SIZE = 8192.0
+# The solids of the kit, 3072 apart in a row that runs east, 2048 over the sea north of Vas.
+SOLIDS = ("wv_sphere_1024", "wv_cube_1024", "wv_pyramid_1024", "wv_octa_1024")
+SOLIDS_SITE = (2048.0, 200704.0, 2048.0)
+SOLIDS_STEP = 3072.0
 
 
 def sub(name, data):
@@ -73,15 +82,21 @@ def main():
     master, output = args[0], args[1]
     grid = "--grid" in sys.argv
 
+    solids = "--solids" in sys.argv
     placements = [("wv_demo_disc", SITE)]
     if grid:
         for step in (1, 2, 3):
             placements.append(("wv_demo_disc%d" % step, (SITE[0] + step * CELL_SIZE, SITE[1], 1500.0)))
+    if solids:
+        placements = [(name, (SOLIDS_SITE[0] + index * SOLIDS_STEP, SOLIDS_SITE[1], SOLIDS_SITE[2]))
+                      for index, name in enumerate(SOLIDS)]
 
     cells = exterior_cells(master)
     records = []
     for static_id, _ in placements:
-        records.append(record("STAT", [sub("NAME", zstr(static_id)), sub("MODL", zstr(MESH))]))
+        # The solids are Statics of the kit plugin already.
+        if not solids:
+            records.append(record("STAT", [sub("NAME", zstr(static_id)), sub("MODL", zstr(MESH))]))
 
     by_cell = {}
     for static_id, (x, y, z) in placements:
@@ -105,12 +120,12 @@ def main():
         print("cell %d,%d (%s): %s" % (grid_x, grid_y, name.rstrip(b"\0").decode("cp1252") or "unnamed",
                                        ", ".join("%s at %.0f, %.0f, %.0f" % r for r in refs)))
 
-    header = struct.pack("<fI32s256sI", 1.3, 0, b"Water Volumes", b"Demo: kit discs placed near Vas.", len(records))
-    tes3 = record("TES3", [
-        sub("HEDR", header),
-        sub("MAST", zstr(os.path.basename(master))),
-        sub("DATA", struct.pack("<Q", os.path.getsize(master))),
-    ])
+    header = struct.pack("<fI32s256sI", 1.3, 0, b"Water Volumes", b"Demo: kit pieces placed near Vas.", len(records))
+    masters = [sub("MAST", zstr(os.path.basename(master))), sub("DATA", struct.pack("<Q", os.path.getsize(master)))]
+    if solids:
+        kit = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "Water Volumes", "Water Volumes Kit.esp")
+        masters += [sub("MAST", zstr(os.path.basename(kit))), sub("DATA", struct.pack("<Q", os.path.getsize(kit)))]
+    tes3 = record("TES3", [sub("HEDR", header)] + masters)
     with open(output, "wb") as handle:
         handle.write(tes3 + b"".join(records))
     print("wrote %s" % output)

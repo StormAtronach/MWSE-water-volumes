@@ -13,6 +13,10 @@ Usage:
 Each mesh is a root with the text entry "NCO", a shape named WaterVolume for the surface, and a
 shape named WaterBody for the sides and the bottom of the water. The names are what makes the
 mesh water.
+
+The solids (sphere, cube, pyramid, octahedron) stand free. Their one shape is closed and is
+drawn as water on every side; its name, "WaterVolume depth=0", says that the mesh is taken as
+it is, with no bottom added.
 """
 import json
 import math
@@ -297,6 +301,107 @@ def mesh_of(piece):
     return header + b"".join(blocks) + struct.pack("<Ii", 1, 0)
 
 
+# --- solids ---------------------------------------------------------------------------------------
+
+def flat_solid(faces):
+    """Vertices, normals and triangles of a solid with flat faces. Each face has its own corners."""
+    vertices, normals, triangles = [], [], []
+    for face in faces:
+        a, b, c = face[0], face[1], face[2]
+        u = [b[i] - a[i] for i in range(3)]
+        v = [c[i] - a[i] for i in range(3)]
+        n = [u[1] * v[2] - u[2] * v[1], u[2] * v[0] - u[0] * v[2], u[0] * v[1] - u[1] * v[0]]
+        length = math.sqrt(sum(x * x for x in n))
+        n = [x / length for x in n]
+        first = len(vertices)
+        for corner in face:
+            vertices.append([float(x) for x in corner])
+            normals.append(n)
+        for i in range(1, len(face) - 1):
+            triangles.append([first, first + i, first + i + 1])
+    return vertices, normals, triangles
+
+
+def kit_solids():
+    """Closed bodies of water that stand free. Each is one closed shape."""
+    solids = []
+
+    # Sphere, radius 1024, origin at its centre.
+    radius, rings, segments = 1024.0, 16, 32
+    vertices, normals, triangles = [[0.0, 0.0, radius]], [[0.0, 0.0, 1.0]], []
+    for ring in range(1, rings):
+        polar = math.pi * ring / rings
+        for segment in range(segments):
+            around = 2 * math.pi * segment / segments
+            n = [math.sin(polar) * math.cos(around), math.sin(polar) * math.sin(around), math.cos(polar)]
+            normals.append(n)
+            vertices.append([radius * x for x in n])
+    vertices.append([0.0, 0.0, -radius])
+    normals.append([0.0, 0.0, -1.0])
+    last = len(vertices) - 1
+    for segment in range(segments):
+        following = (segment + 1) % segments
+        triangles.append([0, 1 + segment, 1 + following])
+        triangles.append([last, last - segments + following, last - segments + segment])
+        for ring in range(rings - 2):
+            a = 1 + ring * segments + segment
+            b = 1 + ring * segments + following
+            triangles.append([a, a + segments, b + segments])
+            triangles.append([a, b + segments, b])
+    solids.append({"name": "wv_sphere_1024", "shape": (vertices, normals, triangles)})
+
+    # Cube, side 1024, origin at the middle of its base.
+    h, s = 512.0, 1024.0
+    low = [(-h, -h, 0), (h, -h, 0), (h, h, 0), (-h, h, 0)]
+    high = [(x, y, s) for x, y, _ in low]
+    faces = [list(reversed(low)), high]
+    for i in range(4):
+        j = (i + 1) % 4
+        faces.append([low[i], low[j], high[j], high[i]])
+    solids.append({"name": "wv_cube_1024", "shape": flat_solid(faces)})
+
+    # Pyramid, base 1024 by 1024, 1024 high, origin at the middle of its base.
+    apex = (0, 0, s)
+    faces = [list(reversed(low))] + [[low[i], low[(i + 1) % 4], apex] for i in range(4)]
+    solids.append({"name": "wv_pyramid_1024", "shape": flat_solid(faces)})
+
+    # Octahedron, corners 1024 from its centre, origin at its centre.
+    r = 1024.0
+    ring = [(r, 0, 0), (0, r, 0), (-r, 0, 0), (0, -r, 0)]
+    faces = []
+    for i in range(4):
+        j = (i + 1) % 4
+        faces.append([ring[i], ring[j], (0, 0, r)])
+        faces.append([ring[j], ring[i], (0, 0, -r)])
+    solids.append({"name": "wv_octa_1024", "shape": flat_solid(faces)})
+
+    for solid in solids:
+        vertices = solid["shape"][0]
+        solid["min"] = [min(v[i] for v in vertices) for i in range(3)]
+        solid["max"] = [max(v[i] for v in vertices) for i in range(3)]
+    return solids
+
+
+def solid_mesh(solid):
+    vertices, normals, triangles = solid["shape"]
+    blocks = [
+        block("NiNode", av_object(solid["name"], 10, [], extra=1) + struct.pack("<Ii", 1, 2) + struct.pack("<I", 0)),
+        text_entry("NCO", -1),
+        block("NiTriShape", av_object("WaterVolume depth=0", 2, [3, 4, 5, 6, 7, 8]) + struct.pack("<ii", 10, -1)),
+        stencil_both_sides(),
+        material((0.0, 0.0, 0.0), 1.0),
+        vertex_colors(),
+        depth_test_no_write(),
+        alpha_blend(),
+        texturing(9),
+        source_texture(SURFACE_TEXTURE),
+        block("NiTriShapeData", shape_data(vertices, normals, SURFACE_COLOR,
+                                           [[v[0] / UV_SCALE, v[1] / UV_SCALE] for v in vertices], triangles)),
+    ]
+    header = b"NetImmerse File Format, Version 4.0.0.2\n" + struct.pack("<II", 0x04000002, len(blocks))
+    return header + b"".join(blocks) + struct.pack("<Ii", 1, 0)
+
+
 # --- the plugin ---------------------------------------------------------------------------------------
 
 def sub(name, data):
@@ -332,28 +437,33 @@ def main():
         raise SystemExit(__doc__)
     master = sys.argv[1]
     pieces = kit_pieces()
+    solids = kit_solids()
     # The game keeps a model path in 32 bytes, the closing zero included.
-    too_long = [p["name"] for p in pieces if len("wv/" + p["name"] + ".nif") > 31]
+    too_long = [p["name"] for p in pieces + solids if len("wv/" + p["name"] + ".nif") > 31]
     if too_long:
         raise SystemExit("mesh names too long for a model path: %s" % ", ".join(too_long))
 
     os.makedirs(MESHES, exist_ok=True)
-    wanted = {p["name"].lower() + ".nif" for p in pieces}
+    wanted = {p["name"].lower() + ".nif" for p in pieces + solids}
     stale = [f for f in os.listdir(MESHES) if f.lower().endswith(".nif") and f.lower() not in wanted]
     if stale:
         raise SystemExit("meshes in %s that are not pieces of the kit; remove them first: %s" % (MESHES, ", ".join(stale)))
     for piece in pieces:
         with open(os.path.join(MESHES, piece["name"] + ".nif"), "wb") as handle:
             handle.write(mesh_of(piece))
+    for solid in solids:
+        with open(os.path.join(MESHES, solid["name"] + ".nif"), "wb") as handle:
+            handle.write(solid_mesh(solid))
 
     manifest = {"gridLevel": 256, "gridDown": 64, "pieces": [
-        {key: piece[key] for key in ("name", "depth", "points", "rows", "joint") if key in piece} for piece in pieces]}
+        {key: piece[key] for key in ("name", "depth", "points", "rows", "joint") if key in piece} for piece in pieces],
+        "solids": [{key: solid[key] for key in ("name", "min", "max")} for solid in solids]}
     with open(MANIFEST, "w", encoding="ascii", newline="\n") as handle:
         json.dump(manifest, handle, separators=(",", ":"))
         handle.write("\n")
 
-    write_plugin(master, sorted(p["name"] for p in pieces), PLUGIN)
-    print("%d meshes in %s" % (len(pieces), os.path.normpath(MESHES)))
+    write_plugin(master, sorted(p["name"] for p in pieces + solids), PLUGIN)
+    print("%d meshes in %s" % (len(pieces) + len(solids), os.path.normpath(MESHES)))
     print("list of pieces in %s" % os.path.normpath(MANIFEST))
 
 

@@ -38,10 +38,18 @@ depends on it.
 | `wv_riv_1024_sway_e`, `wv_riv_1024_sway_w` | The same, larger | 1024 wide, 2048 long, 512 sideways | 256 |
 | `wv_riv_taper_512_1024` | Stretch that widens | 512 to 1024 wide, 1024 long | 256 |
 | `wv_riv_512_end`, `wv_riv_1024_end` | Rounded end of a stream | 512, 1024 wide | 256 |
+| `wv_sphere_1024` | Sphere of water that stands free | radius 1024, origin at its centre | all of it |
+| `wv_cube_1024` | Cube of water | side 1024, origin at the middle of its base | all of it |
+| `wv_pyramid_1024` | Pyramid of water | base 1024 by 1024, 1024 high, origin at the middle of its base | all of it |
+| `wv_octa_1024` | Octahedron of water | corners 1024 from its centre, origin at its centre | all of it |
 
 Each piece is a closed body of water: the surface on top, and a blue box for its sides and
 bottom. The box is the water. What you see in the render window is where actors will swim.
 In the game the box is not drawn; only the surface is.
+
+The last four are solids. A solid is one closed shape that is drawn as water on every side,
+and the water is what is inside it. Its shape is named `WaterVolume depth=0`: the mesh is
+taken as it is. Put one anywhere, also in the air.
 
 - Scaling a reference scales the body: at 0.5 a piece is half as wide and half as deep.
   Scaled pieces no longer fit the grid described below.
@@ -266,8 +274,8 @@ mod closes `depth` below. A mesh that carries its surface twice does not work.
 
 ## Limits
 
-- A piece is water while its cell is one of the loaded cells around the player. Keep each
-  piece inside one cell. Far away it is drawn with its own texture, not as water.
+- A piece is water to swim in while its cell is one of the loaded cells around the player.
+  Keep each piece inside one cell. Far away it is still drawn as water; see "Water far away".
 - Water has no sides of its own. Where a piece stands free of terrain and walls, the player
   and walking creatures can step out of its side and fall. Fish stay in.
 - No current: the water does not push anything, and the kit texture does not flow.
@@ -275,6 +283,30 @@ mod closes `depth` below. A mesh that carries its surface twice does not work.
   where the view under water matters.
 - Walking creatures do not follow into the water. Rats stay out, as they do at the sea.
 - Scripts that read the water level get the level of the cell, not of a piece.
+
+## Water far away
+
+MGE XE draws things far away from its distant land data, which it builds when the game
+starts. The file `distantwater.toml` of this mod tells it which meshes are water. With it, a
+piece far away is drawn as water too, and not with its own texture.
+
+- A mesh whose surface is named `WaterVolume`, or that has a `WaterBody`, needs nothing more.
+  The words `plain` and `skyonly` in the name count far away as well.
+- A mesh that a Lua mod made water by its id has no such name. Put a line for it into
+  `distantwater.toml`, or into the metadata file of the plugin that places it
+  (`<plugin name>-metadata.toml`, beside the plugin):
+
+  ```toml
+  [tools.mge-xe.distantland.statics]
+  'x\ex_my_pond.nif' = { water = true }
+  ```
+
+- Far water reflects the sky. Out to 8 cells from the player it also reflects what is on
+  screen; `distant_land.water.volume_reflection_cells` in the MGE XE settings changes that
+  distance, and 0 turns it off.
+- As for all distant things, a small piece is not drawn very far away. The same line can
+  change that: `{ type = "very_far" }`.
+- Nobody swims in far water, and it does not take part in the reflection on the sea.
 
 ## When it does not work
 

@@ -1,0 +1,28 @@
+# Rules for distant water, for the distant land generator of MGE XE.
+#
+# This file belongs to the Water Volumes mod and is versioned with it. The generator finds it
+# in the data folder. It has the format of a plugin metadata file ("<plugin>-metadata.toml"),
+# so the same tables can also be in the metadata file of any plugin, and a plugin's own file
+# overrides this one.
+
+[tools.mge-xe.distantland.water]
+# Version of these rules. A generator that does not know the version leaves the names out.
+version = 1
+# A shape or node whose name starts with one of these is the surface of the water. A mesh that
+# has one is drawn as water far away. The first such name also carries the words below.
+surface_names = ["WaterVolume"]
+# Everything under a shape or node whose name starts with one of these is the body of the
+# water. The game hides it; the distant mesh leaves it out. A mesh that has one is water.
+body_names = ["WaterBody"]
+# With one of these words in the surface name the mesh keeps its own look, near and far.
+plain_words = ["plain"]
+# With one of these words in the surface name the water reflects the sky only.
+sky_only_words = ["skyonly"]
+
+# A mesh that a Lua mod made water with waterVolumes.interop.registerObject has no such names.
+# Register it here as well, or in the metadata file of the plugin that places it:
+#
+# [tools.mge-xe.distantland.statics]
+# 'x\ex_my_pond.nif' = { water = true }
+#
+# "water = false" says that a mesh is not distant water, whatever its names say.

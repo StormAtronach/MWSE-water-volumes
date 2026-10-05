@@ -1,0 +1,57 @@
+[harness.dump] magic effects resolved: 2808 spells, 13024 NPCs, 0 auto-calculated NPCs hold 0 spells, nothing applied
+[harness.dump] loading save 'quiksave.ess'
+[harness.dump] loaded, new game false, cell Vas
+[harness.dump] water: god mode on at load; player at 5874 185035 990, health 13, swimming false
+[harness.dump] water: 2 water pieces left in the save by earlier runs removed
+[harness.dump] step 1 of 25: god mode on, clear noon, to the row of solids
+[harness.dump] step 2 of 25: the solids are water
+[harness.dump] PASS wv_sphere_1024 holds water inside and none outside: at its middle the surface is 3072, expected 3072; beside it nil; under it nil; ground under it -296
+[harness.dump] PASS wv_cube_1024 holds water inside and none outside: at its middle the surface is 3072, expected 3072; beside it nil; under it nil; ground under it 32
+[harness.dump] PASS wv_pyramid_1024 holds water inside and none outside: at its middle the surface is 3072, expected 3072; beside it nil; under it nil; ground under it 504
+[harness.dump] PASS wv_octa_1024 holds water inside and none outside: at its middle the surface is 3072, expected 3072; beside it nil; under it nil; ground under it 72
+[harness.dump] PASS every solid is one volume: 4 of 4 solids found, 4 volumes hold water
+[harness.dump] step 3 of 25: the player into wv_sphere_1024
+[harness.dump] step 4 of 25: the player swims in wv_sphere_1024
+[harness.dump] PASS the player swims inside wv_sphere_1024: 4 s after being put in its middle: at 2048 200704 1962, water surface over the player 3072, swimming true, underwater true
+[harness.dump] screenshot <home>/OneDrive/Morrowind water volumes screenshots/2026-10-05 solids 01 solids inside 1 wv_sphere_1024.jpg
+[harness.dump] step 5 of 25: the player into wv_cube_1024
+[harness.dump] step 6 of 25: the player swims in wv_cube_1024
+[harness.dump] PASS the player swims inside wv_cube_1024: 4 s after being put in its middle: at 5120 200704 2500, water surface over the player 3072, swimming true, underwater true
+[harness.dump] screenshot <home>/OneDrive/Morrowind water volumes screenshots/2026-10-05 solids 02 solids inside 2 wv_cube_1024.jpg
+[harness.dump] step 7 of 25: the player into wv_pyramid_1024
+[harness.dump] step 8 of 25: the player swims in wv_pyramid_1024
+[harness.dump] PASS the player swims inside wv_pyramid_1024: 4 s after being put in its middle: at 8192 200704 2500, water surface over the player 3072, swimming true, underwater true
+[harness.dump] screenshot <home>/OneDrive/Morrowind water volumes screenshots/2026-10-05 solids 03 solids inside 3 wv_pyramid_1024.jpg
+[harness.dump] step 9 of 25: the player into wv_octa_1024
+[harness.dump] step 10 of 25: the player swims in wv_octa_1024
+[harness.dump] PASS the player swims inside wv_octa_1024: 4 s after being put in its middle: at 11264 200704 1988, water surface over the player 3072, swimming true, underwater true
+[harness.dump] screenshot <home>/OneDrive/Morrowind water volumes screenshots/2026-10-05 solids 04 solids inside 4 wv_octa_1024.jpg
+[harness.dump] step 11 of 25: set up: from 4200
+[harness.dump] step 12 of 25: photograph: from 4200
+[harness.dump] OBSERVED from 4200: 4 volumes hold water; player cell 0,23
+[harness.dump] screenshot <home>/OneDrive/Morrowind water volumes screenshots/2026-10-05 solids 05 solids from 4200.jpg
+[harness.dump] step 13 of 25: set up: from 6800
+[harness.dump] step 14 of 25: photograph: from 6800
+[harness.dump] OBSERVED from 6800: 4 volumes hold water; player cell 0,23
+[harness.dump] screenshot <home>/OneDrive/Morrowind water volumes screenshots/2026-10-05 solids 06 solids from 6800.jpg
+[harness.dump] step 15 of 25: set up: from 10000
+[harness.dump] step 16 of 25: photograph: from 10000
+[harness.dump] OBSERVED from 10000: 4 volumes hold water; player cell 0,23
+[harness.dump] screenshot <home>/OneDrive/Morrowind water volumes screenshots/2026-10-05 solids 07 solids from 10000.jpg
+[harness.dump] step 17 of 25: set up: from 20000
+[harness.dump] step 18 of 25: photograph: from 20000
+[harness.dump] OBSERVED from 20000: 0 volumes hold water; player cell 0,22
+[harness.dump] screenshot <home>/OneDrive/Morrowind water volumes screenshots/2026-10-05 solids 08 solids from 20000.jpg
+[harness.dump] step 19 of 25: set up: from 40000
+[harness.dump] step 20 of 25: photograph: from 40000
+[harness.dump] OBSERVED from 40000: 0 volumes hold water; player cell 0,19
+[harness.dump] screenshot <home>/OneDrive/Morrowind water volumes screenshots/2026-10-05 solids 09 solids from 40000.jpg
+[harness.dump] step 21 of 25: set up: from 70000
+[harness.dump] step 22 of 25: photograph: from 70000
+[harness.dump] OBSERVED from 70000: 0 volumes hold water; player cell 0,15
+[harness.dump] screenshot <home>/OneDrive/Morrowind water volumes screenshots/2026-10-05 solids 10 solids from 70000.jpg
+[harness.dump] step 23 of 25: set up: along the row from the west
+[harness.dump] step 24 of 25: photograph: along the row from the west
+[harness.dump] screenshot <home>/OneDrive/Morrowind water volumes screenshots/2026-10-05 solids 11 solids along the row from 12000 west.jpg
+[harness.dump] step 25 of 25: clean up
+[harness.dump] DONE

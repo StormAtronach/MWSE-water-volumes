@@ -35,13 +35,14 @@ The ones to run after a change to the plugin or to the Lua mod:
 | Scenario | What it checks |
 | --- | --- |
 | `test` | A kit disc placed as a reference: footprint, swimming, disable and enable, moving it, and that all hooks are in place |
-| `marker` | The kit: all 33 statics exist, the body is hidden and only the surface carries the mark for the renderer, the depth is that of the body, scale, the shallow and the falling pieces |
+| `marker` | The kit: all 33 flat pieces exist as statics, the body is hidden and only the surface carries the mark for the renderer, the depth is that of the body, scale, the shallow and the falling pieces |
 | `joints` | Kit pieces placed end to end leave no gap in the water |
 | `tilt` | A closed body holds exactly the water inside the mesh at many tilts |
 | `blender` | A mesh as Blender exports it: tagged by name, grouped body, collision switched off by the mod, the save written without that switch, a registration made late |
 | `saveload` | Volumes after a save and a load, in exteriors and in interiors |
 | `interior` | A disc in an interior with water and in one without |
 | `streamai` | Where slaughterfish and rats go in a stream, a pond, a raised pond and the sea. It reports what it saw and judges nothing: read the lines |
+| `solids` | The four solids of the kit, placed by `demo/Water Volumes Solids Demo.esp`: water inside and none outside, the player swims inside each, pictures from 4,200 to 70,000 units away (far away they come from the distant land) |
 | `riverdemo` | The demo river: one chain of pieces, corners of joined pieces on the same points, water all the way down the middle and not under the land, the player swims |
 
 The others measure cost (`stress`, `fishcost`, `citycost`, and `refcost`, which places 5000

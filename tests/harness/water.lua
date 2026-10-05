@@ -3914,7 +3914,163 @@ local function runRefCost(spec, say, after, done)
   sequence(steps, say, after, function() done(rows) end)
 end
 
+-------------------------------------------------------------------------------
+-- Solids: the sphere, the cube, the pyramid and the octahedron of the kit, placed by a plugin in
+-- a row high over the sea, checked as water and photographed from near and from far. Far away
+-- they are drawn from the distant statics, so the pictures show the distant water as well.
+-------------------------------------------------------------------------------
+
+local function runSolids(spec, say, after, done)
+  local rows = {}
+  local function note(ok, name, detail)
+    rows[#rows + 1] = { ok = ok, name = name, detail = detail }
+    say("%s %s: %s", ok and "PASS" or "FAIL", name, detail)
+  end
+  local function observed(name, detail)
+    rows[#rows + 1] = { ok = true, name = name, detail = detail }
+    say("OBSERVED %s: %s", name, detail)
+  end
+
+  local interop = require("waterVolumes.interop")
+  local controller = waterController()
+  local directory = spec.waterShotDir or runDirectory(spec)
+  local prefix = spec.waterShotPrefix or ""
+  local shots = 0
+  local steps = {}
+  local function step(name, wait, run) steps[#steps + 1] = { name = name, wait = wait, run = run } end
+  local function shot(name)
+    shots = shots + 1
+    local path = string.format("%s/%s%02d %s.jpg", directory, prefix, shots, name)
+    os.remove(path)
+    mge.saveScreenshot({ path = path })
+    say("screenshot %s", path)
+  end
+  local function clearSky() tes3.changeWeather({ id = 0, immediate = true }) end
+
+  local manifest = json.loadfile("mods\\waterVolumes\\kit")
+  local solids = manifest and manifest.solids or {}
+  local placed = {}
+  local middle
+  local pin
+  local function onFrame()
+    if pin and tes3.player.position:distance(pin) > 40 then
+      tes3.positionCell({ reference = tes3.player, position = { pin.x, pin.y, pin.z } })
+    end
+  end
+  local function lookFrom(position, target)
+    clearSky()
+    camera = { position = position, target = target }
+    pin = position - tes3vector3.new(0, 0, 130)
+    tes3.positionCell({ reference = tes3.player, position = { pin.x, pin.y, pin.z } })
+  end
+
+  -- Where the plugin puts the row: tools/make_demo_plugin.py --solids.
+  local SITE = tes3vector3.new(2048, 200704, 2048)
+  local STEP = 3072
+
+  step("god mode on, clear noon, to the row of solids", 1, function()
+    if not controller.volumesSupported then error("water volumes are not available") end
+    if #solids == 0 then error("the list of kit pieces has no solids") end
+    tes3.mobilePlayer.vanityDisabled = true
+    tes3.setVanityMode({ enabled = false, checkVanityDisabled = false })
+    tes3.worldController.menuController.godModeEnabled = true
+    tes3.worldController.hour.value = 13
+    tes3.force1stPerson()
+    event.register("enterFrame", onFrame)
+    middle = SITE + tes3vector3.new(STEP * (#solids - 1) / 2, 0, 512)
+    pin = middle + tes3vector3.new(0, -3000, 300)
+    tes3.positionCell({ reference = tes3.player, position = { pin.x, pin.y, pin.z } })
+    clearSky()
+  end)
+
+  step("the solids are water", 5, function()
+    for _, cell in ipairs(tes3.getActiveCells()) do
+      for reference in cell:iterateReferences(tes3.objectType.static) do
+        for _, solid in ipairs(solids) do
+          if reference.baseObject.id:lower() == solid.name and not reference.disabled then
+            placed[solid.name] = reference
+          end
+        end
+      end
+    end
+    local found = 0
+    for _, solid in ipairs(solids) do
+      local reference = placed[solid.name]
+      if reference then
+        found = found + 1
+        local p = reference.position
+        local cx, cy, cz = (solid.min[1] + solid.max[1]) / 2, (solid.min[2] + solid.max[2]) / 2, (solid.min[3] + solid.max[3]) / 2
+        local inside = controller:getVolumeSurfaceAt({ p.x + cx, p.y + cy, p.z + cz })
+        local beside = controller:getVolumeSurfaceAt({ p.x + solid.max[1] + 60, p.y + solid.max[2] + 60, p.z + cz })
+        local under = controller:getVolumeSurfaceAt({ p.x + cx, p.y + cy, p.z + solid.min[3] - 60 })
+        local top = p.z + solid.max[3]
+        note(inside ~= nil and math.abs(inside - top) < 1 and beside == nil and under == nil,
+          solid.name .. " holds water inside and none outside",
+          string.format("at its middle the surface is %s, expected %.0f; beside it %s; under it %s; ground under it %s",
+            tostring(inside), top, tostring(beside), tostring(under), tostring(groundAt(p.x, p.y))))
+      else
+        note(false, solid.name .. " holds water inside and none outside", "the plugin's reference was not found in the active cells")
+      end
+    end
+    note(found == #solids and interop.native.count() == found, "every solid is one volume",
+      string.format("%d of %d solids found, %d volumes hold water", found, #solids, interop.native.count()))
+  end)
+
+  -- The player in the middle of each solid, one after the other.
+  for index, solid in ipairs(solids) do
+    step("the player into " .. solid.name, 1, function()
+      local reference = placed[solid.name]
+      if reference then
+        local p = reference.position
+        pin = tes3vector3.new(p.x + (solid.min[1] + solid.max[1]) / 2, p.y + (solid.min[2] + solid.max[2]) / 2, p.z + (solid.min[3] + solid.max[3]) / 2 - 60)
+        camera = nil
+        tes3.positionCell({ reference = tes3.player, position = { pin.x, pin.y, pin.z } })
+        -- The player is put there once and then left alone, to see whether the water holds them.
+        pin = nil
+      end
+    end)
+    step("the player swims in " .. solid.name, 4, function()
+      local reference = placed[solid.name]
+      local p = tes3.player.position
+      local surface = controller:getVolumeSurfaceAt({ p.x, p.y, p.z })
+      local mobile = tes3.mobilePlayer
+      note(reference ~= nil and mobile.isSwimming == true and surface ~= nil and p.z < surface,
+        "the player swims inside " .. solid.name,
+        string.format("4 s after being put in its middle: at %.0f %.0f %.0f, water surface over the player %s, swimming %s, underwater %s",
+          p.x, p.y, p.z, tostring(surface), tostring(mobile.isSwimming), tostring(mobile.underwater)))
+      shot(string.format("solids inside %d %s", index, solid.name))
+    end)
+  end
+
+  -- Pictures from the south, from farther and farther away. The game draws its own meshes to
+  -- 7168 units; from there on the solids come from the distant statics.
+  for _, distance in ipairs({ 4200, 6800, 10000, 20000, 40000, 70000 }) do
+    step("set up: from " .. distance, 1, function()
+      lookFrom(middle + tes3vector3.new(0, -distance, 300 + distance * 0.06), middle)
+    end)
+    step("photograph: from " .. distance, 5, function()
+      observed("from " .. distance, string.format("%d volumes hold water; player cell %d,%d", interop.native.count(),
+        tes3.player.cell.gridX or 0, tes3.player.cell.gridY or 0))
+      shot(string.format("solids from %d", distance))
+    end)
+  end
+  step("set up: along the row from the west", 1, function()
+    lookFrom(tes3vector3.new(SITE.x - 12000, SITE.y - 2500, SITE.z + 1400), middle)
+  end)
+  step("photograph: along the row from the west", 5, function() shot("solids along the row from 12000 west") end)
+
+  step("clean up", 1, function()
+    camera, pin = nil, nil
+    event.unregister("enterFrame", onFrame)
+  end)
+  sequence(steps, say, after, function() done(rows) end)
+end
+
 function this.run(spec, say, after, done)
+  if spec.water == "solids" then
+    runSolids(spec, say, after, done)
+    return
+  end
   if spec.water:find("^refcost") then
     runRefCost(spec, say, after, done)
     return
