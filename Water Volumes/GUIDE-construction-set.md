@@ -370,5 +370,4 @@ piece far away is drawn as water too, and not with its own texture.
 
 A plugin that places `wv_disc_1024` in an exterior cell was loaded in the game: the reference
 became water and the player swam in it. The same was done for disabling, enabling, moving and
-tilting a placed reference. The clicks inside the Construction Set described above were
-written from how that tool works and were not run as part of that testing.
+tilting a placed reference.
