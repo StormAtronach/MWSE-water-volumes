@@ -51,7 +51,7 @@ it and the water moves with it.
 ### Installing
 
 The folder `Water Volumes/` is the mod as it is installed into `Data Files`: the Lua mod, the
-kit meshes, `Water Volumes Kit.esp`, `distantwater.toml` and the guide. The plugin DLL is not
+kit meshes, `Water Volumes Kit.esm`, `distantwater.toml` and the guide. The plugin DLL is not
 kept in this repository. Build it first (see "Building"); the build puts it at
 `Water Volumes/MWSE/lib/watervolumes.dll`. Without the DLL the mod does nothing and writes
 "MWSE/lib/watervolumes.dll was not found" to `MWSE.log`.
@@ -180,7 +180,7 @@ the file.
 | Path | What it holds |
 | --- | --- |
 | `src/` | The plugin, `watervolumes.dll`. `Geometry.cpp` decides where the water is and knows nothing of the game. `WaterVolumes.cpp` holds the volumes and the hooks. `plugin.cpp` is the Lua table |
-| `Water Volumes/` | The mod as it is installed: the Lua mod, the kit, `Water Volumes Kit.esp`, `distantwater.toml`, the guide, and a short README for players |
+| `Water Volumes/` | The mod as it is installed: the Lua mod, the kit, `Water Volumes Kit.esm`, `distantwater.toml`, the guide, and a short README for players |
 | `Water Volumes/meshes/wv/` | The 37 kit meshes: squares, discs, corners, river pieces, and four solids |
 | `Water Volumes/meshes/wvs/`, `wvm/`, `wvb/` | The kit again in the swamp, mud and blood colours |
 | `tools/make_kit.py` | The script that writes the kit |
@@ -231,7 +231,7 @@ replaces the Release DLL.
 ## The kit
 
 `tools/make_kit.py` is the one place where the kit pieces are defined. It is a Python script
-and writes the meshes, `Water Volumes Kit.esp`, and `kit.json`, the list of the pieces with
+and writes the meshes, `Water Volumes Kit.esm`, and `kit.json`, the list of the pieces with
 their sizes and joints. Its list `PALETTES` gives the colours in which the whole kit is
 written again. After a change to a piece or to a palette, run it and commit what it writes:
 

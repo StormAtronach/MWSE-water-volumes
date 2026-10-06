@@ -16,7 +16,7 @@ the one it knows, the mod does nothing and says why in `MWSE.log`, on a line tha
 
 ## Using it
 
-`Water Volumes Kit.esp` has a Static for each of the 37 kit meshes: squares, discs, corners,
+`Water Volumes Kit.esm` has a Static for each of the 37 kit meshes: squares, discs, corners,
 river pieces that join without a gap, and four solids (sphere, cube, pyramid, octahedron).
 It has them again in three colours of water: swamp, mud and blood.
 Place a piece in the Construction Set at the height

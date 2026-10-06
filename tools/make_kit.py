@@ -5,7 +5,7 @@ This script is the one place where the pieces of the kit are defined. It writes
 
     Water Volumes/meshes/wv/<piece>.nif              one mesh per piece
     Water Volumes/MWSE/mods/waterVolumes/kit.json    the pieces, their sizes and their joints
-    Water Volumes/Water Volumes Kit.esp              one Static per piece
+    Water Volumes/Water Volumes Kit.esm              one Static per piece, a master file
 
 Usage:
     python make_kit.py <Morrowind.esm>
@@ -32,7 +32,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 MOD = os.path.join(HERE, "..", "Water Volumes")
 MESHES = os.path.join(MOD, "meshes", "wv")
 MANIFEST = os.path.join(MOD, "MWSE", "mods", "waterVolumes", "kit.json")
-PLUGIN = os.path.join(MOD, "Water Volumes Kit.esp")
+PLUGIN = os.path.join(MOD, "Water Volumes Kit.esm")
 
 UV_SCALE = 512.0
 SURFACE_COLOR = (120, 170, 160, 200)
@@ -438,7 +438,8 @@ def write_plugin(master, statics, output):
     """One Static per piece and no references. statics: ids with their paths, relative to Meshes."""
     records = [record("STAT", [sub("NAME", zstr(name)), sub("MODL", zstr(path))]) for name, path in statics]
     description = b"Water Volumes kit: water pieces to place in the world. Needs the Water Volumes mod."
-    header = struct.pack("<fI32s256sI", 1.3, 0, b"Water Volumes", description, len(records))
+    # The second number says what kind of file it is: 1 is a master file.
+    header = struct.pack("<fI32s256sI", 1.3, 1, b"Water Volumes", description, len(records))
     tes3 = record("TES3", [
         sub("HEDR", header),
         sub("MAST", zstr(os.path.basename(master))),

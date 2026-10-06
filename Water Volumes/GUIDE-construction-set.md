@@ -16,7 +16,7 @@ write any Lua.
 
 ## The kit
 
-Load `Water Volumes Kit.esp` in the Construction Set together with your own plugin. It adds
+`Water Volumes Kit.esm` is a master file. Tick it in the Construction Set together with your own plugin. It adds
 one Static per piece, with ids that start with `wv_`, and places nothing. Your plugin then
 depends on it.
 
