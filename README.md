@@ -1,5 +1,7 @@
 # True Water - MWSE Water Volumes
 
+![The Palace of Vivec from above, its four channels filled with water](docs/palace-above-south-west.jpg)
+
 True Water lets a Morrowind mod place bodies of water that are not part of the cell's own
 water: a pond on a hill, a river that runs downhill, a pool in an interior, a sphere of water
 in the air. Actors swim in it, the breath meter runs, and the camera goes under water. The
