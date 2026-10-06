@@ -129,7 +129,7 @@ int hookStatus_lua(lua_State* L) {
 extern "C" __declspec(dllexport) int luaopen_watervolumes(lua_State* L) {
     lua_newtable(L);
 
-    setStringField(L, "version", "0.1.0");
+    setStringField(L, "version", "0.1.1");
     setCFunctionField(L, "install", &install_lua);
     setCFunctionField(L, "addReference", &addReference_lua);
     setCFunctionField(L, "update", &update_lua);
