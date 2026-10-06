@@ -308,8 +308,8 @@ end
 
 `color` gives the water a colour, as `"RRGGBB"` or as three numbers from 0 to 1; leave it
 out for the colour the mesh has. Far away the mesh is drawn from the distant land data,
-which a script cannot reach: give the same colour there with `water_color` in
-`distantwater.toml` (see "Water far away").
+which a script cannot reach: give the same colour there with `water_color` in the metadata
+file of the plugin (see "Water far away").
 
 The same rule holds as for your own mesh: the mesh must be closed, or be one sheet that the
 mod closes `depth` below. A mesh that carries its surface twice does not work. The water of
@@ -331,14 +331,14 @@ a mesh of your own in the place of the game's, with the names from "Your own mes
 ## Water far away
 
 MGE XE draws things far away from its distant land data, which it builds when the game
-starts. The file `distantwater.toml` of this mod tells it which meshes are water. With it, a
-piece far away is drawn as water too, and not with its own texture.
+starts. MGE XE knows a water mesh by the names in it, so a piece far away is drawn as water
+too, and not with its own texture.
 
 - A mesh whose surface is named `WaterVolume`, or that has a `WaterBody`, needs nothing more.
   The words `plain` and `skyonly` in the name count far away as well.
-- A mesh that a Lua mod made water by its id has no such name. Put a line for it into
-  `distantwater.toml`, or into the metadata file of the plugin that places it
-  (`<plugin name>-metadata.toml`, beside the plugin):
+- A mesh that a Lua mod made water by its id has no such name. Put a line for it into the
+  metadata file of the plugin that places it (`<plugin name>-metadata.toml`, beside the
+  plugin):
 
   ```toml
   [tools.mge-xe.distantland.statics]
@@ -351,8 +351,9 @@ piece far away is drawn as water too, and not with its own texture.
 - Far water reflects the sky. Out to 8 cells from the player it also reflects what is on
   screen; `distant_land.water.volume_reflection_cells` in the MGE XE settings changes that
   distance, and 0 turns it off.
-- As for all distant things, a small piece is not drawn very far away. The same line can
-  change that: `{ type = "very_far" }`.
+- The distant land leaves a small piece out, as it does every small thing. The same line
+  makes it keep the piece: `{ type = "very_far" }`. A piece that is in the distant land is
+  drawn as far as the largest things, whatever its size.
 - Nobody swims in far water, and it does not take part in the reflection on the sea.
 
 ## When it does not work

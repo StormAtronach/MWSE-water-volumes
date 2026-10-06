@@ -51,7 +51,7 @@ it and the water moves with it.
 ### Installing
 
 The folder `Water Volumes/` is the mod as it is installed into `Data Files`: the Lua mod, the
-kit meshes, `Water Volumes Kit.esm`, `distantwater.toml` and the guide. The plugin DLL is not
+kit meshes, `Water Volumes Kit.esm` and the guide. The plugin DLL is not
 kept in this repository. Build it first (see "Building"); the build puts it at
 `Water Volumes/MWSE/lib/watervolumes.dll`. Without the DLL the mod does nothing and writes
 "MWSE/lib/watervolumes.dll was not found" to `MWSE.log`.
@@ -166,21 +166,20 @@ because a hooked function returned with no record of its caller.
 ### Water far away
 
 Beyond the game's own view distance, MGE XE draws from its distant land data. Its generator
-reads `Water Volumes/distantwater.toml` from the data folder: the names that mark the surface
-and the body of the water in a mesh, and the words `plain` and `skyonly`. A mesh that a Lua mod
-registered by id has no such names; give it a line in that file, or in the metadata file of
-the plugin that places it. The file has the format of MGE XE's plugin metadata and carries a
-version of its own, so the rules can change with this mod. A water surface becomes a distant
-static with a water flag, which the renderer draws with its water shading in place of its
-texture. This needs the MGE XE build named under "Requirements"; an older build does not read
-the file.
+knows a water mesh by the names in it: the names that mark the surface and the body of the
+water, and the words `plain` and `skyonly`. These names are in the default rules that MGE XE
+ships (`MGE XE Default Statics Classifiers.toml`), so this mod has no rules file of its own.
+A mesh that a Lua mod registered by id has no such names; give it a line in the metadata file
+of the plugin that places it. A water surface becomes a distant static with a water flag,
+which the renderer draws with its water shading in place of its texture. This needs the
+MGE XE build named under "Requirements".
 
 ## Repository layout
 
 | Path | What it holds |
 | --- | --- |
 | `src/` | The plugin, `watervolumes.dll`. `Geometry.cpp` decides where the water is and knows nothing of the game. `WaterVolumes.cpp` holds the volumes and the hooks. `plugin.cpp` is the Lua table |
-| `Water Volumes/` | The mod as it is installed: the Lua mod, the kit, `Water Volumes Kit.esm`, `distantwater.toml`, the guide, and a short README for players |
+| `Water Volumes/` | The mod as it is installed: the Lua mod, the kit, `Water Volumes Kit.esm`, the guide, and a short README for players |
 | `Water Volumes/meshes/wv/` | The 37 kit meshes: squares, discs, corners, river pieces, and four solids |
 | `Water Volumes/meshes/wvs/`, `wvm/`, `wvb/` | The kit again in the swamp, mud and blood colours |
 | `tools/make_kit.py` | The script that writes the kit |

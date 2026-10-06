@@ -26,6 +26,3 @@ move it, from a script or from Lua, and the water follows.
 Everything else is in `GUIDE-construction-set.md`: the kit, how the pieces snap together, a
 pond and a river step by step, how the surface looks, your own mesh, making a piece in
 Blender, a mesh you cannot edit, water far away, and the limits.
-
-`distantwater.toml` holds the rules by which MGE XE's distant land knows a water mesh. It is
-part of the mod; keep it in the data folder.
