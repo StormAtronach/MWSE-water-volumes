@@ -1,6 +1,6 @@
-# Water Volumes
+# True Water - MWSE Water Volumes
 
-Water Volumes lets a Morrowind mod place bodies of water that are not part of the cell's own
+True Water lets a Morrowind mod place bodies of water that are not part of the cell's own
 water: a pond on a hill, a river that runs downhill, a pool in an interior, a sphere of water
 in the air. Actors swim in it, the breath meter runs, and the camera goes under water. The
 water does not depend on the water level of the cell.

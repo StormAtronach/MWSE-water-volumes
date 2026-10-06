@@ -1,4 +1,4 @@
-# Water Volumes: placing water in the Construction Set
+# True Water: placing water in the Construction Set
 
 This guide takes you from an empty spot to a pond or river that actors swim in. You do not
 write any Lua.
