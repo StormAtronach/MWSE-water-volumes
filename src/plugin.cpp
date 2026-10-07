@@ -144,7 +144,7 @@ int hasLooks_lua(lua_State* L) {
 
 // watervolumes.setLook(slot, look) -> true, or false when the renderer takes
 // no looks. The look is a table: reflectsScene (default true), tintFromVertex,
-// opacityFromVertex, flow {x, y}, speed, scale, foam, glow, opacity, shader,
+// opacityFromVertex, flow {x, y}, speed, scale, glow, opacity, shader,
 // params { {..}, {..}, {..}, {..} }.
 // A field that is missing has its standard value.
 int setLook_lua(lua_State* L) {
@@ -166,7 +166,6 @@ int setLook_lua(lua_State* L) {
     numbersField(L, "flow", look.flow, 2);
     look.speed = numberField(L, "speed", 1.0f);
     look.scale = numberField(L, "scale", 1.0f);
-    look.foam = numberField(L, "foam", 0.0f);
     look.glow = numberField(L, "glow", 0.0f);
     look.opacity = numberField(L, "opacity", 1.0f);
     lua_getfield(L, 2, "params");

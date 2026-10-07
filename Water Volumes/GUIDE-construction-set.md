@@ -174,7 +174,7 @@ The rest of how a surface looks is one line of text in the mesh: a `NiStringExtr
 the root or on the surface object, which starts with `wv:` and holds `key=value` pairs:
 
 ```
-wv: flow=0,120 speed=1.5 foam=0.5
+wv: flow=0,120 speed=1.5 scale=0.8
 ```
 
 | Key | Values | What it does |
@@ -183,15 +183,14 @@ wv: flow=0,120 speed=1.5 foam=0.5
 | `carry` | 0 to 1, default 1, or `depth` | How much of the flow carries an actor in the water. 0 for water that only looks like it flows. `depth` grows from nothing at the surface to the whole flow at the depth where the actor swims: wading is easy, swimming is not. The current works on `plain` meshes too, and without MGE XE |
 | `speed` | a number, 1 is the standard | How fast the ripples move. 0 holds them still |
 | `scale` | a number, 1 is the standard | The size of the ripples. Small for a basin, large for a lake |
-| `foam` | 0 to 1 | Foam where the water is shallow: at the shore and around rocks |
 | `glow` | 0 to 1 | The surface gives light of its own, in the colour of the water, by night as by day |
 | `opacity` | 0 to 1, or `vertex` | How much of the water shows. Lower shows what is behind the surface. `vertex` takes the alpha of the vertex colours of the mesh |
 | `tint` | `vertex` | The vertex colours of the mesh tint the water: one mesh can go from clear to muddy |
 | `reflect` | `scene` or `sky` | The same as the name words: what the surface reflects |
-| `shader` | a name | For a renderer that has a water shader of that name; today there is none |
+| `shader` | a name | A water shader that a mod ships for MGE XE, `Data Files\shaders\water\<name>.fx`: foam, lava, anything. It gets the base texture of the mesh. Without the file the surface has the standard look |
 | `p0` to `p3` | up to four numbers each | Free values for such a shader |
 
-Keys the mod does not know are kept for the shader and noted once in `MWSE.log`. In NifSkope,
+A key the mod does not know is noted once in `MWSE.log`. In NifSkope,
 add the string data with Block > Insert > NiStringExtraData, set its string, and link it in
 the Extra Data of the root. `registerObject` takes the same line as `look`, or a table with
 the same keys, for a mesh you cannot edit.

@@ -35,12 +35,13 @@
     (NiStringExtraData on the root or on the surface), for example
       wv: flow=0,120 speed=1.5 scale=0.7 foam=0.5 glow=0 opacity=1 reflect=scene
     Keys: flow (x,y: drift of the ripples in the axes of the mesh, units per second), speed
-    and scale of the ripples (1 is the standard), foam at the shore (0 to 1), glow (0 to 1),
-    opacity (0 to 1, or vertex: the vertex alpha of the mesh), tint=vertex (the vertex colour
-    of the mesh tints the water), reflect (scene, sky), shader (a name, for a renderer with a
-    shader of that name), p0 to p3 (up to four numbers each, for such a shader). Other keys
-    are kept for the shader. registerObject takes the same line as look, or a table with the
-    same keys. The renderer's water shading shows the look; plain meshes have none.
+    and scale of the ripples (1 is the standard), glow (0 to 1), opacity (0 to 1, or vertex:
+    the vertex alpha of the mesh), tint=vertex (the vertex colour of the mesh tints the
+    water), reflect (scene, sky), shader (the name of a water shader that a mod ships for the
+    renderer, Data Files\shaders\water\<name>.fx; it gets the base texture of the mesh), and
+    p0 to p3 (up to four numbers each, for such a shader). registerObject takes the same line
+    as look, or a table with the same keys. The renderer's water shading shows the look;
+    plain meshes have none.
 
     A flow is also a current: an actor in the water drifts with it, at the speed of the flow
     times carry (0 to 1, default 1). carry=0 makes water that only looks like it flows;
@@ -86,7 +87,7 @@ function interop.parseColor(color)
 end
 
 --- The keys of a look line that the mod knows, with how many numbers each takes; 0 for a word.
-local lookKeys = { flow = 2, carry = 1, speed = 1, scale = 1, foam = 1, glow = 1, opacity = 1, tint = 0, reflect = 0, shader = 0, distant = 0, p0 = 4, p1 = 4, p2 = 4, p3 = 4 }
+local lookKeys = { flow = 2, carry = 1, speed = 1, scale = 1, glow = 1, opacity = 1, tint = 0, reflect = 0, shader = 0, distant = 0, p0 = 4, p1 = 4, p2 = 4, p3 = 4 }
 
 --- A look from a line "key=value key=value", or from a table with the same keys. Nil for
 --- nothing. Unknown keys go into extra, as their text.

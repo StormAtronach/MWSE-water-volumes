@@ -114,7 +114,7 @@ local function slotOf(look)
         tintFromVertex = look.tint == "vertex",
         opacityFromVertex = look.opacity == "vertex",
         flow = type(look.flow) == "table" and look.flow or nil,
-        speed = look.speed, scale = look.scale, foam = look.foam, glow = look.glow,
+        speed = look.speed, scale = look.scale, glow = look.glow,
         opacity = type(look.opacity) == "number" and look.opacity or nil,
         shader = look.shader,
         params = { look.p0, look.p1, look.p2, look.p3 },
@@ -162,7 +162,7 @@ local function getSettings(object, node)
     end
     if look and look.extra then
         for key in pairs(look.extra) do
-            mwse.log("[Water Volumes] %s: the look key '%s' is not one the mod knows; it is kept for the shader.", id, key)
+            mwse.log("[Water Volumes] %s: the look key '%s' is not one the mod knows. A water shader takes its values as p0 to p3.", id, key)
         end
     end
 

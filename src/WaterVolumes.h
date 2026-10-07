@@ -56,7 +56,6 @@ namespace wv {
         float flow[2];
         float speed;
         float scale;
-        float foam;
         float glow;
         float opacity;
         float params[4][4];
