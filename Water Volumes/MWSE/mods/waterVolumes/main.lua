@@ -68,6 +68,61 @@ local function tagText(node)
     return named or (body and tag) or nil
 end
 
+--- The look line of a mesh: the text after "wv:" in the first string extra data that starts
+--- with it, on the root or on any object under it. Nil if there is none.
+local function lookText(node)
+    local found
+    local function look(object)
+        local data = object.extraData
+        while data and not found do
+            local text = data.string
+            if type(text) == "string" then
+                local rest = text:match("^%s*[Ww][Vv]:%s*(.*)$")
+                if rest then
+                    found = rest
+                end
+            end
+            data = data.next
+        end
+        local children = object.children
+        if children then
+            for _, child in ipairs(children) do
+                if child and not found then
+                    look(child)
+                end
+            end
+        end
+    end
+    look(node)
+    return found
+end
+
+--- The slot of a look, shared by every object with the same look. A new look gets the next
+--- slot and is sent to the renderer.
+local lookSlots, lookCount = {}, 0
+local function slotOf(look)
+    local key = interop.lookKey(look)
+    local slot = lookSlots[key]
+    if slot then
+        return slot
+    end
+    lookCount = lookCount + 1
+    slot = lookCount
+    lookSlots[key] = slot
+    local sent = {
+        reflectsScene = look.reflect ~= "sky",
+        tintFromVertex = look.tint == "vertex",
+        opacityFromVertex = look.opacity == "vertex",
+        flow = type(look.flow) == "table" and look.flow or nil,
+        speed = look.speed, scale = look.scale, foam = look.foam, glow = look.glow,
+        opacity = type(look.opacity) == "number" and look.opacity or nil,
+        shader = look.shader,
+        params = { look.p0, look.p1, look.p2, look.p3 },
+    }
+    interop.native.setLook(slot, sent)
+    return slot
+end
+
 --- The settings for an object, or nil if it is not water. The node is that of one of its references.
 --- depth: how far the water reaches below the surface.
 --- marker: the material marker for the renderer's water shading, or nil to keep the mesh's own look.
@@ -85,12 +140,13 @@ local function getSettings(object, node)
         return known or nil
     end
 
-    local depth, plain, skyOnly, noSwim, color
+    local depth, plain, skyOnly, noSwim, color, look
     local registered = interop.objects[id:lower()]
     if registered then
         depth, plain, skyOnly, noSwim = registered.depth, registered.plain == true, registered.skyOnly == true, registered.noSwim == true
         local red, green, blue = interop.parseColor(registered.color)
         color = red and niColor.new(red, green, blue)
+        look = interop.parseLook(registered.look)
     else
         local text = tagText(node)
         if text then
@@ -98,15 +154,28 @@ local function getSettings(object, node)
             plain = text:find("%f[%a]plain%f[%A]") ~= nil
             skyOnly = text:find("%f[%a]skyonly%f[%A]") ~= nil
             noSwim = text:find("%f[%a]noswim%f[%A]") ~= nil
+            look = interop.parseLook(lookText(node))
         else
             settingsByObject[id] = false
             return nil
         end
     end
+    if look and look.extra then
+        for key in pairs(look.extra) do
+            mwse.log("[Water Volumes] %s: the look key '%s' is not one the mod knows; it is kept for the shader.", id, key)
+        end
+    end
 
     known = { depth = depth or interop.defaultDepth, swim = not noSwim, solid = not node:hasStringDataStartingWith("NCO"), color = color }
     if not plain then
-        known.marker = skyOnly and interop.surfaceMarkerSkyOnly or interop.surfaceMarker
+        if skyOnly and look then
+            look.reflect = "sky"
+        end
+        if look and interop.hasLooks then
+            known.marker = interop.lookMarkerBase + slotOf(look)
+        else
+            known.marker = (skyOnly or (look and look.reflect == "sky")) and interop.surfaceMarkerSkyOnly or interop.surfaceMarker
+        end
     end
     settingsByObject[id] = known
     return known

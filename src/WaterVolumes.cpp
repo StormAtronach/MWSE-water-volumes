@@ -193,6 +193,33 @@ namespace wv {
         }
     }
 
+    using RendererLookSetter = void(__cdecl*)(unsigned int, const Look*);
+
+    static RendererLookSetter findRendererLookSetter() {
+        const auto renderer = GetModuleHandleA("d3d8.dll");
+        if (renderer == NULL) {
+            return nullptr;
+        }
+        return reinterpret_cast<RendererLookSetter>(GetProcAddress(renderer, "MGE_WaterLookSet"));
+    }
+
+    bool rendererHasLooks() {
+        static const auto setter = findRendererLookSetter();
+        return setter != nullptr;
+    }
+
+    bool setRendererLook(unsigned int slot, const Look& look) {
+        static const auto setter = findRendererLookSetter();
+        if (setter == nullptr || slot == 0) {
+            return false;
+        }
+        Look sent = look;
+        sent.size = sizeof(Look);
+        sent.shader[sizeof(sent.shader) - 1] = '\0';
+        setter(slot, &sent);
+        return true;
+    }
+
     // A shape named WaterBody gives the sides and the bottom of the water. It is hidden in the
     // game and counts all the same. With the surface it closes the mesh.
     static bool isWaterBody(const NI::AVObject* object) {

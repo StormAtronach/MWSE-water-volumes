@@ -44,6 +44,31 @@ namespace wv {
     // How many volumes hold water now.
     size_t count();
 
+    // The look of a surface beyond its colour, as the renderer takes it: the same flat layout
+    // as MGE XE's WaterLook. A surface names its slot in the specular power of its material,
+    // 100000 + slot.
+    struct Look {
+        unsigned int size;
+        // 1: the surface reflects what is on screen; otherwise the sky only. 2: the vertex
+        // colour tints the water. 4: the vertex alpha is the opacity.
+        unsigned int flags;
+        // Drift of the ripples in the axes of the mesh, in units per second
+        float flow[2];
+        float speed;
+        float scale;
+        float foam;
+        float glow;
+        float opacity;
+        float params[4][4];
+        char shader[32];
+    };
+
+    // True when the renderer takes looks.
+    bool rendererHasLooks();
+
+    // Tells the renderer the look of a slot, from 1 up. False when the renderer takes none.
+    bool setRendererLook(unsigned int slot, const Look& look);
+
     // The surface height of the water that a position is in or over, if any.
     std::optional<float> getSurfaceAt(const NI::Point3& position);
 }

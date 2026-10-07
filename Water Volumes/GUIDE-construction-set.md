@@ -168,6 +168,38 @@ are on screen. The mesh's own texture is not used then.
 - Reflections show only what is on screen. Something behind the camera or hidden behind a
   nearer object is not reflected.
 
+### The look line
+
+The rest of how a surface looks is one line of text in the mesh: a `NiStringExtraData` on
+the root or on the surface object, which starts with `wv:` and holds `key=value` pairs:
+
+```
+wv: flow=0,120 speed=1.5 foam=0.5
+```
+
+| Key | Values | What it does |
+| --- | --- | --- |
+| `flow` | `x,y`, in the axes of the mesh, in units per second | The ripples drift that way. A river flows; a pond does not |
+| `speed` | a number, 1 is the standard | How fast the ripples move. 0 holds them still |
+| `scale` | a number, 1 is the standard | The size of the ripples. Small for a basin, large for a lake |
+| `foam` | 0 to 1 | Foam where the water is shallow: at the shore and around rocks |
+| `glow` | 0 to 1 | The surface gives light of its own, in the colour of the water, by night as by day |
+| `opacity` | 0 to 1, or `vertex` | How much of the water shows. Lower shows what is behind the surface. `vertex` takes the alpha of the vertex colours of the mesh |
+| `tint` | `vertex` | The vertex colours of the mesh tint the water: one mesh can go from clear to muddy |
+| `reflect` | `scene` or `sky` | The same as the name words: what the surface reflects |
+| `shader` | a name | For a renderer that has a water shader of that name; today there is none |
+| `p0` to `p3` | up to four numbers each | Free values for such a shader |
+
+Keys the mod does not know are kept for the shader and noted once in `MWSE.log`. In NifSkope,
+add the string data with Block > Insert > NiStringExtraData, set its string, and link it in
+the Extra Data of the root. `registerObject` takes the same line as `look`, or a table with
+the same keys, for a mesh you cannot edit.
+
+`tint=vertex` and `opacity=vertex` are asked for, not assumed: many meshes carry vertex
+colours for their look without MGE XE. The kit's own surfaces do.
+
+Far away, in distant land, a surface has the standard look for now.
+
 ## Water of a colour
 
 The kit comes again in three colours. Each has a Static for every piece, with the name of

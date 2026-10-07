@@ -7,6 +7,8 @@
 
 #include "WaterVolumes.h"
 
+#include <cstring>
+
 extern "C" {
 #include "lua.h"
 #include "lauxlib.h"
@@ -96,6 +98,89 @@ int setColor_lua(lua_State* L) {
     return 1;
 }
 
+// A number field of the table at the top of the stack, or the default.
+float numberField(lua_State* L, const char* key, float fallback) {
+    lua_getfield(L, -1, key);
+    const auto value = lua_isnumber(L, -1) ? static_cast<float>(lua_tonumber(L, -1)) : fallback;
+    lua_pop(L, 1);
+    return value;
+}
+
+// Up to count numbers from the array in the field, into out.
+void numbersField(lua_State* L, const char* key, float* out, int count) {
+    lua_getfield(L, -1, key);
+    if (lua_istable(L, -1)) {
+        for (int i = 0; i < count; ++i) {
+            lua_rawgeti(L, -1, i + 1);
+            if (lua_isnumber(L, -1)) {
+                out[i] = static_cast<float>(lua_tonumber(L, -1));
+            }
+            lua_pop(L, 1);
+        }
+    }
+    lua_pop(L, 1);
+}
+
+// watervolumes.hasLooks() -> true when the renderer takes looks.
+int hasLooks_lua(lua_State* L) {
+    lua_pushboolean(L, wv::rendererHasLooks() ? 1 : 0);
+    return 1;
+}
+
+// watervolumes.setLook(slot, look) -> true, or false when the renderer takes
+// no looks. The look is a table: reflectsScene (default true), tintFromVertex,
+// opacityFromVertex, flow {x, y}, speed, scale, foam, glow, opacity, shader,
+// params { {..}, {..}, {..}, {..} }.
+// A field that is missing has its standard value.
+int setLook_lua(lua_State* L) {
+    const auto slot = static_cast<unsigned int>(luaL_checknumber(L, 1));
+    luaL_checktype(L, 2, LUA_TTABLE);
+    lua_settop(L, 2);
+
+    wv::Look look = {};
+    look.size = sizeof(wv::Look);
+    lua_getfield(L, 2, "reflectsScene");
+    look.flags = (lua_isnil(L, -1) || lua_toboolean(L, -1)) ? 1u : 0u;
+    lua_pop(L, 1);
+    lua_getfield(L, 2, "tintFromVertex");
+    look.flags |= lua_toboolean(L, -1) ? 2u : 0u;
+    lua_pop(L, 1);
+    lua_getfield(L, 2, "opacityFromVertex");
+    look.flags |= lua_toboolean(L, -1) ? 4u : 0u;
+    lua_pop(L, 1);
+    numbersField(L, "flow", look.flow, 2);
+    look.speed = numberField(L, "speed", 1.0f);
+    look.scale = numberField(L, "scale", 1.0f);
+    look.foam = numberField(L, "foam", 0.0f);
+    look.glow = numberField(L, "glow", 0.0f);
+    look.opacity = numberField(L, "opacity", 1.0f);
+    lua_getfield(L, 2, "params");
+    if (lua_istable(L, -1)) {
+        for (int i = 0; i < 4; ++i) {
+            lua_rawgeti(L, -1, i + 1);
+            if (lua_istable(L, -1)) {
+                for (int j = 0; j < 4; ++j) {
+                    lua_rawgeti(L, -1, j + 1);
+                    if (lua_isnumber(L, -1)) {
+                        look.params[i][j] = static_cast<float>(lua_tonumber(L, -1));
+                    }
+                    lua_pop(L, 1);
+                }
+            }
+            lua_pop(L, 1);
+        }
+    }
+    lua_pop(L, 1);
+    lua_getfield(L, 2, "shader");
+    if (lua_isstring(L, -1)) {
+        strncpy_s(look.shader, lua_tostring(L, -1), _TRUNCATE);
+    }
+    lua_pop(L, 1);
+
+    lua_pushboolean(L, wv::setRendererLook(slot, look) ? 1 : 0);
+    return 1;
+}
+
 // watervolumes.surfaceAt(x, y, z) -> height of the surface of the water the
 // point is in or over, or nil.
 int surfaceAt_lua(lua_State* L) {
@@ -135,6 +220,8 @@ extern "C" __declspec(dllexport) int luaopen_watervolumes(lua_State* L) {
     setCFunctionField(L, "update", &update_lua);
     setCFunctionField(L, "remove", &remove_lua);
     setCFunctionField(L, "setColor", &setColor_lua);
+    setCFunctionField(L, "hasLooks", &hasLooks_lua);
+    setCFunctionField(L, "setLook", &setLook_lua);
     setCFunctionField(L, "surfaceAt", &surfaceAt_lua);
     setCFunctionField(L, "count", &count_lua);
     setCFunctionField(L, "hookStatus", &hookStatus_lua);
