@@ -438,6 +438,15 @@ namespace wv {
         return {};
     }
 
+    std::optional<WaterAt> getWaterAt(const NI::Point3& position) {
+        float surface = 0.0f, floor = 0.0f;
+        const auto volume = findVolume(&position, false, surface, floor);
+        if (volume == nullptr || position.z > surface) {
+            return {};
+        }
+        return WaterAt{ volume->id, surface, floor };
+    }
+
     //
     // Subject tracking. Each hooked function names the point its water queries are about.
     //

@@ -149,6 +149,46 @@ the placed reference its own ID and tick References Persist, then use `Disable`,
 Water is always a placed reference. A Lua mod that wants water at run time places one with
 `tes3.createReference` and handles it like any other reference.
 
+A Lua mod can also let the mod move the water over a time, for a tide, a lock or a cistern
+that fills:
+
+```lua
+local waterVolumes = include("waterVolumes.interop")
+waterVolumes.animateLevel(reference, { by = 250, seconds = 8, callback = function(reference) end })
+```
+
+`to` gives the new height of the reference in place of `by`. The move is smooth at both ends;
+`easing = "linear"` makes it even. It stands still while the game is paused, and
+`stopLevel(reference)` stops it. At the end the mod calls the callback and sends the event
+`waterVolumes:levelReached`. The actors in the water go up and down with it.
+
+## Scripts: who is in the water
+
+The mod sends MWSE events, which a Lua mod takes with `event.register` as any other event.
+The filter of each is the reference of the actor.
+
+| Event | When | What it carries |
+| --- | --- | --- |
+| `waterVolumes:enter` | the feet of an actor go into the water of a piece | `reference`, `mobile` (the actor), `volume` (the water reference), `surface` (its height there) |
+| `waterVolumes:leave` | the feet come out, or the actor or the water is gone | `reference`, `mobile`, `volume` |
+| `waterVolumes:cameraEnter`, `waterVolumes:cameraLeave` | the camera goes under or comes out | `volume` |
+| `waterVolumes:levelReached` | a move of `animateLevel` ends | `reference` (the water, also the filter), `level` |
+
+```lua
+event.register("waterVolumes:enter", function(e)
+    if e.volume.baseObject.id == "my_lava_pool" then
+        -- start to burn e.mobile
+    end
+end)
+```
+
+An actor that goes from one piece straight into the next gets a leave and an enter. The mod
+looks ten times a second, so an event can come a tenth of a second after the step. These are
+the water volumes only: the sea and the water of an interior send nothing.
+
+`waterVolumes.waterAt(position)` gives the water at any point: `{ reference, surface, floor }`,
+or nil.
+
 ## How the surface looks
 
 MGE XE draws the surface with its water shading: you see the bottom through it, deep water
@@ -198,7 +238,15 @@ the same keys, for a mesh you cannot edit.
 `tint=vertex` and `opacity=vertex` are asked for, not assumed: many meshes carry vertex
 colours for their look without MGE XE. The kit's own surfaces do.
 
-Far away, in distant land, a surface has the standard look for now.
+Far away, in distant land, a surface has the look line of its mesh too: MGE XE copies it
+when it builds the distant land. A water shader draws the far surface as well. What does not
+go far: `tint=vertex`, and a look that a script gives while the game runs.
+
+A script can change a look: `waterVolumes.setLook("object_id", "glow=0.5")` for every
+reference of an object, and `waterVolumes.setLookOf(reference, { glow = 0.5 })` for one
+reference, which lasts until a save is loaded. Nil takes the look away again. Each different
+look is kept for the session, so change a look on an occasion and not every frame; a look
+that moves is the work of a water shader.
 
 A current moves every actor whose feet are under the surface, at the speed of the flow,
 on top of its own movement. Swimming against a current of 60 is easy; a current of 300 wins.
@@ -344,14 +392,23 @@ end
 ```
 
 `color` gives the water a colour, as `"RRGGBB"` or as three numbers from 0 to 1; leave it
-out for the colour the mesh has. Far away the mesh is drawn from the distant land data,
-which a script cannot reach: give the same colour there with `water_color` in the metadata
-file of the plugin (see "Water far away").
+out for the colour the mesh has. `look` gives it a look line, as text or as a table. Far away
+the mesh is drawn from the distant land data, which a script cannot reach: give the same
+colour there with `water_color`, and the same look with `wv`, in the metadata file of the
+plugin (see "Water far away").
 
 The same rule holds as for your own mesh: the mesh must be closed, or be one sheet that the
 mod closes `depth` below. A mesh that carries its surface twice does not work. The water of
 the Palace of Vivec is such a mesh; for it, and for any mesh that the rule does not fit, put
 a mesh of your own in the place of the game's, with the names from "Your own mesh".
+
+## Water over the water of the cell
+
+A piece that lies over the sea, or over the water of an interior, must be drawn before that
+water, or MGE XE takes the sea for the bed of the piece and the piece looks milky. Give its
+surface no NiAlphaProperty, and a NiZBufferProperty that tests and writes depth (flags 3).
+The kit pieces are made for dry ground and have an alpha property; use a mesh of your own
+for a river that runs into the sea or a canal over it.
 
 ## Limits
 
@@ -359,7 +416,8 @@ a mesh of your own in the place of the game's, with the names from "Your own mes
   Keep each piece inside one cell. Far away it is still drawn as water; see "Water far away".
 - Water has no sides of its own. Where a piece stands free of terrain and walls, the player
   and walking creatures can step out of its side and fall. Fish stay in.
-- No current: the water does not push anything, and the kit texture does not flow.
+- The kit texture does not flow. A current and a flow of the ripples come from the look
+  line (see "The look line").
 - Under water MGE XE shows one level surface, at the camera's height. Keep slopes gentle
   where the view under water matters.
 - Walking creatures do not follow into the water. Rats stay out, as they do at the sea.
@@ -382,8 +440,9 @@ too, and not with its own texture.
   'x\ex_my_pond.nif' = { water = true }
   ```
 
-  A colour that the Lua mod gave it goes into the same line, as three numbers from 0 to 1:
-  `{ water = true, water_color = [0.29, 0.42, 0.24] }`.
+  A colour that the Lua mod gave it goes into the same line, as three numbers from 0 to 1,
+  and a look line as text:
+  `{ water = true, water_color = [0.29, 0.42, 0.24], wv = "flow=0,-140 glow=0.3" }`.
 
 - Far water reflects the sky. Out to 8 cells from the player it also reflects what is on
   screen; `distant_land.water.volume_reflection_cells` in the MGE XE settings changes that

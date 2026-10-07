@@ -207,6 +207,20 @@ int surfaceAt_lua(lua_State* L) {
     return 1;
 }
 
+// watervolumes.waterAt(x, y, z) -> id, surface, floor of the water the point
+// is in, or nil.
+int waterAt_lua(lua_State* L) {
+    const auto water = wv::getWaterAt(checkPoint(L, 1));
+    if (!water) {
+        lua_pushnil(L);
+        return 1;
+    }
+    lua_pushnumber(L, water->id);
+    lua_pushnumber(L, water->surface);
+    lua_pushnumber(L, water->floor);
+    return 3;
+}
+
 // watervolumes.count() -> number of volumes that hold water now.
 int count_lua(lua_State* L) {
     lua_pushnumber(L, static_cast<lua_Number>(wv::count()));
@@ -238,6 +252,7 @@ extern "C" __declspec(dllexport) int luaopen_watervolumes(lua_State* L) {
     setCFunctionField(L, "hasLooks", &hasLooks_lua);
     setCFunctionField(L, "setLook", &setLook_lua);
     setCFunctionField(L, "surfaceAt", &surfaceAt_lua);
+    setCFunctionField(L, "waterAt", &waterAt_lua);
     setCFunctionField(L, "count", &count_lua);
     setCFunctionField(L, "hookStatus", &hookStatus_lua);
 

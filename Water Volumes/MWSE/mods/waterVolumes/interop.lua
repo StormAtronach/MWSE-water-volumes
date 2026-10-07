@@ -33,7 +33,7 @@
 
     The look of the surface beyond its colour is a line of string extra data in the mesh
     (NiStringExtraData on the root or on the surface), for example
-      wv: flow=0,120 speed=1.5 scale=0.7 foam=0.5 glow=0 opacity=1 reflect=scene
+      wv: flow=0,120 speed=1.5 scale=0.7 glow=0 opacity=1 reflect=scene
     Keys: flow (x,y: drift of the ripples in the axes of the mesh, units per second), speed
     and scale of the ripples (1 is the standard), glow (0 to 1), opacity (0 to 1, or vertex:
     the vertex alpha of the mesh), tint=vertex (the vertex colour of the mesh tints the
@@ -48,6 +48,20 @@
     carry=depth grows from nothing at the surface to the full flow at the depth where the
     actor swims, so wading is easy and swimming is not. The current works on plain meshes
     too, and without the renderer.
+
+    From a script:
+      setLook(id, look)            the look of every reference of an object, in place of the
+                                   one in the mesh or in the registration. Nil takes it away.
+      setLookOf(reference, look)   the look of one reference. Nil takes it away.
+      waterAt(position)            the water a point is in: { reference, surface, floor }.
+      animateLevel(reference, { to = z, seconds = n })
+                                   moves a water reference up or down over a time.
+    Events, each with the actor's reference as the filter:
+      waterVolumes:enter, waterVolumes:leave   { reference, mobile, volume, surface }
+                                   an actor's feet go into or out of the water of a volume.
+                                   volume is the water reference.
+      waterVolumes:cameraEnter, waterVolumes:cameraLeave   { volume }
+      waterVolumes:levelReached    { reference, level }, the filter is the water reference.
 ]]
 
 local interop = {}
@@ -151,6 +165,57 @@ function interop.registerObject(id, settings)
     interop.revision = interop.revision + 1
 end
 
+--- Looks given from a script: by object id in lower case, and by reference.
+interop.objectLooks = {}
+interop.referenceLooks = {}
+
+--- Gives every reference of an object a look, in place of the one in its mesh or in its
+--- registration. The object stays water as its mesh or its registration says. Nil takes the
+--- look away. Each different look takes a slot of the renderer, of which there are about
+--- 4,000 for a session: change a look on an occasion, not every frame.
+--- @param id string
+--- @param look string|table|nil A look line, or a table with the same keys
+function interop.setLook(id, look)
+    interop.objectLooks[id:lower()] = look
+    interop.revision = interop.revision + 1
+end
+
+--- Gives one reference a look of its own. Nil takes it away. It lasts until a save is
+--- loaded; set it again then.
+--- @param reference tes3reference
+--- @param look string|table|nil
+function interop.setLookOf(reference, look)
+    interop.referenceLooks[reference] = look
+    interop.revision = interop.revision + 1
+end
+
+--- Water references that move up or down, with their state. The mod moves them.
+interop.levelAnimations = {}
+
+--- Moves a water reference up or down to a height over a time. The water is the reference,
+--- so it follows, and so do the actors in it. Give "to", the new height of the reference, or
+--- "by", a distance from where it is now. A second call for the same reference takes the
+--- place of the first. The move stands still while the game is paused. When the reference
+--- leaves the loaded cells before the end, it is put at the end height at once.
+--- At the end the callback is called with the reference, and the event
+--- waterVolumes:levelReached is sent.
+--- @param reference tes3reference
+--- @param settings { to: number?, by: number?, seconds: number?, easing: string?, callback: function? } easing: "smooth" (the default) or "linear"
+function interop.animateLevel(reference, settings)
+    local from = reference.position.z
+    local to = settings.to or (from + (settings.by or 0))
+    interop.levelAnimations[reference] = {
+        from = from, to = to, seconds = settings.seconds or 0, elapsed = 0,
+        linear = settings.easing == "linear", callback = settings.callback,
+    }
+end
+
+--- Stops a move that animateLevel started. The reference stays where it is.
+--- @param reference tes3reference
+function interop.stopLevel(reference)
+    interop.levelAnimations[reference] = nil
+end
+
 --
 -- The native plugin. It holds the water and answers the engine's questions about it. Water
 -- always belongs to a placed reference: to make water from a script, place a reference of a
@@ -190,6 +255,25 @@ function interop.setWorldWaterColor(color)
     local material = tes3.dataHandler.waterController.waterPlane.materialProperty
     if material then
         material.emissive = niColor.new(red or 0, green or 0, blue or 0)
+    end
+end
+
+--- The water references by the id of their volume in the plugin. The mod keeps it.
+--- @type table<number, tes3reference>
+interop.volumes = {}
+
+--- The water a position is in, or nil: the water reference, and the heights of the surface
+--- and of the bottom of the water there.
+--- @param position tes3vector3|number[]
+--- @return { reference: tes3reference, surface: number, floor: number }?
+function interop.waterAt(position)
+    if not interop.supported or not interop.native.waterAt then
+        return nil
+    end
+    local id, surface, floor = interop.native.waterAt(component(position, "x", 1), component(position, "y", 2), component(position, "z", 3))
+    local reference = id and interop.volumes[id]
+    if reference then
+        return { reference = reference, surface = surface, floor = floor }
     end
 end
 

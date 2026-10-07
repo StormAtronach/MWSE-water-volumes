@@ -77,4 +77,13 @@ namespace wv {
 
     // The surface height of the water that a position is in or over, if any.
     std::optional<float> getSurfaceAt(const NI::Point3& position);
+
+    // The water that a position is in: the id of the volume, with the heights of its surface
+    // and its bottom there.
+    struct WaterAt {
+        int id;
+        float surface;
+        float floor;
+    };
+    std::optional<WaterAt> getWaterAt(const NI::Point3& position);
 }

@@ -10,6 +10,9 @@
     the water and keeps it in line with each reference: moving, scaling, disabling, enabling or
     deleting the reference moves or removes the water by the next frame. Nothing is done per
     reference in Lua per frame.
+
+    The mod also sends the events of interop.lua: ten times a second it asks the plugin, for
+    each actor that is in the simulation, which water its feet are in.
 ]]
 
 local interop = require("waterVolumes.interop")
@@ -21,7 +24,7 @@ local ACTIVATOR = tes3.objectType.activator
 local tracked = {}
 --- The tracked references by the id of their volume in the plugin.
 --- @type table<number, tes3reference>
-local byId = {}
+local byId = interop.volumes
 --- The base maps to animate, for the references that have any. Each list also holds the
 --- properties the maps belong to, under "owners", so that the maps stay alive.
 --- @type table<tes3reference, table>
@@ -100,11 +103,19 @@ end
 --- The slot of a look, shared by every object with the same look. A new look gets the next
 --- slot and is sent to the renderer.
 local lookSlots, lookCount = {}, 0
+local MAX_LOOKS = 4000
 local function slotOf(look)
     local key = interop.lookKey(look)
     local slot = lookSlots[key]
     if slot then
         return slot
+    end
+    if lookCount >= MAX_LOOKS then
+        if lookCount == MAX_LOOKS then
+            lookCount = lookCount + 1
+            mwse.log("[Water Volumes] More than %d different looks in one session. A new look is not shown.", MAX_LOOKS)
+        end
+        return nil
     end
     lookCount = lookCount + 1
     slot = lookCount
@@ -121,6 +132,24 @@ local function slotOf(look)
     }
     interop.native.setLook(slot, sent)
     return slot
+end
+
+--- Sets the material marker of settings from their look.
+local function setMarker(settings)
+    local look = settings.look
+    settings.marker = nil
+    if settings.plain then
+        return
+    end
+    if settings.skyOnly and look then
+        look.reflect = "sky"
+    end
+    local slot = look and interop.hasLooks and slotOf(look)
+    if slot then
+        settings.marker = interop.lookMarkerBase + slot
+    else
+        settings.marker = (settings.skyOnly or (look and look.reflect == "sky")) and interop.surfaceMarkerSkyOnly or interop.surfaceMarker
+    end
 end
 
 --- The settings for an object, or nil if it is not water. The node is that of one of its references.
@@ -160,23 +189,19 @@ local function getSettings(object, node)
             return nil
         end
     end
+    local scripted = interop.objectLooks[id:lower()]
+    if scripted ~= nil then
+        look = interop.parseLook(scripted)
+    end
     if look and look.extra then
         for key in pairs(look.extra) do
             mwse.log("[Water Volumes] %s: the look key '%s' is not one the mod knows. A water shader takes its values as p0 to p3.", id, key)
         end
     end
 
-    known = { depth = depth or interop.defaultDepth, swim = not noSwim, solid = not node:hasStringDataStartingWith("NCO"), color = color, look = look }
-    if not plain then
-        if skyOnly and look then
-            look.reflect = "sky"
-        end
-        if look and interop.hasLooks then
-            known.marker = interop.lookMarkerBase + slotOf(look)
-        else
-            known.marker = (skyOnly or (look and look.reflect == "sky")) and interop.surfaceMarkerSkyOnly or interop.surfaceMarker
-        end
-    end
+    known = { depth = depth or interop.defaultDepth, swim = not noSwim, solid = not node:hasStringDataStartingWith("NCO"), color = color,
+        look = look, plain = plain, skyOnly = skyOnly }
+    setMarker(known)
     settingsByObject[id] = known
     return known
 end
@@ -423,6 +448,17 @@ local function track(reference, onlyIfActive)
     if not settings or (onlyIfActive and not isActive(reference.cell)) then
         return
     end
+    -- A look of its own for this reference
+    local own = interop.referenceLooks[reference]
+    if own ~= nil then
+        local copy = {}
+        for key, value in pairs(settings) do
+            copy[key] = value
+        end
+        copy.look = interop.parseLook(own)
+        setMarker(copy)
+        settings = copy
+    end
 
     local entry = { settings = settings, cell = reference.cell, id = 0 }
     tracked[reference] = entry
@@ -511,6 +547,115 @@ local function scanActiveCells()
     end
 end
 
+--
+-- Events: who is in which water.
+--
+
+--- The water reference each actor's feet are in, by the actor's reference.
+--- @type table<tes3reference, tes3reference>
+local inside = {}
+local cameraInside = nil
+local POLL_SECONDS = 0.1
+local sincePoll = 0
+
+local function send(name, actor, mobile, volume, surface)
+    event.trigger(name, { reference = actor, mobile = mobile, volume = volume, surface = surface }, { filter = actor })
+end
+
+local function pollActor(mobile)
+    local actor = mobile.reference
+    if not actor then
+        return
+    end
+    local position = actor.position
+    local id, surface = interop.native.waterAt(position.x, position.y, position.z + 1)
+    local volume = id and byId[id] or nil
+    local before = inside[actor]
+    if volume == before then
+        return
+    end
+    if before then
+        send("waterVolumes:leave", actor, mobile, before, nil)
+    end
+    inside[actor] = volume
+    if volume then
+        send("waterVolumes:enter", actor, mobile, volume, surface)
+    end
+end
+
+local function pollActors()
+    if interop.native.count() == 0 and next(inside) == nil then
+        return
+    end
+    local player = tes3.mobilePlayer
+    if player then
+        pollActor(player)
+    end
+    for _, mobile in pairs(tes3.worldController.allMobileActors) do
+        if mobile ~= player then
+            pollActor(mobile)
+        end
+    end
+end
+
+local function pollCamera()
+    local volume = nil
+    if interop.native.count() > 0 then
+        local position = tes3.getCameraPosition()
+        local id = position and interop.native.waterAt(position.x, position.y, position.z)
+        volume = id and byId[id] or nil
+    end
+    if volume == cameraInside then
+        return
+    end
+    if cameraInside then
+        event.trigger("waterVolumes:cameraLeave", { volume = cameraInside })
+    end
+    cameraInside = volume
+    if volume then
+        event.trigger("waterVolumes:cameraEnter", { volume = volume })
+    end
+end
+
+--
+-- A level that moves.
+--
+
+local function finishLevel(reference, animation)
+    interop.levelAnimations[reference] = nil
+    if animation.callback then
+        animation.callback(reference)
+    end
+    event.trigger("waterVolumes:levelReached", { reference = reference, level = animation.to }, { filter = reference })
+end
+
+local function setLevel(reference, z)
+    local position = reference.position
+    reference.position = tes3vector3.new(position.x, position.y, z)
+end
+
+local function moveLevels(delta)
+    local finished = nil
+    for reference, animation in pairs(interop.levelAnimations) do
+        animation.elapsed = animation.elapsed + delta
+        local t = animation.seconds > 0 and math.min(animation.elapsed / animation.seconds, 1) or 1
+        local eased = animation.linear and t or t * t * (3 - 2 * t)
+        setLevel(reference, animation.from + (animation.to - animation.from) * eased)
+        if t >= 1 then
+            finished = finished or {}
+            finished[reference] = animation
+        end
+    end
+    if finished then
+        for reference, animation in pairs(finished) do
+            -- A callback of an earlier one in this list may have started a new move.
+            if interop.levelAnimations[reference] == animation then
+                finishLevel(reference, animation)
+            end
+        end
+    end
+end
+
 event.register("initialized", function()
     if not interop.supported then
         log("The mod is inactive. %s", interop.problem or "The engine hooks of watervolumes.dll could not be installed.")
@@ -524,12 +669,38 @@ event.register("initialized", function()
         track(e.reference, true)
     end)
     event.register("referenceDeactivated", function(e)
-        untrack(e.reference)
+        local reference = e.reference
+        local animation = interop.levelAnimations[reference]
+        if animation then
+            setLevel(reference, animation.to)
+            finishLevel(reference, animation)
+        end
+        local volume = inside[reference]
+        if volume then
+            inside[reference] = nil
+            send("waterVolumes:leave", reference, reference.mobile, volume, nil)
+        end
+        untrack(reference)
     end)
     event.register("cellChanged", function()
         activeCells = nil
     end)
-    event.register("load", untrackAll)
+    event.register("load", function()
+        untrackAll()
+        inside, cameraInside = {}, nil
+        interop.referenceLooks = {}
+        interop.levelAnimations = {}
+    end)
+    event.register("simulate", function(e)
+        if next(interop.levelAnimations) ~= nil then
+            moveLevels(e.delta)
+        end
+        sincePoll = sincePoll + e.delta
+        if sincePoll >= POLL_SECONDS and interop.native.waterAt then
+            sincePoll = 0
+            pollActors()
+        end
+    end)
     event.register("loaded", function()
         activeCells = nil
         scanActiveCells()
@@ -551,6 +722,9 @@ event.register("initialized", function()
         end
         update()
         animate()
+        if interop.native.waterAt then
+            pollCamera()
+        end
     end)
     log("Initialized.")
 end)
