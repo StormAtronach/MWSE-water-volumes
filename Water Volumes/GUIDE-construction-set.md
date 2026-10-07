@@ -226,6 +226,7 @@ wv: flow=0,120 speed=1.5 scale=0.8
 | `glow` | 0 to 1 | The surface gives light of its own, in the colour of the water, by night as by day |
 | `opacity` | 0 to 1, or `vertex` | How much of the water shows. Lower shows what is behind the surface. `vertex` takes the alpha of the vertex colours of the mesh |
 | `tint` | `vertex` | The vertex colours of the mesh tint the water: one mesh can go from clear to muddy |
+| `sky` | a colour: `RRGGBB`, or three numbers from 0 to 1 | What the water reflects where it reflects nothing on screen. Without it that is the sky outdoors, and the light of the room in an interior. Give it for a pool in a cave or a cistern that should be darker, lighter or of another colour than its room |
 | `reflect` | `scene` or `sky` | The same as the name words: what the surface reflects |
 | `shader` | a name | A water shader that a mod ships for MGE XE, `Data Files\shaders\water\<name>.fx`: foam, lava, anything. It gets the base texture of the mesh. Without the file the surface has the standard look |
 | `p0` to `p3` | up to four numbers each | Free values for such a shader |

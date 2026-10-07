@@ -145,7 +145,7 @@ int hasLooks_lua(lua_State* L) {
 // watervolumes.setLook(slot, look) -> true, or false when the renderer takes
 // no looks. The look is a table: reflectsScene (default true), tintFromVertex,
 // opacityFromVertex, flow {x, y}, speed, scale, glow, opacity, shader,
-// params { {..}, {..}, {..}, {..} }.
+// params { {..}, {..}, {..}, {..} }, sky { red, green, blue }.
 // A field that is missing has its standard value.
 int setLook_lua(lua_State* L) {
     const auto slot = static_cast<unsigned int>(luaL_checknumber(L, 1));
@@ -185,6 +185,16 @@ int setLook_lua(lua_State* L) {
         }
     }
     lua_pop(L, 1);
+    lua_getfield(L, 2, "sky");
+    if (lua_istable(L, -1)) {
+        lua_pop(L, 1);
+        lua_pushvalue(L, 2);
+        numbersField(L, "sky", look.sky, 3);
+        lua_pop(L, 1);
+        look.flags |= 8;
+    } else {
+        lua_pop(L, 1);
+    }
     lua_getfield(L, 2, "shader");
     if (lua_isstring(L, -1)) {
         strncpy_s(look.shader, lua_tostring(L, -1), _TRUNCATE);

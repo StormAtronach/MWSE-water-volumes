@@ -50,7 +50,8 @@ namespace wv {
     struct Look {
         unsigned int size;
         // 1: the surface reflects what is on screen; otherwise the sky only. 2: the vertex
-        // colour tints the water. 4: the vertex alpha is the opacity.
+        // colour tints the water. 4: the vertex alpha is the opacity. 8: sky holds the colour
+        // that the surface reflects in place of the sky.
         unsigned int flags;
         // Drift of the ripples in the axes of the mesh, in units per second
         float flow[2];
@@ -60,6 +61,7 @@ namespace wv {
         float opacity;
         float params[4][4];
         char shader[32];
+        float sky[3];
     };
 
     // Gives the water of a volume a current: x and y in the axes of the mesh, in units per

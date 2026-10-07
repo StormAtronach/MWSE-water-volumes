@@ -37,7 +37,9 @@
     Keys: flow (x,y: drift of the ripples in the axes of the mesh, units per second), speed
     and scale of the ripples (1 is the standard), glow (0 to 1), opacity (0 to 1, or vertex:
     the vertex alpha of the mesh), tint=vertex (the vertex colour of the mesh tints the
-    water), reflect (scene, sky), shader (the name of a water shader that a mod ships for the
+    water), reflect (scene, sky), sky (a colour, RRGGBB or three numbers: what the surface
+    reflects in place of the sky; without it that is the sky, and in an interior the light
+    of the room), shader (the name of a water shader that a mod ships for the
     renderer, Data Files\shaders\water\<name>.fx; it gets the base texture of the mesh), and
     p0 to p3 (up to four numbers each, for such a shader). registerObject takes the same line
     as look, or a table with the same keys. The renderer's water shading shows the look;
@@ -101,7 +103,7 @@ function interop.parseColor(color)
 end
 
 --- The keys of a look line that the mod knows, with how many numbers each takes; 0 for a word.
-local lookKeys = { flow = 2, carry = 1, speed = 1, scale = 1, glow = 1, opacity = 1, tint = 0, reflect = 0, shader = 0, distant = 0, p0 = 4, p1 = 4, p2 = 4, p3 = 4 }
+local lookKeys = { flow = 2, carry = 1, speed = 1, scale = 1, glow = 1, opacity = 1, tint = 0, reflect = 0, shader = 0, distant = 0, sky = 3, p0 = 4, p1 = 4, p2 = 4, p3 = 4 }
 
 --- A look from a line "key=value key=value", or from a table with the same keys. Nil for
 --- nothing. Unknown keys go into extra, as their text.
@@ -124,6 +126,9 @@ function interop.parseLook(source)
         local count = lookKeys[key]
         if count == nil then
             look.extra[key] = value
+        elseif key == "sky" and value:find("^#?%x%x%x%x%x%x$") then
+            -- A colour as RRGGBB
+            look[key] = { interop.parseColor(value) }
         elseif count == 0 or (count == 1 and not tonumber(value)) then
             -- A word in the place of a number: vertex, depth
             look[key] = value:lower()

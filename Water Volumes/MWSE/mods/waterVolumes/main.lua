@@ -129,6 +129,7 @@ local function slotOf(look)
         opacity = type(look.opacity) == "number" and look.opacity or nil,
         shader = look.shader,
         params = { look.p0, look.p1, look.p2, look.p3 },
+        sky = look.sky and { interop.parseColor(look.sky) } or nil,
     }
     interop.native.setLook(slot, sent)
     return slot
