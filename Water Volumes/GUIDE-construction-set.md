@@ -325,7 +325,17 @@ can be closed in two ways.
   otherwise). The surface must be one sheet. It may slope, but no part of it may lie over
   another part. A mesh that carries its surface twice, one a little over the other, or water
   in steps over one another, does not work this way: give it a body, or make one mesh per
-  sheet.
+  sheet. A surface made for both sides, with every face a second time in the same place, is
+  one sheet and works.
+- **Water in a mesh that is more than water.** When something in the mesh is named
+  `WaterVolume`, only that object, and what is under it if it is a node, is water. The other
+  shapes of the mesh are left as they are: a well keeps its posts, its roof and its stones.
+  A mesh with no such name in it, which a Lua mod made water by its id, is water as a whole.
+- **Water behind a mask.** The water keeps the stencil test and the depth test that the mesh
+  gives it (`NiStencilProperty`, `NiZBufferProperty`). So the old trick for a well works with
+  the water shading of MGE XE: a shape at the mouth writes a mask, and the water and the
+  shaft, deep under the ground, are drawn only through it. Water that is drawn without the
+  depth test cannot show its bed or reflect what is on screen; it is drawn as deep water.
 
 Where a mesh is not closed there is no water. With `depth=0` the mod adds no bottom and takes
 a mesh without a `WaterBody` as it is; use that for a closed mesh you cannot rename.
@@ -399,7 +409,7 @@ colour there with `water_color`, and the same look with `wv`, in the metadata fi
 plugin (see "Water far away").
 
 The same rule holds as for your own mesh: the mesh must be closed, or be one sheet that the
-mod closes `depth` below. A mesh that carries its surface twice does not work. The water of
+mod closes `depth` below. A mesh that carries its surface twice, one over the other, does not work. The water of
 the Palace of Vivec is such a mesh; for it, and for any mesh that the rule does not fit, put
 a mesh of your own in the place of the game's, with the names from "Your own mesh".
 

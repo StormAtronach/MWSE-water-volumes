@@ -57,8 +57,9 @@ namespace wv::geometry {
         // another.
         void closeBelow(float depth);
 
-        // Works out the bounds and the grid once every triangle is added. Returns false if there
-        // is no triangle. maxGridSize is for the tests; the game uses the default.
+        // Works out the bounds and the grid once every triangle is added. A triangle that is
+        // there two times, as in a surface with two sides, counts one time. Returns false if
+        // there is no triangle. maxGridSize is for the tests; the game uses the default.
         bool finish(unsigned int maxGridSize = 64);
 
         // The surface and the floor of the water at a position, if there is any. A position

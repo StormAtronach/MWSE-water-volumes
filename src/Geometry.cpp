@@ -1,8 +1,10 @@
 #include "Geometry.h"
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <functional>
+#include <set>
 
 namespace wv::geometry {
 
@@ -56,9 +58,32 @@ namespace wv::geometry {
         }
     }
 
+    // The corners of a triangle in a fixed order, to an eighth of a unit: the same for two
+    // triangles with the same corners, whichever way each is wound.
+    static std::array<int, 9> cornersOf(const Triangle& triangle) {
+        std::array<std::array<int, 3>, 3> corners;
+        const Vec3* points[3] = { &triangle.a, &triangle.b, &triangle.c };
+        for (auto i = 0; i < 3; ++i) {
+            corners[i] = { static_cast<int>(std::lround(points[i]->x * 8.0f)), static_cast<int>(std::lround(points[i]->y * 8.0f)),
+                           static_cast<int>(std::lround(points[i]->z * 8.0f)) };
+        }
+        std::sort(corners.begin(), corners.end());
+        return { corners[0][0], corners[0][1], corners[0][2], corners[1][0], corners[1][1], corners[1][2], corners[2][0], corners[2][1], corners[2][2] };
+    }
+
     bool Shape::finish(unsigned int maxGridSize) {
         if (footprint.empty()) {
             return false;
+        }
+
+        // A surface that is to be seen from both sides can have every face two times, one for
+        // each side. The two are one face of the water: counted two times, they would cross
+        // every vertical two times and there would be no water.
+        {
+            std::set<std::array<int, 9>> seen;
+            footprint.erase(std::remove_if(footprint.begin(), footprint.end(), [&](const Triangle& triangle) {
+                return !seen.insert(cornersOf(triangle)).second;
+            }), footprint.end());
         }
 
         min = footprint[0].a;

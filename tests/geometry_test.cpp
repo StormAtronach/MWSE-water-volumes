@@ -164,6 +164,20 @@ namespace {
         check(under && tooDeep && above && beside, "a sheet closed below: water from the sheet down to the depth, none below it or beside it");
     }
 
+    void testTwoSidedSheet() {
+        // Every face two times, the second time wound the other way: a surface for both sides.
+        Shape sheet;
+        const Placement level(0.0f, 0.0f, 0.0f, { 0.0f, 0.0f, 100.0f });
+        addQuad(sheet, level, { -200, -200, 0 }, { 200, -200, 0 }, { 200, 200, 0 }, { -200, 200, 0 });
+        addQuad(sheet, level, { -200, -200, 0 }, { -200, 200, 0 }, { 200, 200, 0 }, { 200, -200, 0 });
+        sheet.closeBelow(50.0f);
+        sheet.finish();
+        float surface = 0.0f, floor = 0.0f;
+        const auto under = sheet.waterAt({ 0, 0, 80 }, false, surface, floor) && near(surface, 100.0f) && near(floor, 50.0f);
+        const auto tooDeep = !sheet.waterAt({ 0, 0, 40 }, false, surface, floor);
+        check(under && tooDeep, "a sheet with every face two times is one sheet");
+    }
+
     void testSlopedSheet() {
         Shape sheet;
         const Placement tilted(0.2f, 0.0f, 0.0f, { 500.0f, 500.0f, 1000.0f });
@@ -264,6 +278,7 @@ namespace {
 int main() {
     testBox();
     testSheetClosedBelow();
+    testTwoSidedSheet();
     testSlopedSheet();
     testMeshNotClosed();
     testBodiesOverOneAnother();

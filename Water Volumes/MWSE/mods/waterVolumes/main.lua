@@ -284,9 +284,37 @@ end
 local function prepareNode(node, marker, color)
     local prefix = getSurfacePrefix()
     local maps = { owners = {} }
-    local function walk(object)
+    -- A mesh that names its water has water only there, and its other shapes are left as
+    -- they are: a well has posts and a roof. A mesh with no such name is water as a whole.
+    local tag = interop.tag:lower()
+    local function isSurface(object)
+        return object.name ~= nil and object.name:lower():sub(1, #tag) == tag
+    end
+    local function hasSurface(object)
+        if isSurface(object) then
+            return true
+        end
+        for _, child in ipairs(object.children or {}) do
+            if child and hasSurface(child) then
+                return true
+            end
+        end
+        return false
+    end
+    local namedOnly = hasSurface(node)
+    local function walk(object, inSurface)
         if isWaterBody(object) then
             object.appCulled = true
+            return
+        end
+        inSurface = inSurface or isSurface(object)
+        if namedOnly and not inSurface then
+            -- Not water. Its children can be.
+            for _, child in ipairs(object.children or {}) do
+                if child then
+                    walk(child, false)
+                end
+            end
             return
         end
         if marker and object:isInstanceOfType(ni.type.NiTriShape) then
@@ -319,12 +347,12 @@ local function prepareNode(node, marker, color)
         if children then
             for _, child in ipairs(children) do
                 if child then
-                    walk(child)
+                    walk(child, inSurface)
                 end
             end
         end
     end
-    walk(node)
+    walk(node, false)
     return maps
 end
 

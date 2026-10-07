@@ -234,18 +234,47 @@ namespace wv {
         return name != nullptr && _strnicmp(name, "WaterBody", 9) == 0;
     }
 
+    static bool isWaterSurface(const NI::AVObject* object) {
+        const auto name = object->getName();
+        return name != nullptr && _strnicmp(name, "WaterVolume", 11) == 0;
+    }
+
+    // True if something in the branch is named as the surface of the water.
+    static bool hasNamedSurface(NI::AVObject* object) {
+        if (object == nullptr) {
+            return false;
+        }
+        if (isWaterSurface(object)) {
+            return true;
+        }
+        if (object->isInstanceOfType(NI::RTTIStaticPtr::NiNode)) {
+            for (const auto& child : static_cast<NI::Node*>(object)->children) {
+                if (hasNamedSurface(child.get())) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     // Everything under a WaterBody is body: an exporter may write one object as a group of
-    // shapes, one per material.
-    static void collectFootprint(NI::AVObject* object, Volume& volume, bool& out_hasBody, bool inBody = false) {
+    // shapes, one per material. The same holds for an object named as the surface.
+    // With namedOnly the mesh names its water, and its other shapes are no water: a well has
+    // posts and a roof. Without a name in it the whole mesh is water.
+    static void collectFootprint(NI::AVObject* object, Volume& volume, bool& out_hasBody, bool namedOnly, bool inBody = false, bool inSurface = false) {
         if (object == nullptr) {
             return;
         }
         const auto body = inBody || isWaterBody(object);
+        const auto surface = inSurface || isWaterSurface(object);
         if (object->getAppCulled() && !body) {
             return;
         }
 
         if (object->isInstanceOfType(NI::RTTIStaticPtr::NiTriShape)) {
+            if (namedOnly && !body && !surface) {
+                return;
+            }
             const auto shape = static_cast<NI::TriShape*>(object);
             const auto data = shape->getModelData();
             if (data == nullptr || data->vertex == nullptr || data->triangleList == nullptr) {
@@ -267,7 +296,7 @@ namespace wv {
         }
         else if (object->isInstanceOfType(NI::RTTIStaticPtr::NiNode)) {
             for (const auto& child : static_cast<NI::Node*>(object)->children) {
-                collectFootprint(child.get(), volume, out_hasBody, body);
+                collectFootprint(child.get(), volume, out_hasBody, namedOnly, body, surface);
             }
         }
     }
@@ -276,7 +305,7 @@ namespace wv {
     static bool build(Volume& volume, NI::AVObject* node, float depth) {
         static_cast<geometry::Shape&>(volume) = {};
         auto hasBody = false;
-        collectFootprint(node, volume, hasBody);
+        collectFootprint(node, volume, hasBody, hasNamedSurface(node));
         // A mesh without a body is the surface alone, and gets its bottom from the depth.
         if (!hasBody && depth > 0.0f) {
             volume.closeBelow(depth);
