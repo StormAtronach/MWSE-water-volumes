@@ -63,6 +63,13 @@ namespace wv {
         char shader[32];
     };
 
+    // Gives the water of a volume a current: x and y in the axes of the mesh, in units per
+    // second, and how much of it carries an actor in the water (0 to 1). With byDepth the
+    // carry grows with the depth of the actor: nothing at the surface, all of it from the
+    // depth at which the actor swims. The engine's own physics moves the actor by it, as it
+    // does by the wind on the surface.
+    bool setFlow(int id, float x, float y, float carry, bool byDepth);
+
     // True when the renderer takes looks.
     bool rendererHasLooks();
 

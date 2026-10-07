@@ -121,6 +121,21 @@ void numbersField(lua_State* L, const char* key, float* out, int count) {
     lua_pop(L, 1);
 }
 
+// watervolumes.setFlow(id, x, y, carry, byDepth) -> true, or false for an
+// unknown id. The current of the water: x and y in the axes of the mesh, in
+// units per second, and how much of it carries an actor (0 to 1). With
+// byDepth the carry grows with the depth of the actor, from nothing at the
+// surface to all of it where the actor swims.
+int setFlow_lua(lua_State* L) {
+    const auto id = static_cast<int>(luaL_checknumber(L, 1));
+    const auto x = static_cast<float>(luaL_checknumber(L, 2));
+    const auto y = static_cast<float>(luaL_checknumber(L, 3));
+    const auto carry = static_cast<float>(luaL_optnumber(L, 4, 1.0));
+    const auto byDepth = lua_toboolean(L, 5) != 0;
+    lua_pushboolean(L, wv::setFlow(id, x, y, carry, byDepth) ? 1 : 0);
+    return 1;
+}
+
 // watervolumes.hasLooks() -> true when the renderer takes looks.
 int hasLooks_lua(lua_State* L) {
     lua_pushboolean(L, wv::rendererHasLooks() ? 1 : 0);
@@ -220,6 +235,7 @@ extern "C" __declspec(dllexport) int luaopen_watervolumes(lua_State* L) {
     setCFunctionField(L, "update", &update_lua);
     setCFunctionField(L, "remove", &remove_lua);
     setCFunctionField(L, "setColor", &setColor_lua);
+    setCFunctionField(L, "setFlow", &setFlow_lua);
     setCFunctionField(L, "hasLooks", &hasLooks_lua);
     setCFunctionField(L, "setLook", &setLook_lua);
     setCFunctionField(L, "surfaceAt", &surfaceAt_lua);

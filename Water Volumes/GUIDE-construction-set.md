@@ -179,7 +179,8 @@ wv: flow=0,120 speed=1.5 foam=0.5
 
 | Key | Values | What it does |
 | --- | --- | --- |
-| `flow` | `x,y`, in the axes of the mesh, in units per second | The ripples drift that way. A river flows; a pond does not |
+| `flow` | `x,y`, in the axes of the mesh, in units per second | The ripples drift that way, and so does anyone in the water: the flow is a current. A river flows; a pond does not |
+| `carry` | 0 to 1, default 1, or `depth` | How much of the flow carries an actor in the water. 0 for water that only looks like it flows. `depth` grows from nothing at the surface to the whole flow at the depth where the actor swims: wading is easy, swimming is not. The current works on `plain` meshes too, and without MGE XE |
 | `speed` | a number, 1 is the standard | How fast the ripples move. 0 holds them still |
 | `scale` | a number, 1 is the standard | The size of the ripples. Small for a basin, large for a lake |
 | `foam` | 0 to 1 | Foam where the water is shallow: at the shore and around rocks |
@@ -199,6 +200,11 @@ the same keys, for a mesh you cannot edit.
 colours for their look without MGE XE. The kit's own surfaces do.
 
 Far away, in distant land, a surface has the standard look for now.
+
+A current moves every actor whose feet are under the surface, at the speed of the flow,
+on top of its own movement. Swimming against a current of 60 is easy; a current of 300 wins.
+The engine moves the actor by its velocity, as it does in the wind on the sea, so collision
+and the shore work as always: the current stops where the actor climbs out.
 
 ## Water of a colour
 

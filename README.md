@@ -60,7 +60,7 @@ kept in this repository. Build it first (see "Building"); the build puts it at
 
 ### Which executable
 
-The plugin changes 82 places in `Morrowind.exe`. Before it changes any of them, it compares
+The plugin changes 83 places in `Morrowind.exe`. Before it changes any of them, it compares
 the bytes at every place with the bytes it expects. If one place differs, it changes nothing
 and the mod does nothing. `MWSE.log` then names the places, on a line that starts with
 `[Water Volumes]`.
@@ -69,7 +69,7 @@ and the mod does nothing. `MWSE.log` then names the places, on a line that start
   executable was tried. A different executable, or a patch that changes one of these places
   first, turns the mod off.
 - A patch that changes the same places after the plugin takes them away, and nothing says
-  so. `hookStatus()` in the table of the DLL returns how many of the 82 places still lead to
+  so. `hookStatus()` in the table of the DLL returns how many of the 83 places still lead to
   the plugin.
 - For 26 engine functions the plugin replaces the return address on the stack while the
   function runs. A crash dump taken inside one of them shows a small stub of the plugin where

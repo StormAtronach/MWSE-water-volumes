@@ -55,6 +55,13 @@ namespace wv {
         // The colour of the water, for the view from under its surface. Black is the game's own.
         NI::Point3 color = { 0.0f, 0.0f, 0.0f };
         bool colored = false;
+
+        // The current of the water, in the axes of the mesh, in units per second, and how
+        // much of it carries an actor. Zero carries nobody. With carryByDepth the carry grows
+        // from nothing at the surface to all of it at the depth where the actor swims.
+        NI::Point3 flow = { 0.0f, 0.0f, 0.0f };
+        float carry = 0.0f;
+        bool carryByDepth = false;
     };
 
     static std::unordered_map<int, std::unique_ptr<Volume>> volumes;
@@ -370,6 +377,18 @@ namespace wv {
         auto& volume = *itt->second;
         volume.color = { std::clamp(red, 0.0f, 1.0f), std::clamp(green, 0.0f, 1.0f), std::clamp(blue, 0.0f, 1.0f) };
         volume.colored = volume.color.x > 0.0f || volume.color.y > 0.0f || volume.color.z > 0.0f;
+        return true;
+    }
+
+    bool setFlow(int id, float x, float y, float carry, bool byDepth) {
+        const auto itt = volumes.find(id);
+        if (itt == volumes.end()) {
+            return false;
+        }
+        auto& volume = *itt->second;
+        volume.flow = { x, y, 0.0f };
+        volume.carry = std::clamp(carry, 0.0f, 1.0f);
+        volume.carryByDepth = byDepth;
         return true;
     }
 
@@ -705,6 +724,32 @@ namespace wv {
         TES3_WeatherController_updateUnderwaterState(weatherController, cameraZ, waterLevel);
     }
 
+    const auto TES3_MobileObject_updateInstantVelocity = reinterpret_cast<void(__thiscall*)(TES3::MobileObject*, const NI::Point3*)>(0x55EA90);
+
+    // The movement physics of an actor ends with its velocity for the frame. An actor in
+    // water with a current gets the current added, turned and scaled with the reference of
+    // the water, so the engine moves it as it moves an actor in the wind. The function is
+    // only called for actors. An actor swims where the water is deeper than three quarters
+    // of its height, the rule of mustActorSwimAtDestination.
+    static void __fastcall updateInstantVelocityWithCurrent(TES3::MobileObject* mobile, DWORD _UNUSED_, NI::Point3* velocity) {
+        const auto reference = mobile->reference;
+        if (anyVolumes && reference != nullptr && GetCurrentThreadId() == mainThreadId) {
+            float surface = 0.0f, floor = 0.0f;
+            const auto volume = findVolume(&reference->position, false, surface, floor);
+            if (volume != nullptr && volume->carry > 0.0f && reference->position.z < surface) {
+                auto carry = volume->carry;
+                if (volume->carryByDepth) {
+                    const auto swimDepth = static_cast<TES3::MobileActor*>(mobile)->height * 0.75f;
+                    carry *= std::clamp((surface - reference->position.z) / std::max(swimDepth, 1.0f), 0.0f, 1.0f);
+                }
+                const auto current = (volume->rotation * volume->flow) * (volume->scale * carry);
+                velocity->x += current.x;
+                velocity->y += current.y;
+            }
+        }
+        TES3_MobileObject_updateInstantVelocity(mobile, velocity);
+    }
+
     static bool __cdecl isPointUnderwater(const NI::Point3* position) {
         auto level = TES3_getWaterMinLevel();
         float surface = 0.0f;
@@ -867,6 +912,8 @@ namespace wv {
 
     // The call that tests a line of sight against the mesh of one reference.
     constexpr DWORD LINE_OF_SIGHT_CALL_SITE = 0x53B1DD;
+    // The end of the actor movement physics, where the velocity of the frame is set.
+    constexpr DWORD INSTANT_VELOCITY_CALL_SITE = 0x53EC4D;
 
     // Where each entry hook's stub is, once installed.
     static DWORD entryStubs[std::size(entryHooks)] = {};
@@ -939,6 +986,7 @@ namespace wv {
             call(site, 0x440AF0, &updateUnderwaterState);
         }
         call(LINE_OF_SIGHT_CALL_SITE, 0x53AF90, &lineOfSightRayVsReferenceNode);
+        call(INSTANT_VELOCITY_CALL_SITE, 0x55EA90, &updateInstantVelocityWithCurrent);
         for (const auto site : interiorCellLoadSites) {
             overBytes(site, interiorCellLoadBytes, sizeof(interiorCellLoadBytes), CALL, reinterpret_cast<DWORD>(&getInteriorCellOrProxy), sizeof(interiorCellLoadBytes));
         }

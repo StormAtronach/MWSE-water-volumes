@@ -41,6 +41,12 @@
     shader of that name), p0 to p3 (up to four numbers each, for such a shader). Other keys
     are kept for the shader. registerObject takes the same line as look, or a table with the
     same keys. The renderer's water shading shows the look; plain meshes have none.
+
+    A flow is also a current: an actor in the water drifts with it, at the speed of the flow
+    times carry (0 to 1, default 1). carry=0 makes water that only looks like it flows;
+    carry=depth grows from nothing at the surface to the full flow at the depth where the
+    actor swims, so wading is easy and swimming is not. The current works on plain meshes
+    too, and without the renderer.
 ]]
 
 local interop = {}
@@ -80,7 +86,7 @@ function interop.parseColor(color)
 end
 
 --- The keys of a look line that the mod knows, with how many numbers each takes; 0 for a word.
-local lookKeys = { flow = 2, speed = 1, scale = 1, foam = 1, glow = 1, opacity = 1, tint = 0, reflect = 0, shader = 0, distant = 0, p0 = 4, p1 = 4, p2 = 4, p3 = 4 }
+local lookKeys = { flow = 2, carry = 1, speed = 1, scale = 1, foam = 1, glow = 1, opacity = 1, tint = 0, reflect = 0, shader = 0, distant = 0, p0 = 4, p1 = 4, p2 = 4, p3 = 4 }
 
 --- A look from a line "key=value key=value", or from a table with the same keys. Nil for
 --- nothing. Unknown keys go into extra, as their text.
@@ -103,7 +109,8 @@ function interop.parseLook(source)
         local count = lookKeys[key]
         if count == nil then
             look.extra[key] = value
-        elseif count == 0 or (count == 1 and value:lower() == "vertex") then
+        elseif count == 0 or (count == 1 and not tonumber(value)) then
+            -- A word in the place of a number: vertex, depth
             look[key] = value:lower()
         else
             local numbers = {}

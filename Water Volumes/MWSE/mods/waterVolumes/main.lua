@@ -166,7 +166,7 @@ local function getSettings(object, node)
         end
     end
 
-    known = { depth = depth or interop.defaultDepth, swim = not noSwim, solid = not node:hasStringDataStartingWith("NCO"), color = color }
+    known = { depth = depth or interop.defaultDepth, swim = not noSwim, solid = not node:hasStringDataStartingWith("NCO"), color = color, look = look }
     if not plain then
         if skyOnly and look then
             look.reflect = "sky"
@@ -446,6 +446,13 @@ local function track(reference, onlyIfActive)
         local color = entry.color
         if color then
             interop.native.setColor(entry.id, color.r, color.g, color.b)
+        end
+        -- The flow of the look is a current for the actors in the water.
+        local look = settings.look
+        if look and type(look.flow) == "table" and look.flow[1] and look.flow[2] then
+            local carry = look.carry
+            local byDepth = carry == "depth"
+            interop.native.setFlow(entry.id, look.flow[1], look.flow[2], type(carry) == "number" and carry or 1, byDepth)
         end
     end
 end
