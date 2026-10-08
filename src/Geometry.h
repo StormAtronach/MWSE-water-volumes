@@ -66,5 +66,56 @@ namespace wv::geometry {
         // above the water gets the water under it. With ignoreHeight only where the position is
         // on the map counts, and the answer is the top surface there.
         bool waterAt(const Vec3& position, bool ignoreHeight, float& out_surface, float& out_floor) const;
+
+        // True for a point inside the closed shape: in its bounds, and between a top and a
+        // bottom of it. This is the test for a dry space.
+        bool holds(const Vec3& point) const {
+            if (point.x < min.x || point.x > max.x || point.y < min.y || point.y > max.y || point.z < min.z || point.z > max.z) {
+                return false;
+            }
+            float top = 0.0f, bottom = 0.0f;
+            return waterAt(point, false, top, bottom) && point.z <= top && point.z >= bottom;
+        }
+    };
+    // How far a thing that carries what stands in it has moved, and nobody was yet moved for.
+    // The thing is looked at once a frame; the movement of the actors asks for the step as a
+    // velocity. The step is kept until it was asked for, so that a frame in which no actor
+    // moves, a frame of a menu, does not lose it.
+    struct CarriedStep {
+        Vec3 pending = { 0.0f, 0.0f, 0.0f };
+        bool used = false;
+
+        // At each look, before the new step is known: a step that was used is done with.
+        void startLook() {
+            if (used) {
+                pending = { 0.0f, 0.0f, 0.0f };
+                used = false;
+            }
+        }
+
+        // The thing moved by this much since the last look. A step longer than the limit is
+        // a new place, not a move, and carries nobody.
+        void moved(const Vec3& step, float longest) {
+            if (step.x * step.x + step.y * step.y + step.z * step.z < longest * longest) {
+                pending = { pending.x + step.x, pending.y + step.y, pending.z + step.z };
+            } else {
+                pending = { 0.0f, 0.0f, 0.0f };
+            }
+        }
+
+        void clear() {
+            pending = { 0.0f, 0.0f, 0.0f };
+            used = false;
+        }
+
+        // The step as a velocity for a frame of this many seconds. Nothing for a frame of no
+        // time, and the step is kept then.
+        Vec3 velocity(float seconds) {
+            if (seconds <= 0.0f) {
+                return { 0.0f, 0.0f, 0.0f };
+            }
+            used = true;
+            return { pending.x / seconds, pending.y / seconds, pending.z / seconds };
+        }
     };
 }

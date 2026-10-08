@@ -70,12 +70,8 @@ namespace wv {
         bool carryByDepth = false;
 
         // The dry space carries the actors in it when it moves: a boat and who stands in it.
-        // step is how far it moved and no actor was yet moved for. It is kept until the
-        // movement of the actors has used it, so that a frame in which no actor moves, a
-        // frame of a menu, does not lose it.
         bool carries = false;
-        NI::Point3 step = { 0.0f, 0.0f, 0.0f };
-        mutable bool stepUsed = false;
+        mutable geometry::CarriedStep carried;
     };
 
     static std::unordered_map<int, std::unique_ptr<Volume>> volumes;
@@ -102,8 +98,12 @@ namespace wv {
     // Creatures that can only swim, with where each was last seen in the water of a volume.
     struct KeptSwimmer {
         NI::Point3 position;
-        DWORD seen;
+        // In the seconds of the simulation
+        float seen;
     };
+    // The seconds that the game has simulated since the plugin started. A menu or a long
+    // load does not count, so a creature is not dropped for a pause.
+    static float simulatedSeconds = 0.0f;
     static std::unordered_map<const TES3::MobileActor*, KeptSwimmer> keptSwimmers;
 
     // The mobile that came by last. Several hooked functions run for one mobile in a row, and
@@ -201,13 +201,7 @@ namespace wv {
             if (carriersOnly && !volume->carries) {
                 continue;
             }
-            const auto& mask = volume->mask;
-            if (point.x < mask.min.x || point.x > mask.max.x || point.y < mask.min.y || point.y > mask.max.y
-                || point.z < mask.min.z || point.z > mask.max.z) {
-                continue;
-            }
-            float top = 0.0f, bottom = 0.0f;
-            if (mask.waterAt(point, false, top, bottom) && point.z <= top && point.z >= bottom) {
+            if (volume->mask.holds(point)) {
                 return volume;
             }
         }
@@ -455,28 +449,17 @@ namespace wv {
         const auto renewed = node != nullptr && node != volume.node;
         const auto gone = (reference->objectFlags & (TES3::ObjectFlag::Disabled | TES3::ObjectFlag::Delete)) != 0;
         const auto wanted = volume.holdsWater && node != nullptr && !gone;
-        // The step that the actors were moved for is done with.
-        if (volume.stepUsed) {
-            volume.step = { 0.0f, 0.0f, 0.0f };
-            volume.stepUsed = false;
-        }
+        volume.carried.startLook();
         if (wanted && volume.current && !renewed && samePlacement(volume, node)) {
             return false;
         }
 
-        // How far a dry space that carries moved since the last look. A step that is too
-        // long for a move is a new place, and carries nobody.
+        // How far a dry space that carries moved since the last look.
         if (wanted && volume.current && !renewed && volume.carries && volume.masked) {
-            const NI::Point3 moved = { node->localTranslate.x - volume.translation.x, node->localTranslate.y - volume.translation.y,
-                node->localTranslate.z - volume.translation.z };
-            const auto length = std::sqrt(moved.x * moved.x + moved.y * moved.y + moved.z * moved.z);
-            if (length < MAX_CARRY_STEP) {
-                volume.step = { volume.step.x + moved.x, volume.step.y + moved.y, volume.step.z + moved.z };
-            } else {
-                volume.step = { 0.0f, 0.0f, 0.0f };
-            }
+            volume.carried.moved({ node->localTranslate.x - volume.translation.x, node->localTranslate.y - volume.translation.y,
+                node->localTranslate.z - volume.translation.z }, MAX_CARRY_STEP);
         } else {
-            volume.step = { 0.0f, 0.0f, 0.0f };
+            volume.carried.clear();
         }
 
         unlink(volume);
@@ -526,6 +509,10 @@ namespace wv {
         renewed.clear();
         if (GetCurrentThreadId() != mainThreadId) {
             return renewed;
+        }
+        const auto worldController = TES3::WorldController::get();
+        if (worldController != nullptr && !worldController->flagMenuMode) {
+            simulatedSeconds += worldController->deltaTime;
         }
         for (const auto& [id, volume] : volumes) {
             if (refresh(*volume)) {
@@ -700,7 +687,7 @@ namespace wv {
     //
 
     // A mobile that was not seen for this long may be another one at the same address.
-    constexpr DWORD KEPT_FOR_MILLISECONDS = 500;
+    constexpr auto KEPT_FOR_SECONDS = 0.5f;
 
     // How far a creature can be from where it last was in a volume and still have swum there.
     constexpr auto SWUM_ACROSS = 128.0f;
@@ -720,7 +707,7 @@ namespace wv {
         }
 
         auto& position = mobile->reference->position;
-        const auto now = GetTickCount();
+        const auto now = simulatedSeconds;
         float surface = 0.0f, floor = 0.0f;
         if (findVolume(&position, false, surface, floor) != nullptr && position.z <= surface) {
             if (keptSwimmers.size() > 256) {
@@ -734,7 +721,7 @@ namespace wv {
         if (kept == keptSwimmers.end()) {
             return;
         }
-        if (now - kept->second.seen > KEPT_FOR_MILLISECONDS) {
+        if (now - kept->second.seen > KEPT_FOR_SECONDS) {
             keptSwimmers.erase(kept);
             return;
         }
@@ -971,13 +958,12 @@ namespace wv {
             if (!masks.empty()) {
                 const NI::Point3 overFeet = { reference->position.x, reference->position.y, reference->position.z + CARRY_PROBE_HEIGHT };
                 const auto carrier = findMask(&overFeet, true);
-                const auto worldController = TES3::WorldController::get();
-                const auto seconds = worldController ? worldController->deltaTime : 0.0f;
-                if (carrier != nullptr && seconds > 0.0f) {
-                    velocity->x += carrier->step.x / seconds;
-                    velocity->y += carrier->step.y / seconds;
-                    velocity->z += carrier->step.z / seconds;
-                    carrier->stepUsed = true;
+                if (carrier != nullptr) {
+                    const auto worldController = TES3::WorldController::get();
+                    const auto carried = carrier->carried.velocity(worldController ? worldController->deltaTime : 0.0f);
+                    velocity->x += carried.x;
+                    velocity->y += carried.y;
+                    velocity->z += carried.z;
                 }
             }
         }

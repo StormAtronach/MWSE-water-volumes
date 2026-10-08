@@ -207,7 +207,11 @@ local function getSettings(object, node)
     else
         local text = tagText(node)
         if text then
-            depth = tonumber(text:match("depth%s*=%s*([%d%.]+)"))
+            -- An option with a value is written without spaces, as a pair of the look line is.
+            depth = tonumber(text:match("depth=([%d%.]+)"))
+            if not depth and text:find("depth%s*=") then
+                mwse.log("[Water Volumes] %s: the name \"%s\" has a space beside the equals sign of depth. Write depth=300 without spaces; the depth is not read.", id, text)
+            end
             plain = text:find("%f[%a]plain%f[%A]") ~= nil
             skyOnly = text:find("%f[%a]skyonly%f[%A]") ~= nil
             noSwim = text:find("%f[%a]noswim%f[%A]") ~= nil
@@ -325,7 +329,7 @@ end
 --- when it is not black.
 local function prepareNode(node, marker, color)
     local prefix = getSurfacePrefix()
-    local maps = { owners = {} }
+    local maps = { owners = {}, restores = {} }
     -- A mesh that names its water has water only there, and its other shapes are left as
     -- they are: a well has posts and a roof. A mesh with no such name is water as a whole.
     local tag = interop.tag:lower()
@@ -362,6 +366,11 @@ local function prepareNode(node, marker, color)
         if marker and object:isInstanceOfType(ni.type.NiTriShape) then
             -- A material of its own, so that other users of the mesh keep theirs.
             local material = object.materialProperty
+            -- The material that the shape had is kept, to put it back when the mesh is water
+            -- no more or gets other settings.
+            if material then
+                maps.restores[#maps.restores + 1] = { shape = object, material = material }
+            end
             material = material and material:clone() or niMaterialProperty.new()
             material.shininess = marker
             if color then
@@ -492,6 +501,7 @@ end
 local function prepare(reference, entry, node)
     local maps = prepareNode(node, entry.settings.marker, entry.settings.color)
     entry.color = maps.color
+    entry.restores, entry.preparedNode = maps.restores, node
     -- A plain mesh has no marked material to carry a colour. The colour that a registration
     -- gives it still counts for the view from under its surface.
     local given = entry.settings.color
@@ -588,6 +598,14 @@ local function untrack(reference)
     -- What the mod changed on the reference is changed back.
     if entry.madePassable then
         reference:setNoCollisionFlag(false, false)
+    end
+    -- The surfaces get their own materials again, if the mesh is still the one that was
+    -- prepared: a registration that came later can ask for another colour, or for none.
+    if entry.restores and reference.sceneNode == entry.preparedNode then
+        for _, restore in ipairs(entry.restores) do
+            restore.shape.materialProperty = restore.material
+            restore.shape:updateProperties()
+        end
     end
     tracked[reference] = nil
     animated[reference] = nil

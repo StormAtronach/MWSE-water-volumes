@@ -12,6 +12,7 @@
 
 using wv::geometry::Shape;
 using wv::geometry::Vec3;
+using wv::geometry::CarriedStep;
 
 namespace {
     int failures = 0;
@@ -275,6 +276,111 @@ namespace {
     }
 }
 
+    void testFanVertex() {
+        // A pyramid: four sides that meet in one vertex over the middle of a square base. A
+        // point under that vertex, and points under the edges of the sides, are covered once.
+        Shape pyramid;
+        const Vec3 top = { 0, 0, 100 };
+        const Vec3 base[4] = { { -100, -100, 0 }, { 100, -100, 0 }, { 100, 100, 0 }, { -100, 100, 0 } };
+        for (auto i = 0; i < 4; ++i) {
+            pyramid.addTriangle(base[i], base[(i + 1) % 4], top);
+        }
+        pyramid.addTriangle(base[0], base[1], base[2]);
+        pyramid.addTriangle(base[0], base[2], base[3]);
+        const auto made = pyramid.finish();
+        float surface = 0.0f, floor = 0.0f;
+        const auto underTop = pyramid.waterAt({ 0, 0, 50 }, false, surface, floor) && near(surface, 100.0f) && near(floor, 0.0f);
+        auto wrong = 0;
+        for (auto i = 1; i < 100; ++i) {
+            // Along the two diagonals, under the edges where two sides meet
+            const auto d = static_cast<float>(i);
+            for (const auto& point : { Vec3{ d, d, 0.5f }, Vec3{ -d, d, 0.5f }, Vec3{ d, -d, 0.5f }, Vec3{ -d, -d, 0.5f } }) {
+                if (!pyramid.waterAt(point, false, surface, floor) || !near(surface, 100.0f - d) || !near(floor, 0.0f)) {
+                    wrong++;
+                }
+            }
+        }
+        char detail[64];
+        std::snprintf(detail, sizeof(detail), "%d of 396 points wrong", wrong);
+        check(made && underTop && wrong == 0, "a point under a vertex that many triangles share, or under their edges, is counted once", detail);
+    }
+
+    void testTooManyCrossings() {
+        // More sheets over one another than the test keeps heights for: there inside and
+        // outside cannot be told apart, and the answer is no water. Beside the stack it is
+        // as always.
+        Shape stack;
+        for (auto i = 0; i < 20; ++i) {
+            const auto z = static_cast<float>(i) * 100.0f;
+            addBox(stack, { -50, -50, z }, { 50, 50, z + 50.0f });
+        }
+        addBox(stack, { 200, -50, 0 }, { 300, 50, 50 });
+        stack.finish();
+        float surface = 0.0f, floor = 0.0f;
+        const auto inStack = stack.waterAt({ 0, 0, 25 }, false, surface, floor);
+        const auto beside = stack.waterAt({ 250, 0, 25 }, false, surface, floor) && near(surface, 50.0f);
+        check(!inStack && beside, "more crossings than are kept: no water there, and water as always beside it");
+    }
+
+    void testDrySpace() {
+        // The dry space of a boat: a closed shape. A point is in it between its floor and its
+        // top, and not over it, under it or beside it. Water that reaches higher does not count.
+        Shape mask;
+        addBox(mask, { -100, -40, -140 }, { 100, 40, 45 });
+        mask.finish();
+        // The floor face itself is not in the space: a point must be over it.
+        const auto inside = mask.holds({ 0, 0, -100 }) && mask.holds({ 99, 39, 44 }) && mask.holds({ 0, 0, -139.5f });
+        const auto outside = !mask.holds({ 0, 0, 60 }) && !mask.holds({ 0, 0, -150 }) && !mask.holds({ 120, 0, -100 }) && !mask.holds({ 0, 50, 0 });
+        // Two dry spaces over one another in one mesh: the air between them is not dry.
+        Shape two;
+        addBox(two, { -50, -50, 0 }, { 50, 50, 100 });
+        addBox(two, { -50, -50, 300 }, { 50, 50, 400 });
+        two.finish();
+        const auto between = !two.holds({ 0, 0, 200 }) && two.holds({ 0, 0, 50 }) && two.holds({ 0, 0, 350 });
+        Shape open;
+        const Placement level(0.0f, 0.0f, 0.0f, { 0.0f, 0.0f, 0.0f });
+        addQuad(open, level, { -50, -50, 0 }, { 50, -50, 0 }, { 50, 50, 0 }, { -50, 50, 0 });
+        open.finish();
+        check(inside && outside && between && !open.holds({ 0, 0, -10 }), "a dry space: inside the closed shape and nowhere else; a shape that is not closed has none");
+    }
+
+    void testCarriedStep() {
+        const auto same = [](const Vec3& v, float x, float y, float z) { return near(v.x, x) && near(v.y, y) && near(v.z, z); };
+        // A boat that goes down 2 in a frame of a fiftieth of a second: 100 a second for who is in it.
+        CarriedStep step;
+        step.startLook();
+        step.moved({ 0, 0, -2 }, 64.0f);
+        const auto first = same(step.velocity(0.02f), 0, 0, -100);
+        // Two actors in the boat get the same in one frame.
+        const auto second = same(step.velocity(0.02f), 0, 0, -100);
+        // At the next look the step is done with.
+        step.startLook();
+        const auto done = same(step.velocity(0.02f), 0, 0, 0);
+
+        // A menu opens after a move: no actor moves in that frame, the boat stands still in
+        // the next looks, and the step is still there when the game goes on.
+        CarriedStep paused;
+        paused.startLook();
+        paused.moved({ 3, 0, -2 }, 64.0f);
+        paused.startLook();
+        paused.startLook();
+        const auto kept = same(paused.velocity(0.02f), 150, 0, -100);
+        // Steps add up while nobody was moved, and a frame of no time uses nothing.
+        CarriedStep sum;
+        sum.moved({ 1, 0, 0 }, 64.0f);
+        sum.startLook();
+        sum.moved({ 1, 0, 0 }, 64.0f);
+        const auto noTime = same(sum.velocity(0.0f), 0, 0, 0);
+        const auto both = same(sum.velocity(0.5f), 4, 0, 0);
+        // A jump is a new place and carries nobody, and takes what was pending with it.
+        CarriedStep jump;
+        jump.moved({ 1, 0, 0 }, 64.0f);
+        jump.moved({ 0, 500, 0 }, 64.0f);
+        const auto none = same(jump.velocity(0.02f), 0, 0, 0);
+        check(first && second && done && kept && noTime && both && none,
+            "a step that carries: the same velocity for all in one frame, used once, kept over frames in which nobody moves, lost on a jump");
+    }
+
 int main() {
     testBox();
     testSheetClosedBelow();
@@ -285,6 +391,10 @@ int main() {
     testClosedBoxAtAnyTilt();
     testPointsOnSharedEdges();
     testGridAgainstNoGrid();
+    testFanVertex();
+    testTooManyCrossings();
+    testDrySpace();
+    testCarriedStep();
     std::printf("%d failed\n", failures);
     return failures == 0 ? 0 : 1;
 }

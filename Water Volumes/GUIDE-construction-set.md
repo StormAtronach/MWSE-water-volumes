@@ -257,6 +257,35 @@ on top of its own movement. Swimming against a current of 60 is easy; a current 
 The engine moves the actor by its velocity, as it does in the wind on the sea, so collision
 and the shore work as always: the current stops where the actor climbs out.
 
+### Ripples of your own: a normal map, a flow map
+
+A water shader does not have to draw the water itself. It can give only the ripples and
+leave the rest to MGE XE: the colour, the depth, the reflections. The shader works out a
+ripple normal, from a normal map or from one that it moves along a flow map, and hands it to
+`shadeWaterVolumeRippled`. The mesh carries the textures: its base texture and its second
+texture (a decal, on the second texture coordinates) reach the shader as `sampMesh0` and
+`sampMesh1`. The showcase "True Water - Flow Map" is such a shader with its mesh, its two
+textures and the tool that makes them; start from it.
+
+Two rules for every water shader:
+
+- Call the standard shading one time. `shadeWaterVolume` and `shadeWaterVolumeRippled` are
+  most of a water shader, and each call is a copy of it. A shader with two calls, one for
+  near water and one for far, can become too large when the player turns the light options
+  on, and then MGE XE turns the water shaders of all mods off. Work out what differs first,
+  and call once.
+- Far away the mesh has no second texture. Use the standard ripples there (`look.distant`).
+
+The contract is in MGE XE's `docs/water-shaders.md`.
+
+### Light on the water
+
+The player can turn on three things for water volumes in MGE XE, all off unless set:
+the shadows of distant land on the surface, the glint of lamps and fires near the water,
+and caustics on what is under the surface. A mesh needs nothing for them. They are part
+of the standard shading, so a water shader that calls it has them too. A lamp must be close
+to the water to glint: its light falls off as the game's light does.
+
 ## Water of a colour
 
 The kit comes again in three colours. Each has a Static for every piece, with the name of
@@ -304,7 +333,9 @@ A mesh that has a `WaterBody` (see below) is water even without the tag.
 
 Options go after the tag, in the same name:
 
-- `depth=300` for a depth other than 512, in a mesh that is only a surface (see below);
+- `depth=300` for a depth other than 512, in a mesh that is only a surface (see below).
+  Write it without spaces, as every pair of a name or of a look line: `depth = 300` is
+  not read, and `MWSE.log` names the mesh;
 - `plain` to keep the mesh's own texture. Without it, MGE XE draws the surface with its water
   shading and ignores the texture. Rapids, foam and lava want `plain`;
 - `skyonly` to keep MGE's water shading but reflect only the sky, not the things on screen;
@@ -354,9 +385,14 @@ can be closed in two ways.
   movement, by the velocity that the game gives an actor, so walls and floors still stop
   them. Without the word an actor on a floor that sinks is left in the air until it takes
   a step, because the game looks for the ground under an actor only when the actor moves.
-  A step of more than 64 units in one frame counts as a new place, and carries nobody. Two limits: looked at from inside a dry space,
-  the water outside it is not drawn as a wall of water, and while the camera passes a face
-  of a mask a water volume can show inside for a few frames.
+  A step of more than 64 units in one frame counts as a new place, and carries nobody.
+  A point must be over the floor face of the shape to be in the dry space: put that face a
+  little under the floor that actors stand on.
+  Far away a dry space works as well: MGE XE keeps the shape in its distant land data and
+  cuts the water in a boat that is beyond the loaded cells (see "Water far away").
+  Two limits: looked at from inside a dry space, the water outside it is not drawn as a
+  wall of water; and while the camera passes a face of a mask, the caustics on the bed can
+  show inside for a few frames. The water itself does not.
 
 Where a mesh is not closed there is no water. With `depth=0` the mod adds no bottom and takes
 a mesh without a `WaterBody` as it is; use that for a closed mesh you cannot rename.
@@ -463,6 +499,11 @@ too, and not with its own texture.
 
 - A mesh whose surface is named `WaterVolume`, or that has a `WaterBody`, needs nothing more.
   The words `plain` and `skyonly` in the name count far away as well.
+- A shape named `WaterMask` is a dry space far away too: the sea and the water volumes are
+  not drawn in a boat that is beyond the loaded cells. The shape itself is never drawn. To
+  turn this off for one mesh, give its line in the metadata file `dry_space = false`. A boat
+  that a script moves is cut where it is while its cell is loaded; far away it is drawn, and
+  cut, where it was when the distant land was built.
 - A mesh that a Lua mod made water by its id has no such name. Put a line for it into the
   metadata file of the plugin that places it (`<plugin name>-metadata.toml`, beside the
   plugin):
