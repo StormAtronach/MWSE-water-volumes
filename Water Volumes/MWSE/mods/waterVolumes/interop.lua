@@ -106,6 +106,9 @@ end
 --- The keys of a look line that the mod knows, with how many numbers each takes; 0 for a word.
 local lookKeys = { flow = 2, carry = 1, speed = 1, scale = 1, glow = 1, opacity = 1, clarity = 1, tint = 0, reflect = 0, shader = 0, distant = 0, sky = 3, p0 = 4, p1 = 4, p2 = 4, p3 = 4 }
 
+--- Look lines with a space beside an equals sign that the log has named
+local spacedLines = {}
+
 --- A look from a line "key=value key=value", or from a table with the same keys. Nil for
 --- nothing. Unknown keys go into extra, as their text.
 --- @param source string|table|nil
@@ -120,8 +123,15 @@ function interop.parseLook(source)
     elseif type(source) ~= "string" then
         return nil
     end
+    -- A pair is a key and a value with the equals sign between them and no space: MGE XE and
+    -- its distant land generator read the line that way, and the water must look the same
+    -- near and far.
+    if (source:find("%s=") or source:find("=%s")) and not spacedLines[source] then
+        spacedLines[source] = true
+        mwse.log("[Water Volumes] The look line \"%s\" has a space beside an equals sign. Write key=value without spaces; the pair is not read.", source)
+    end
     local look, found = { extra = {} }, false
-    for key, value in source:gmatch("([%w_]+)%s*=%s*([^%s]+)") do
+    for key, value in source:gmatch("([%w_]+)=([^%s]+)") do
         key = key:lower()
         found = true
         local count = lookKeys[key]

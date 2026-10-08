@@ -232,6 +232,8 @@ wv: flow=0,120 speed=1.5 scale=0.8
 | `shader` | a name | A water shader that a mod ships for MGE XE, `Data Files\shaders\water\<name>.fx`: foam, lava, anything. It gets the base texture of the mesh. Without the file the surface has the standard look |
 | `p0` to `p3` | up to four numbers each | Free values for such a shader |
 
+Write a pair without spaces: `opacity=vertex`, not `opacity = vertex`. A pair with a space
+beside the equals sign is not read, and `MWSE.log` names the line.
 A key the mod does not know is noted once in `MWSE.log`. In NifSkope,
 add the string data with Block > Insert > NiStringExtraData, set its string, and link it in
 the Extra Data of the root. `registerObject` takes the same line as `look`, or a table with

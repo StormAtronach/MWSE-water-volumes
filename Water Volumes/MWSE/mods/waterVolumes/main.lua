@@ -468,6 +468,12 @@ end
 local function prepare(reference, entry, node)
     local maps = prepareNode(node, entry.settings.marker, entry.settings.color)
     entry.color = maps.color
+    -- A plain mesh has no marked material to carry a colour. The colour that a registration
+    -- gives it still counts for the view from under its surface.
+    local given = entry.settings.color
+    if not entry.color and not entry.settings.marker and given and (given.r > 0 or given.g > 0 or given.b > 0) then
+        entry.color = given
+    end
     if #maps > 0 then
         loadFlip()
         animated[reference] = maps
