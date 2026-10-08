@@ -56,6 +56,7 @@
                                    one in the mesh or in the registration. Nil takes it away.
       setLookOf(reference, look)   the look of one reference. Nil takes it away.
       waterAt(position)            the water a point is in: { reference, surface, floor }.
+      isDry(position)              true in a dry space: inside a closed shape named WaterMask.
       animateLevel(reference, { to = z, seconds = n })
                                    moves a water reference up or down over a time.
     Events, each with the actor's reference as the filter:
@@ -103,7 +104,7 @@ function interop.parseColor(color)
 end
 
 --- The keys of a look line that the mod knows, with how many numbers each takes; 0 for a word.
-local lookKeys = { flow = 2, carry = 1, speed = 1, scale = 1, glow = 1, opacity = 1, tint = 0, reflect = 0, shader = 0, distant = 0, sky = 3, p0 = 4, p1 = 4, p2 = 4, p3 = 4 }
+local lookKeys = { flow = 2, carry = 1, speed = 1, scale = 1, glow = 1, opacity = 1, clarity = 1, tint = 0, reflect = 0, shader = 0, distant = 0, sky = 3, p0 = 4, p1 = 4, p2 = 4, p3 = 4 }
 
 --- A look from a line "key=value key=value", or from a table with the same keys. Nil for
 --- nothing. Unknown keys go into extra, as their text.
@@ -280,6 +281,17 @@ function interop.waterAt(position)
     if reference then
         return { reference = reference, surface = surface, floor = floor }
     end
+end
+
+--- True for a position in a dry space: inside a closed shape named WaterMask, where there is
+--- no water of a volume or of the cell.
+--- @param position tes3vector3|number[]
+--- @return boolean
+function interop.isDry(position)
+    if not interop.supported or not interop.native.isDry then
+        return false
+    end
+    return interop.native.isDry(component(position, "x", 1), component(position, "y", 2), component(position, "z", 3))
 end
 
 --- The height of the surface of the water a position is in or over, or nil.

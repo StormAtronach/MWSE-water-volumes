@@ -144,7 +144,7 @@ int hasLooks_lua(lua_State* L) {
 
 // watervolumes.setLook(slot, look) -> true, or false when the renderer takes
 // no looks. The look is a table: reflectsScene (default true), tintFromVertex,
-// opacityFromVertex, flow {x, y}, speed, scale, glow, opacity, shader,
+// opacityFromVertex, flow {x, y}, speed, scale, glow, opacity, clarity, shader,
 // params { {..}, {..}, {..}, {..} }, sky { red, green, blue }.
 // A field that is missing has its standard value.
 int setLook_lua(lua_State* L) {
@@ -168,6 +168,7 @@ int setLook_lua(lua_State* L) {
     look.scale = numberField(L, "scale", 1.0f);
     look.glow = numberField(L, "glow", 0.0f);
     look.opacity = numberField(L, "opacity", 1.0f);
+    look.clarity = numberField(L, "clarity", 800.0f);
     lua_getfield(L, 2, "params");
     if (lua_istable(L, -1)) {
         for (int i = 0; i < 4; ++i) {
@@ -231,6 +232,12 @@ int waterAt_lua(lua_State* L) {
     return 3;
 }
 
+// watervolumes.isDry(x, y, z) -> true for a point in the dry space of a mask.
+int isDry_lua(lua_State* L) {
+    lua_pushboolean(L, wv::isDryAt(checkPoint(L, 1)) ? 1 : 0);
+    return 1;
+}
+
 // watervolumes.count() -> number of volumes that hold water now.
 int count_lua(lua_State* L) {
     lua_pushnumber(L, static_cast<lua_Number>(wv::count()));
@@ -263,6 +270,7 @@ extern "C" __declspec(dllexport) int luaopen_watervolumes(lua_State* L) {
     setCFunctionField(L, "setLook", &setLook_lua);
     setCFunctionField(L, "surfaceAt", &surfaceAt_lua);
     setCFunctionField(L, "waterAt", &waterAt_lua);
+    setCFunctionField(L, "isDry", &isDry_lua);
     setCFunctionField(L, "count", &count_lua);
     setCFunctionField(L, "hookStatus", &hookStatus_lua);
 

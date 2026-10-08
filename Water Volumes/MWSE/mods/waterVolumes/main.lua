@@ -44,10 +44,11 @@ local settingsRevision = 0
 
 --- The text that makes a mesh water, in lower case, or nil if it is not water: the name of the
 --- first object in the mesh whose name starts with the tag, options included. A mesh with a
---- WaterBody is water without it.
+--- WaterBody is water without it. A mesh that has only a WaterMask, a dry space, gives
+--- "watermask": it holds no water of its own.
 local function tagText(node)
     local tag = interop.tag:lower()
-    local named, body = nil, false
+    local named, body, mask = nil, false, false
     local function look(object)
         local name = object.name
         if name then
@@ -57,6 +58,7 @@ local function tagText(node)
                 return
             end
             body = body or name:sub(1, 9) == "waterbody"
+            mask = mask or name:sub(1, 9) == "watermask"
         end
         local children = object.children
         if children then
@@ -68,7 +70,7 @@ local function tagText(node)
         end
     end
     look(node)
-    return named or (body and tag) or nil
+    return named or (body and tag) or (mask and "watermask") or nil
 end
 
 --- The look line of a mesh: the text after "wv:" in the first string extra data that starts
@@ -127,6 +129,7 @@ local function slotOf(look)
         flow = type(look.flow) == "table" and look.flow or nil,
         speed = look.speed, scale = look.scale, glow = look.glow,
         opacity = type(look.opacity) == "number" and look.opacity or nil,
+        clarity = tonumber(look.clarity),
         shader = look.shader,
         params = { look.p0, look.p1, look.p2, look.p3 },
         sky = look.sky and { interop.parseColor(look.sky) } or nil,
@@ -202,6 +205,12 @@ local function getSettings(object, node)
 
     known = { depth = depth or interop.defaultDepth, swim = not noSwim, solid = not node:hasStringDataStartingWith("NCO"), color = color,
         look = look, plain = plain, skyOnly = skyOnly }
+    -- A mesh with a mask and no water is something else that keeps water out, a boat: it
+    -- stays solid, and its cell needs no water flag for it.
+    if not registered and tagText(node) == "watermask" then
+        known.maskOnly = true
+        known.solid = false
+    end
     setMarker(known)
     settingsByObject[id] = known
     return known
@@ -272,8 +281,17 @@ end
 
 --- A shape named WaterBody gives the sides and the bottom of the water. The Construction Set
 --- shows it, so that the whole body of water can be seen and placed. The game must not.
+--- The same holds for a shape named WaterMask, the dry space of a mesh.
 local function isWaterBody(object)
-    return object.name ~= nil and object.name:lower():find("^waterbody") ~= nil
+    if object.name == nil then
+        return false
+    end
+    local name = object.name:lower()
+    return name:find("^waterbody") ~= nil or name:find("^watermask") ~= nil
+end
+
+local function isWaterMask(object)
+    return object.name ~= nil and object.name:lower():find("^watermask") ~= nil
 end
 
 --- Hides the bodies, marks the surfaces for the renderer, and returns the base maps to
@@ -291,7 +309,7 @@ local function prepareNode(node, marker, color)
         return object.name ~= nil and object.name:lower():sub(1, #tag) == tag
     end
     local function hasSurface(object)
-        if isSurface(object) then
+        if isSurface(object) or isWaterMask(object) then
             return true
         end
         for _, child in ipairs(object.children or {}) do
@@ -491,7 +509,7 @@ local function track(reference, onlyIfActive)
 
     local entry = { settings = settings, cell = reference.cell, id = 0 }
     tracked[reference] = entry
-    if settings.swim then
+    if settings.swim and not settings.maskOnly then
         flagCell(entry.cell)
     end
     -- Nobody walks on water. A mesh that does not say so itself is told here; the game takes
@@ -531,7 +549,7 @@ local function untrack(reference)
         interop.native.remove(entry.id)
         byId[entry.id] = nil
     end
-    if entry.settings.swim then
+    if entry.settings.swim and not entry.settings.maskOnly then
         unflagCell(entry.cell)
     end
     -- What the mod changed on the reference is changed back.

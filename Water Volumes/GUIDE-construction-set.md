@@ -225,6 +225,7 @@ wv: flow=0,120 speed=1.5 scale=0.8
 | `scale` | a number, 1 is the standard | The size of the ripples. Small for a basin, large for a lake |
 | `glow` | 0 to 1 | The surface gives light of its own, in the colour of the water, by night as by day |
 | `opacity` | 0 to 1, or `vertex` | How much of the water shows. Lower shows what is behind the surface. `vertex` takes the alpha of the vertex colours of the mesh |
+| `clarity` | units of water, 800 is the standard | How much water it takes to hide what is under the surface. Small for murky water: at 100 a pond shows its bed only at the bank. 0 shows nothing under the surface, the water is opaque. Water of a colour takes that colour faster as well |
 | `tint` | `vertex` | The vertex colours of the mesh tint the water: one mesh can go from clear to muddy |
 | `sky` | a colour: `RRGGBB`, or three numbers from 0 to 1 | What the water reflects where it reflects nothing on screen. Without it that is the sky outdoors, and the light of the room in an interior. Give it for a pool in a cave or a cistern that should be darker, lighter or of another colour than its room |
 | `reflect` | `scene` or `sky` | The same as the name words: what the surface reflects |
@@ -336,6 +337,18 @@ can be closed in two ways.
   the water shading of MGE XE: a shape at the mouth writes a mask, and the water and the
   shaft, deep under the ground, are drawn only through it. Water that is drawn without the
   depth test cannot show its bed or reflect what is on screen; it is drawn as deep water.
+
+- **A dry space in the water.** A closed shape named `WaterMask` is the opposite of water:
+  inside it there is none, whatever water the place is in, the sea or a volume. The hold of
+  a boat whose floor lies under the water line is the use for it: make the mask the inside
+  of the hull, closed at the top at the height of the rim. Nobody in it swims or is under
+  water, the camera in it has no underwater view, and with MGE XE no water and no caustics
+  are drawn in it. The mod hides the shape. A mesh can be a mask and nothing else, or have
+  a mask besides its water. Give a mesh with a mask a collision of its own
+  (`RootCollisionNode`), or the mask is a wall. `waterVolumes.isDry(position)` tells a
+  script whether a place is in a dry space. Two limits: looked at from inside a dry space,
+  the water outside it is not drawn as a wall of water, and while the camera passes a face
+  of a mask a water volume can show inside for a few frames.
 
 Where a mesh is not closed there is no water. With `depth=0` the mod adds no bottom and takes
 a mesh without a `WaterBody` as it is; use that for a closed mesh you cannot rename.

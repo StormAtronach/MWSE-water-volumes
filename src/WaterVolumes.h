@@ -62,6 +62,9 @@ namespace wv {
         float params[4][4];
         char shader[32];
         float sky[3];
+        // Over how many units of water what is under the surface fades into the colour of
+        // deep water; 800 is the standard
+        float clarity;
     };
 
     // Gives the water of a volume a current: x and y in the axes of the mesh, in units per
@@ -88,4 +91,7 @@ namespace wv {
         float floor;
     };
     std::optional<WaterAt> getWaterAt(const NI::Point3& position);
+
+    // True for a position in the dry space of a mask: a closed shape named WaterMask.
+    bool isDryAt(const NI::Point3& position);
 }

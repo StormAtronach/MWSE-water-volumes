@@ -46,6 +46,12 @@ namespace wv {
         const NI::AVObject* node = nullptr;
         // Its water counts: it is in the squares of the world.
         bool linked = false;
+        // The dry space of the mesh: a closed shape named WaterMask. Inside it there is no
+        // water, of this volume, of another one, or of the cell: the hold of a boat, a cellar
+        // under a lake, a bubble of air under the sea.
+        geometry::Shape mask;
+        // The mask counts: it is in the list of the masks.
+        bool masked = false;
         // The triangles, or their absence, are those of the placement below.
         bool current = false;
         NI::Matrix33 rotation;
@@ -69,9 +75,11 @@ namespace wv {
     static bool installed = false;
     static DWORD mainThreadId = 0;
 
-    // Read from assembly. True while at least one volume holds water.
+    // Read from assembly. True while at least one volume holds water or has a mask.
     static bool anyVolumes = false;
     static size_t linkedCount = 0;
+    // The volumes that have a dry space. There are few, and every one is tested.
+    static std::vector<const Volume*> masks;
 
     // The volumes by the squares of the world their bounds touch, so that a lookup tests only
     // the ones near the point. A volume that touches too many squares is tested every time.
@@ -134,7 +142,65 @@ namespace wv {
         anyVolumes = true;
     }
 
+    // Gives the renderer the triangles of all dry spaces, so that it does not draw water in
+    // them.
+    static void sendMasksToRenderer() {
+        using Setter = void(__cdecl*)(const float*, unsigned int);
+        static const auto setter = []() -> Setter {
+            const auto renderer = GetModuleHandleA("d3d8.dll");
+            return renderer == NULL ? nullptr : reinterpret_cast<Setter>(GetProcAddress(renderer, "MGE_WaterMasksSet"));
+        }();
+        if (setter == nullptr) {
+            return;
+        }
+        std::vector<float> corners;
+        for (const auto volume : masks) {
+            for (const auto& triangle : volume->mask.footprint) {
+                for (const auto& corner : { triangle.a, triangle.b, triangle.c }) {
+                    corners.push_back(corner.x);
+                    corners.push_back(corner.y);
+                    corners.push_back(corner.z);
+                }
+            }
+        }
+        setter(corners.empty() ? nullptr : corners.data(), static_cast<unsigned int>(corners.size() / 9));
+    }
+
+    static void addMask(Volume& volume) {
+        masks.push_back(&volume);
+        volume.masked = true;
+        anyVolumes = true;
+        sendMasksToRenderer();
+    }
+
+    static void removeMask(Volume& volume) {
+        if (volume.masked) {
+            std::erase(masks, &volume);
+            volume.masked = false;
+            anyVolumes = linkedCount != 0 || !masks.empty();
+            sendMasksToRenderer();
+        }
+    }
+
+    // True for a point in the dry space of a mask.
+    static bool isDry(const NI::Point3* position) {
+        const geometry::Vec3 point = { position->x, position->y, position->z };
+        for (const auto volume : masks) {
+            const auto& mask = volume->mask;
+            if (point.x < mask.min.x || point.x > mask.max.x || point.y < mask.min.y || point.y > mask.max.y
+                || point.z < mask.min.z || point.z > mask.max.z) {
+                continue;
+            }
+            float top = 0.0f, bottom = 0.0f;
+            if (mask.waterAt(point, false, top, bottom) && point.z <= top && point.z >= bottom) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     static void unlink(Volume& volume) {
+        removeMask(volume);
         if (!volume.linked) {
             return;
         }
@@ -154,7 +220,7 @@ namespace wv {
         }
         volume.linked = false;
         linkedCount--;
-        anyVolumes = linkedCount != 0;
+        anyVolumes = linkedCount != 0 || !masks.empty();
     }
 
     // Layout shared with the renderer's exported setter.
@@ -200,6 +266,23 @@ namespace wv {
         }
     }
 
+    // Tells the renderer that the camera is in a dry space, where it is not under water.
+    static void setRendererDry(bool dry) {
+        static bool told = false;
+        if (dry == told) {
+            return;
+        }
+        told = dry;
+        using Setter = void(__cdecl*)(int);
+        static const auto setter = []() -> Setter {
+            const auto renderer = GetModuleHandleA("d3d8.dll");
+            return renderer == NULL ? nullptr : reinterpret_cast<Setter>(GetProcAddress(renderer, "MGE_WaterDrySet"));
+        }();
+        if (setter != nullptr) {
+            setter(dry ? 1 : 0);
+        }
+    }
+
     using RendererLookSetter = void(__cdecl*)(unsigned int, const Look*);
 
     static RendererLookSetter findRendererLookSetter() {
@@ -234,17 +317,23 @@ namespace wv {
         return name != nullptr && _strnicmp(name, "WaterBody", 9) == 0;
     }
 
+    static bool isWaterMask(const NI::AVObject* object) {
+        const auto name = object->getName();
+        return name != nullptr && _strnicmp(name, "WaterMask", 9) == 0;
+    }
+
     static bool isWaterSurface(const NI::AVObject* object) {
         const auto name = object->getName();
         return name != nullptr && _strnicmp(name, "WaterVolume", 11) == 0;
     }
 
-    // True if something in the branch is named as the surface of the water.
+    // True if something in the branch is named as the surface of the water, or as a mask: the
+    // mesh then says itself what in it is water, and a mesh with a mask alone has none.
     static bool hasNamedSurface(NI::AVObject* object) {
         if (object == nullptr) {
             return false;
         }
-        if (isWaterSurface(object)) {
+        if (isWaterSurface(object) || isWaterMask(object)) {
             return true;
         }
         if (object->isInstanceOfType(NI::RTTIStaticPtr::NiNode)) {
@@ -261,18 +350,21 @@ namespace wv {
     // shapes, one per material. The same holds for an object named as the surface.
     // With namedOnly the mesh names its water, and its other shapes are no water: a well has
     // posts and a roof. Without a name in it the whole mesh is water.
-    static void collectFootprint(NI::AVObject* object, Volume& volume, bool& out_hasBody, bool namedOnly, bool inBody = false, bool inSurface = false) {
+    // Everything under a WaterMask is the dry space of the mesh, and no water.
+    static void collectFootprint(NI::AVObject* object, Volume& volume, bool& out_hasBody, bool namedOnly, bool inBody = false, bool inSurface = false,
+                                 bool inMask = false) {
         if (object == nullptr) {
             return;
         }
         const auto body = inBody || isWaterBody(object);
         const auto surface = inSurface || isWaterSurface(object);
-        if (object->getAppCulled() && !body) {
+        const auto masking = inMask || isWaterMask(object);
+        if (object->getAppCulled() && !body && !masking) {
             return;
         }
 
         if (object->isInstanceOfType(NI::RTTIStaticPtr::NiTriShape)) {
-            if (namedOnly && !body && !surface) {
+            if (namedOnly && !body && !surface && !masking) {
                 return;
             }
             const auto shape = static_cast<NI::TriShape*>(object);
@@ -280,9 +372,10 @@ namespace wv {
             if (data == nullptr || data->vertex == nullptr || data->triangleList == nullptr) {
                 return;
             }
-            if (body) {
+            if (body && !masking) {
                 out_hasBody = true;
             }
+            geometry::Shape& target = masking ? volume.mask : static_cast<geometry::Shape&>(volume);
 
             const auto corner = [&](unsigned short index) {
                 const auto world = shape->worldTransform * data->vertex[index];
@@ -291,25 +384,28 @@ namespace wv {
             const auto triangleCount = data->getActiveTriangleCount();
             for (auto i = 0u; i < triangleCount; ++i) {
                 const auto& indices = data->triangleList[i].vertices;
-                volume.addTriangle(corner(indices[0]), corner(indices[1]), corner(indices[2]));
+                target.addTriangle(corner(indices[0]), corner(indices[1]), corner(indices[2]));
             }
         }
         else if (object->isInstanceOfType(NI::RTTIStaticPtr::NiNode)) {
             for (const auto& child : static_cast<NI::Node*>(object)->children) {
-                collectFootprint(child.get(), volume, out_hasBody, namedOnly, body, surface);
+                collectFootprint(child.get(), volume, out_hasBody, namedOnly, body, surface, masking);
             }
         }
     }
 
-    // Takes the triangles of a branch as the water of a volume. False if they hold none.
-    static bool build(Volume& volume, NI::AVObject* node, float depth) {
+    // Takes the triangles of a branch as the water of a volume, and those of its mask as its
+    // dry space. False if they hold no water; out_dry says if there is a dry space.
+    static bool build(Volume& volume, NI::AVObject* node, float depth, bool& out_dry) {
         static_cast<geometry::Shape&>(volume) = {};
+        volume.mask = {};
         auto hasBody = false;
         collectFootprint(node, volume, hasBody, hasNamedSurface(node));
         // A mesh without a body is the surface alone, and gets its bottom from the depth.
         if (!hasBody && depth > 0.0f) {
             volume.closeBelow(depth);
         }
+        out_dry = volume.mask.finish();
         return volume.finish();
     }
 
@@ -343,8 +439,12 @@ namespace wv {
             volume.scale = node->localScale;
             volume.current = true;
             // The depth is given for the mesh as modelled, so it scales with the reference.
-            if (build(volume, node, volume.depth * node->localScale)) {
+            auto dry = false;
+            if (build(volume, node, volume.depth * node->localScale, dry)) {
                 link(volume);
+            }
+            if (dry) {
+                addMask(volume);
             }
         }
         return renewed;
@@ -426,6 +526,9 @@ namespace wv {
     }
 
     static const Volume* findVolume(const NI::Point3* position, bool ignoreHeight, float& out_surface, float& out_floor) {
+        if (!ignoreHeight && !masks.empty() && isDry(position)) {
+            return nullptr;
+        }
         const Volume* found = nullptr;
         const geometry::Vec3 point = { position->x, position->y, position->z };
         const auto test = [&](const Volume* volume) {
@@ -465,6 +568,10 @@ namespace wv {
             return surface;
         }
         return {};
+    }
+
+    bool isDryAt(const NI::Point3& position) {
+        return !masks.empty() && isDry(&position);
     }
 
     std::optional<WaterAt> getWaterAt(const NI::Point3& position) {
@@ -681,6 +788,11 @@ namespace wv {
         if (!anyVolumes || subject.position == nullptr || GetCurrentThreadId() != mainThreadId) {
             return base;
         }
+        // In a dry space there is no water at all, that of the cell included: its level is
+        // given as far under the one who asks.
+        if (!subject.ignoreHeight && !masks.empty() && isDry(subject.position)) {
+            return std::min(base, subject.position->z - 100000.0f);
+        }
         float surface = 0.0f;
         if (findSurface(subject.position, subject.ignoreHeight, surface) && surface > base) {
             return surface;
@@ -750,13 +862,16 @@ namespace wv {
     static void __fastcall updateUnderwaterState(void* weatherController, DWORD _UNUSED_, float cameraZ, float waterLevel) {
         float surface = 0.0f, floor = 0.0f;
         const auto volume = (anyVolumes && subject.position != nullptr) ? findVolume(subject.position, false, surface, floor) : nullptr;
+        // A camera in a dry space is not under water, however deep under the sea it is.
+        const auto dry = anyVolumes && subject.position != nullptr && !masks.empty() && isDry(subject.position);
+        setRendererDry(dry);
         setRendererVolume(volume, surface, floor);
         setUnderwaterColor(static_cast<TES3::WeatherController*>(weatherController), (volume != nullptr && subject.position->z < surface) ? volume : nullptr);
-        if (volume != nullptr) {
+        if (volume != nullptr || dry) {
             const auto dataHandler = TES3::DataHandler::get();
             const auto plane = dataHandler && dataHandler->waterController ? dataHandler->waterController->waterPlane : nullptr;
             if (plane != nullptr) {
-                cameraZ = plane->worldTransform.translation.z + (subject.position->z < surface ? -1.0f : 1.0f);
+                cameraZ = plane->worldTransform.translation.z + ((volume != nullptr && subject.position->z < surface) ? -1.0f : 1.0f);
             }
         }
         TES3_WeatherController_updateUnderwaterState(weatherController, cameraZ, waterLevel);
@@ -789,6 +904,9 @@ namespace wv {
     }
 
     static bool __cdecl isPointUnderwater(const NI::Point3* position) {
+        if (!masks.empty() && GetCurrentThreadId() == mainThreadId && isDry(position)) {
+            return false;
+        }
         auto level = TES3_getWaterMinLevel();
         float surface = 0.0f;
         if (anyVolumes && GetCurrentThreadId() == mainThreadId && findSurface(position, false, surface) && surface > level) {
@@ -820,6 +938,9 @@ namespace wv {
     // own rules. The game's two functions for this do not ask for the water level outdoors, so
     // hooks on the level cannot reach them; these two take their place whole.
     static float __cdecl getAbsDistanceBelowWater(const NI::Point3* position) {
+        if (!masks.empty() && GetCurrentThreadId() == mainThreadId && isDry(position)) {
+            return 0.0f;
+        }
         float surface = 0.0f;
         if (anyVolumes && GetCurrentThreadId() == mainThreadId && findSurface(position, false, surface) && surface > position->z) {
             return surface - position->z;
