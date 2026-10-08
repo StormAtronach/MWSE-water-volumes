@@ -70,9 +70,12 @@ namespace wv {
         bool carryByDepth = false;
 
         // The dry space carries the actors in it when it moves: a boat and who stands in it.
-        // drift is how fast it moved in the last update, in units per second.
+        // step is how far it moved and no actor was yet moved for. It is kept until the
+        // movement of the actors has used it, so that a frame in which no actor moves, a
+        // frame of a menu, does not lose it.
         bool carries = false;
-        NI::Point3 drift = { 0.0f, 0.0f, 0.0f };
+        NI::Point3 step = { 0.0f, 0.0f, 0.0f };
+        mutable bool stepUsed = false;
     };
 
     static std::unordered_map<int, std::unique_ptr<Volume>> volumes;
@@ -190,11 +193,12 @@ namespace wv {
     // The longest step in one frame that still is a move of a dry space, and not a new place.
     constexpr auto MAX_CARRY_STEP = 64.0f;
 
-    // The dry space that carries the actors in it and holds the point, if any.
-    static const Volume* findCarrier(const NI::Point3* position) {
+    // The volume whose dry space holds the point, if any; with carriersOnly, only one that
+    // carries the actors in it.
+    static const Volume* findMask(const NI::Point3* position, bool carriersOnly) {
         const geometry::Vec3 point = { position->x, position->y, position->z };
         for (const auto volume : masks) {
-            if (!volume->carries) {
+            if (carriersOnly && !volume->carries) {
                 continue;
             }
             const auto& mask = volume->mask;
@@ -212,19 +216,7 @@ namespace wv {
 
     // True for a point in the dry space of a mask.
     static bool isDry(const NI::Point3* position) {
-        const geometry::Vec3 point = { position->x, position->y, position->z };
-        for (const auto volume : masks) {
-            const auto& mask = volume->mask;
-            if (point.x < mask.min.x || point.x > mask.max.x || point.y < mask.min.y || point.y > mask.max.y
-                || point.z < mask.min.z || point.z > mask.max.z) {
-                continue;
-            }
-            float top = 0.0f, bottom = 0.0f;
-            if (mask.waterAt(point, false, top, bottom) && point.z <= top && point.z >= bottom) {
-                return true;
-            }
-        }
-        return false;
+        return findMask(position, false) != nullptr;
     }
 
     static void unlink(Volume& volume) {
@@ -260,7 +252,7 @@ namespace wv {
     // The renderer is told about one volume at most: the one the camera is in, as a box whose
     // top is the surface at the camera.
     static int rendererVolumeId = 0;
-    static float rendererSurface = 0.0f;
+    static ExportedVolume rendererBox = {};
 
     using RendererSetter = void(__cdecl*)(const ExportedVolume*, unsigned int);
 
@@ -274,11 +266,22 @@ namespace wv {
 
     static void setRendererVolume(const Volume* volume, float surface, float floor) {
         const auto id = volume ? volume->id : 0;
-        if (id == rendererVolumeId && (id == 0 || std::abs(surface - rendererSurface) < 0.5f)) {
+        const ExportedVolume box = volume
+            ? ExportedVolume{ { volume->min.x, volume->min.y, floor }, { volume->max.x, volume->max.y, surface } }
+            : ExportedVolume{};
+        const auto sameBox = [&]() {
+            for (int i = 0; i < 3; ++i) {
+                if (std::abs(box.min[i] - rendererBox.min[i]) >= 0.5f || std::abs(box.max[i] - rendererBox.max[i]) >= 0.5f) {
+                    return false;
+                }
+            }
+            return true;
+        };
+        if (id == rendererVolumeId && (id == 0 || sameBox())) {
             return;
         }
         rendererVolumeId = id;
-        rendererSurface = surface;
+        rendererBox = box;
 
         static const auto setter = findRendererSetter();
         if (setter == nullptr) {
@@ -286,8 +289,7 @@ namespace wv {
         }
 
         if (volume) {
-            const ExportedVolume exported = { { volume->min.x, volume->min.y, floor }, { volume->max.x, volume->max.y, surface } };
-            setter(&exported, 1);
+            setter(&box, 1);
         }
         else {
             setter(nullptr, 0);
@@ -453,23 +455,28 @@ namespace wv {
         const auto renewed = node != nullptr && node != volume.node;
         const auto gone = (reference->objectFlags & (TES3::ObjectFlag::Disabled | TES3::ObjectFlag::Delete)) != 0;
         const auto wanted = volume.holdsWater && node != nullptr && !gone;
+        // The step that the actors were moved for is done with.
+        if (volume.stepUsed) {
+            volume.step = { 0.0f, 0.0f, 0.0f };
+            volume.stepUsed = false;
+        }
         if (wanted && volume.current && !renewed && samePlacement(volume, node)) {
-            volume.drift = { 0.0f, 0.0f, 0.0f };
             return false;
         }
 
-        // How fast a dry space that carries moved since the last look. A step that is too
+        // How far a dry space that carries moved since the last look. A step that is too
         // long for a move is a new place, and carries nobody.
-        volume.drift = { 0.0f, 0.0f, 0.0f };
         if (wanted && volume.current && !renewed && volume.carries && volume.masked) {
-            const auto worldController = TES3::WorldController::get();
-            const auto seconds = worldController ? worldController->deltaTime : 0.0f;
-            const NI::Point3 step = { node->localTranslate.x - volume.translation.x, node->localTranslate.y - volume.translation.y,
+            const NI::Point3 moved = { node->localTranslate.x - volume.translation.x, node->localTranslate.y - volume.translation.y,
                 node->localTranslate.z - volume.translation.z };
-            const auto length = std::sqrt(step.x * step.x + step.y * step.y + step.z * step.z);
-            if (seconds > 0.0f && length < MAX_CARRY_STEP) {
-                volume.drift = { step.x / seconds, step.y / seconds, step.z / seconds };
+            const auto length = std::sqrt(moved.x * moved.x + moved.y * moved.y + moved.z * moved.z);
+            if (length < MAX_CARRY_STEP) {
+                volume.step = { volume.step.x + moved.x, volume.step.y + moved.y, volume.step.z + moved.z };
+            } else {
+                volume.step = { 0.0f, 0.0f, 0.0f };
             }
+        } else {
+            volume.step = { 0.0f, 0.0f, 0.0f };
         }
 
         unlink(volume);
@@ -919,11 +926,15 @@ namespace wv {
         setRendererDry(dry);
         setRendererVolume(volume, surface, floor);
         setUnderwaterColor(static_cast<TES3::WeatherController*>(weatherController), (volume != nullptr && subject.position->z < surface) ? volume : nullptr);
-        if (volume != nullptr || dry) {
+        // Under the surface of a volume the camera is under water, and in a dry space it is
+        // not. A camera over the surface of a volume keeps the answer for the water of the
+        // cell: the volume can lie under the sea.
+        const auto inVolume = volume != nullptr && subject.position->z < surface;
+        if (inVolume || dry) {
             const auto dataHandler = TES3::DataHandler::get();
             const auto plane = dataHandler && dataHandler->waterController ? dataHandler->waterController->waterPlane : nullptr;
             if (plane != nullptr) {
-                cameraZ = plane->worldTransform.translation.z + ((volume != nullptr && subject.position->z < surface) ? -1.0f : 1.0f);
+                cameraZ = plane->worldTransform.translation.z + (inVolume ? -1.0f : 1.0f);
             }
         }
         TES3_WeatherController_updateUnderwaterState(weatherController, cameraZ, waterLevel);
@@ -959,11 +970,14 @@ namespace wv {
             // over them is tested.
             if (!masks.empty()) {
                 const NI::Point3 overFeet = { reference->position.x, reference->position.y, reference->position.z + CARRY_PROBE_HEIGHT };
-                const auto carrier = findCarrier(&overFeet);
-                if (carrier != nullptr) {
-                    velocity->x += carrier->drift.x;
-                    velocity->y += carrier->drift.y;
-                    velocity->z += carrier->drift.z;
+                const auto carrier = findMask(&overFeet, true);
+                const auto worldController = TES3::WorldController::get();
+                const auto seconds = worldController ? worldController->deltaTime : 0.0f;
+                if (carrier != nullptr && seconds > 0.0f) {
+                    velocity->x += carrier->step.x / seconds;
+                    velocity->y += carrier->step.y / seconds;
+                    velocity->z += carrier->step.z / seconds;
+                    carrier->stepUsed = true;
                 }
             }
         }

@@ -231,7 +231,7 @@ local function getSettings(object, node)
         look = look, plain = plain, skyOnly = skyOnly, carries = carries }
     -- A mesh with a mask and no water is something else that keeps water out, a boat: it
     -- stays solid, and its cell needs no water flag for it.
-    if not registered and tagText(node) == "watermask" then
+    if tagText(node) == "watermask" then
         known.maskOnly = true
         known.solid = false
     end
