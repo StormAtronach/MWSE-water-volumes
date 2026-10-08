@@ -136,6 +136,14 @@ int setFlow_lua(lua_State* L) {
     return 1;
 }
 
+// watervolumes.setCarries(id, carries) -> true, or false for an unknown id. The dry space
+// of the volume carries the actors in it when its reference moves.
+int setCarries_lua(lua_State* L) {
+    const auto id = static_cast<int>(luaL_checknumber(L, 1));
+    lua_pushboolean(L, wv::setCarries(id, lua_toboolean(L, 2) != 0) ? 1 : 0);
+    return 1;
+}
+
 // watervolumes.hasLooks() -> true when the renderer takes looks.
 int hasLooks_lua(lua_State* L) {
     lua_pushboolean(L, wv::rendererHasLooks() ? 1 : 0);
@@ -266,6 +274,7 @@ extern "C" __declspec(dllexport) int luaopen_watervolumes(lua_State* L) {
     setCFunctionField(L, "remove", &remove_lua);
     setCFunctionField(L, "setColor", &setColor_lua);
     setCFunctionField(L, "setFlow", &setFlow_lua);
+    setCFunctionField(L, "setCarries", &setCarries_lua);
     setCFunctionField(L, "hasLooks", &hasLooks_lua);
     setCFunctionField(L, "setLook", &setLook_lua);
     setCFunctionField(L, "surfaceAt", &surfaceAt_lua);

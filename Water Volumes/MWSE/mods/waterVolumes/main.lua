@@ -138,6 +138,25 @@ local function slotOf(look)
     return slot
 end
 
+--- The name of the first WaterMask of a mesh, in lower case with its options, or nil.
+local function maskText(node)
+    local found = nil
+    local function look(object)
+        local name = object.name
+        if name and name:lower():sub(1, 9) == "watermask" then
+            found = name:lower()
+            return
+        end
+        for _, child in ipairs(object.children or {}) do
+            if child and not found then
+                look(child)
+            end
+        end
+    end
+    look(node)
+    return found
+end
+
 --- Sets the material marker of settings from their look.
 local function setMarker(settings)
     local look = settings.look
@@ -174,8 +193,13 @@ local function getSettings(object, node)
     end
 
     local depth, plain, skyOnly, noSwim, color, look
+    -- The dry space of the mesh carries the actors in it: the word "carries" in the name of
+    -- its WaterMask, or the same in a registration.
+    local maskName = maskText(node)
+    local carries = maskName ~= nil and maskName:find("%f[%a]carries%f[%A]") ~= nil
     local registered = interop.objects[id:lower()]
     if registered then
+        carries = carries or registered.carries == true
         depth, plain, skyOnly, noSwim = registered.depth, registered.plain == true, registered.skyOnly == true, registered.noSwim == true
         local red, green, blue = interop.parseColor(registered.color)
         color = red and niColor.new(red, green, blue)
@@ -204,7 +228,7 @@ local function getSettings(object, node)
     end
 
     known = { depth = depth or interop.defaultDepth, swim = not noSwim, solid = not node:hasStringDataStartingWith("NCO"), color = color,
-        look = look, plain = plain, skyOnly = skyOnly }
+        look = look, plain = plain, skyOnly = skyOnly, carries = carries }
     -- A mesh with a mask and no water is something else that keeps water out, a boat: it
     -- stays solid, and its cell needs no water flag for it.
     if not registered and tagText(node) == "watermask" then
@@ -535,6 +559,9 @@ local function track(reference, onlyIfActive)
         local color = entry.color
         if color then
             interop.native.setColor(entry.id, color.r, color.g, color.b)
+        end
+        if settings.carries and interop.native.setCarries then
+            interop.native.setCarries(entry.id, true)
         end
         -- The flow of the look is a current for the actors in the water.
         local look = settings.look

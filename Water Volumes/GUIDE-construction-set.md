@@ -348,7 +348,13 @@ can be closed in two ways.
   are drawn in it. The mod hides the shape. A mesh can be a mask and nothing else, or have
   a mask besides its water. Give a mesh with a mask a collision of its own
   (`RootCollisionNode`), or the mask is a wall. `waterVolumes.isDry(position)` tells a
-  script whether a place is in a dry space. Two limits: looked at from inside a dry space,
+  script whether a place is in a dry space. A boat that moves can take along who stands in
+  it: name the shape `WaterMask carries`, or give `carries = true` in `registerObject`.
+  When a script then moves the reference, every actor in its dry space gets the same
+  movement, by the velocity that the game gives an actor, so walls and floors still stop
+  them. Without the word an actor on a floor that sinks is left in the air until it takes
+  a step, because the game looks for the ground under an actor only when the actor moves.
+  A step of more than 64 units in one frame counts as a new place, and carries nobody. Two limits: looked at from inside a dry space,
   the water outside it is not drawn as a wall of water, and while the camera passes a face
   of a mask a water volume can show inside for a few frames.
 

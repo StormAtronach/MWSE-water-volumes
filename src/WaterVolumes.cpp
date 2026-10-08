@@ -68,6 +68,11 @@ namespace wv {
         NI::Point3 flow = { 0.0f, 0.0f, 0.0f };
         float carry = 0.0f;
         bool carryByDepth = false;
+
+        // The dry space carries the actors in it when it moves: a boat and who stands in it.
+        // drift is how fast it moved in the last update, in units per second.
+        bool carries = false;
+        NI::Point3 drift = { 0.0f, 0.0f, 0.0f };
     };
 
     static std::unordered_map<int, std::unique_ptr<Volume>> volumes;
@@ -180,6 +185,29 @@ namespace wv {
             anyVolumes = linkedCount != 0 || !masks.empty();
             sendMasksToRenderer();
         }
+    }
+
+    // The longest step in one frame that still is a move of a dry space, and not a new place.
+    constexpr auto MAX_CARRY_STEP = 64.0f;
+
+    // The dry space that carries the actors in it and holds the point, if any.
+    static const Volume* findCarrier(const NI::Point3* position) {
+        const geometry::Vec3 point = { position->x, position->y, position->z };
+        for (const auto volume : masks) {
+            if (!volume->carries) {
+                continue;
+            }
+            const auto& mask = volume->mask;
+            if (point.x < mask.min.x || point.x > mask.max.x || point.y < mask.min.y || point.y > mask.max.y
+                || point.z < mask.min.z || point.z > mask.max.z) {
+                continue;
+            }
+            float top = 0.0f, bottom = 0.0f;
+            if (mask.waterAt(point, false, top, bottom) && point.z <= top && point.z >= bottom) {
+                return volume;
+            }
+        }
+        return nullptr;
     }
 
     // True for a point in the dry space of a mask.
@@ -426,7 +454,22 @@ namespace wv {
         const auto gone = (reference->objectFlags & (TES3::ObjectFlag::Disabled | TES3::ObjectFlag::Delete)) != 0;
         const auto wanted = volume.holdsWater && node != nullptr && !gone;
         if (wanted && volume.current && !renewed && samePlacement(volume, node)) {
+            volume.drift = { 0.0f, 0.0f, 0.0f };
             return false;
+        }
+
+        // How fast a dry space that carries moved since the last look. A step that is too
+        // long for a move is a new place, and carries nobody.
+        volume.drift = { 0.0f, 0.0f, 0.0f };
+        if (wanted && volume.current && !renewed && volume.carries && volume.masked) {
+            const auto worldController = TES3::WorldController::get();
+            const auto seconds = worldController ? worldController->deltaTime : 0.0f;
+            const NI::Point3 step = { node->localTranslate.x - volume.translation.x, node->localTranslate.y - volume.translation.y,
+                node->localTranslate.z - volume.translation.z };
+            const auto length = std::sqrt(step.x * step.x + step.y * step.y + step.z * step.z);
+            if (seconds > 0.0f && length < MAX_CARRY_STEP) {
+                volume.drift = { step.x / seconds, step.y / seconds, step.z / seconds };
+            }
         }
 
         unlink(volume);
@@ -518,6 +561,15 @@ namespace wv {
         volume.flow = { x, y, 0.0f };
         volume.carry = std::clamp(carry, 0.0f, 1.0f);
         volume.carryByDepth = byDepth;
+        return true;
+    }
+
+    bool setCarries(int id, bool carries) {
+        const auto itt = volumes.find(id);
+        if (itt == volumes.end()) {
+            return false;
+        }
+        itt->second->carries = carries;
         return true;
     }
 
@@ -877,6 +929,9 @@ namespace wv {
         TES3_WeatherController_updateUnderwaterState(weatherController, cameraZ, waterLevel);
     }
 
+    // How far over the feet of an actor the point lies that says which dry space carries it.
+    constexpr auto CARRY_PROBE_HEIGHT = 24.0f;
+
     const auto TES3_MobileObject_updateInstantVelocity = reinterpret_cast<void(__thiscall*)(TES3::MobileObject*, const NI::Point3*)>(0x55EA90);
 
     // The movement physics of an actor ends with its velocity for the frame. An actor in
@@ -898,6 +953,18 @@ namespace wv {
                 const auto current = (volume->rotation * volume->flow) * (volume->scale * carry);
                 velocity->x += current.x;
                 velocity->y += current.y;
+            }
+            // An actor in a dry space that carries goes with it. The feet of an actor that
+            // stands on the floor of the space are in its lowest face, so the point a little
+            // over them is tested.
+            if (!masks.empty()) {
+                const NI::Point3 overFeet = { reference->position.x, reference->position.y, reference->position.z + CARRY_PROBE_HEIGHT };
+                const auto carrier = findCarrier(&overFeet);
+                if (carrier != nullptr) {
+                    velocity->x += carrier->drift.x;
+                    velocity->y += carrier->drift.y;
+                    velocity->z += carrier->drift.z;
+                }
             }
         }
         TES3_MobileObject_updateInstantVelocity(mobile, velocity);

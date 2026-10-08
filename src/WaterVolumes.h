@@ -74,6 +74,11 @@ namespace wv {
     // does by the wind on the surface.
     bool setFlow(int id, float x, float y, float carry, bool byDepth);
 
+    // Makes the dry space of a volume carry the actors in it: when the reference moves, who
+    // is in its dry space moves with it, by the velocity that the engine gives an actor. For
+    // a boat. Off unless it is set.
+    bool setCarries(int id, bool carries);
+
     // True when the renderer takes looks.
     bool rendererHasLooks();
 
